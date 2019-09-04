@@ -1,6 +1,7 @@
 
-# mac system file
+# system file
 .DS_store
+.vscode
 
 # logs
 cnn_minist_model.json
@@ -11,7 +12,8 @@ cnn_cifar10_history.pkl
 cnn_cifar10_model.json
 cnn_cifar10_weights.h5
 
-# train / test data
+# data dir
 *.zip
 train*
 test*
+dogs_vs_cats_smaller
