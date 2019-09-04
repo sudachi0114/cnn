@@ -2,6 +2,9 @@
 # trial CNN in keras
 #   CNN で CIFAR10
 
+# ----- 学習の実行時間を計測する -----
+import time
+
 from keras.layers import Conv2D, MaxPooling2D, Flatten, Dense
 from keras.models import Sequential
 
@@ -55,10 +58,19 @@ def main(rgb=True):
                   loss='categorical_crossentropy',
                   metrics=['accuracy'])
 
-    history = model.fit(x_train, y_train, epochs=5, batch_size=64, verbose=1)
+    # stop watch start!
+    start = time.time()
+    
+    history = model.fit(x_train, y_train, epochs=20, batch_size=64, verbose=1)
+
+    # stop watch stop!
+    elapsed_time = time.time() - start
 
     test_loss, test_acc = model.evaluate(x_test, y_test, verbose=1)
     print("test loss : {0} | test accuracy : {1}".format(test_loss, test_acc))
+
+    # print elapsed time
+    print("train takes {} [sec]".format(elapsed_time))
 
     # save model in json file
     model2json = model.to_json()
