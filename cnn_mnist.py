@@ -67,3 +67,9 @@ def main():
 
 if __name__ == '__main__':
     main()
+
+
+# モデルの保存に関して参考
+#   https://qiita.com/ak11/items/67118e11b756b0ee83a5
+#   https://m0t0k1ch1st0ry.com/blog/2016/07/17/keras/
+#   https://keras.io/ja/getting-started/faq/#keras-model (公式)
