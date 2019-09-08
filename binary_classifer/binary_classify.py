@@ -20,15 +20,14 @@ from keras.preprocessing.image import ImageDataGenerator
 def main():
 
     input_size = 150
-    batch_size = 32
+    batch_size = 10  # 32
 
     # directory define
     cwd = os.getcwd()
     #print("current : ", cwd)
-    base_dir = os.path.join(cwd, "dogs_vs_cats_smaller")
 
-    #cnn_dir = os.path.dirname(cwd)
-    #base_dir = os.path.join(cnn_dir, "dogs_vs_cats_smaller")
+    cnn_dir = os.path.dirname(cwd)
+    base_dir = os.path.join(cnn_dir, "dogs_vs_cats_smaller")
     train_dir = os.path.join(base_dir, "train")
     print("train data is in ... ", train_dir)
     test_dir = os.path.join(base_dir, "test")
@@ -36,18 +35,19 @@ def main():
     
     # rescaring all images to 1/255
     train_datagen = ImageDataGenerator(rescale=1.0/255.0)
-    test_datagen = ImageDataGenerator(rescale=1.0/255.0)
+    validation_datagen = ImageDataGenerator(rescale=1.0/255.0)
 
-    train_gen = train_datagen.flow_from_directory(train_dir,
+    train_generator = train_datagen.flow_from_directory(train_dir,
                                                   target_size=(input_size, input_size),
                                                   batch_size=batch_size,
                                                   class_mode='binary')
 
-    test_gen = test_datagen.flow_from_directory(test_dir,
-                                                target_size=(input_size, input_size),
-                                                batch_size=batch_size,
-                                                class_mode='binary')
-    data_checker, label_checker = next(train_gen)
+    validation_generator = validation_datagen.flow_from_directory(test_dir,
+                                                                  target_size=(input_size, input_size),
+                                                                  batch_size=batch_size,
+                                                                  class_mode='binary')
+    
+    data_checker, label_checker = next(train_generator)
     print("data shape : ", data_checker.shape)
     print("label shape : ", label_checker.shape)
 
@@ -58,7 +58,7 @@ def main():
         ch = 3
     else:
         ch = 1
-    print("set ch : ", ch)
+    print("set channel : ", ch)
         
     model = Sequential()
 
@@ -80,16 +80,16 @@ def main():
                   optimizer=Adam(lr=1e-4),
                   metrics=['accuracy'])
 
-    steps_per_epoch = train_gen.n // batch_size
-    validation_steps = test_gen.n // batch_size
+    steps_per_epoch = train_generator.n // batch_size
+    validation_steps = validation_generator.n // batch_size
     print(steps_per_epoch, " [steps / epoch]")
-    print(validation_steps, " (validation steps < default=10)")
+    print(validation_steps, " (validation steps)")
 
-    history = model.fit_generator(train_gen,
+    history = model.fit_generator(train_generator,
                                   steps_per_epoch=steps_per_epoch,
                                   epochs=30,
-                                  validation_data=test_gen,
-                                  validation_steps=10)
+                                  validation_data=validation_generator,
+                                  validation_steps=validation_steps)
     
     # save model in json file
     model2json = model.to_json()
