@@ -4,13 +4,9 @@
 .vscode
 
 # logs
-cnn_minist_model.json
-cnn_minist_weights.h5
-cnn_mnist_history.pkl
-
-cnn_cifar10_history.pkl
-cnn_cifar10_model.json
-cnn_cifar10_weights.h5
+*model.json
+*weights.h5
+*history.pkl
 
 # data dir
 *.zip
