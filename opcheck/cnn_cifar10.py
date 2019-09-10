@@ -3,7 +3,7 @@
 #   CNN で CIFAR10
 
 # ----- 学習の実行時間を計測する -----
-import time
+import time, os
 
 from keras.layers import Conv2D, MaxPooling2D, Flatten, Dense
 from keras.models import Sequential
@@ -72,17 +72,25 @@ def main(rgb=True):
     # print elapsed time
     print("train takes {} [sec]".format(elapsed_time))
 
+    # directory ---
+    cwd = os.getcwd()
+    cnn_dir = os.path.dirname(cwd)
+    log_dir = os.path.join(cnn_dir, "log")
+    os.makedirs(log_dir, exist_ok=True)
+    child_log_dir = os.path.join(log_dir, "opcheck_cifar10_log")
+    os.makedirs(child_log_dir, exist_ok=True)
+
     # save model in json file
     model2json = model.to_json()
-    with open('cnn_cifar10_model.json', 'w') as f:
+    with open(os.path.join(child_log_dir, 'cnn_cifar10_model.json'), 'w') as f:
         f.write(model2json)
 
     # save weights in hdf5 file
-    model.save_weights('cnn_cifar10_weights.h5')
+    model.save_weights(os.path.join(child_log_dir, 'cnn_cifar10_weights.h5'))
 
     # save history
     import pickle
-    with open('cnn_cifar10_history.pkl', 'wb') as p:
+    with open(os.path.join(child_log_dir, 'cnn_cifar10_history.pkl'), 'wb') as p:
         pickle.dump(history.history, p)
 
 if __name__ == '__main__':
