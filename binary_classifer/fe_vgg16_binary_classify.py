@@ -1,5 +1,6 @@
 
 # pre-trained model : VGG16 を用いて画像認識 (特徴量抽出 feature extraction)
+#   特徴量抽出を先に行い、その結果を用いて、NNで学習する方法。
 
 import os
 import numpy as np
@@ -61,7 +62,7 @@ def main(input_size=150, ch=3, batch_size=10, epochs=30, train_size=100, validat
     print("test data is in ... ", test_dir)
 
     log_dir = os.path.join(cnn_dir, "log")
-    child_log_dir = os.path.join(log_dir, "vgg16_binary_classifer_log")
+    child_log_dir = os.path.join(log_dir, "fe_vgg16_binary_classifer_log")
     os.makedirs(child_log_dir, exist_ok=True)
 
     # create conv_base -----
@@ -95,11 +96,11 @@ def main(input_size=150, ch=3, batch_size=10, epochs=30, train_size=100, validat
                         validation_data=(validation_features, validation_labels))
 
     # save model in hdf5 file -----
-    model.save(os.path.join(child_log_dir, "vgg16_binary_classify_model.h5"))
+    model.save(os.path.join(child_log_dir, "fe_vgg16_binary_classify_model.h5"))
 
     # save history -----
     import pickle
-    with open(os.path.join(child_log_dir, "vgg16_binary_classify_history.pkl"), 'wb') as p:
+    with open(os.path.join(child_log_dir, "fe_vgg16_binary_classify_history.pkl"), 'wb') as p:
         pickle.dump(history.history, p)
 
     print("export logs in ", child_log_dir)
