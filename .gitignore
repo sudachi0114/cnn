@@ -5,6 +5,7 @@
 
 # logs
 *model.json
+*model.h5
 *weights.h5
 *history.pkl
 
