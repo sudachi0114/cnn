@@ -16,7 +16,7 @@ from keras.layers import Conv2D, MaxPooling2D, Flatten, Dense, Dropout
 
 from keras.optimizers import Adam
 
-def main(input_size = 150, batch_size = 10):
+def main(input_size = 150, batch_size = 10, epochs=100):
     
     # directory -----
     cwd = os.getcwd()
@@ -94,7 +94,7 @@ def main(input_size = 150, batch_size = 10):
 
     history = model.fit_generator(train_generator,
                                   steps_per_epoch=steps_per_epoch,
-                                  epochs=30,
+                                  epochs=epochs,
                                   validation_data=validation_generator,
                                   validation_steps=validation_steps)
 
