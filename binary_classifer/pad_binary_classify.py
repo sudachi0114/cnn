@@ -98,12 +98,18 @@ def main(input_size = 150, batch_size = 10, epochs=100):
                                   validation_data=validation_generator,
                                   validation_steps=validation_steps)
 
+    # directory -----
+    log_dir = os.path.join(cnn_dir, "log")
+    os.makedirs(log_dir, exist_ok=True)
+    child_log_dir = os.path.join(log_dir, "pad_binary_classifer")
+    os.makedirs(child_log_dir, exist_ok=True)
+    
     # save model&weights in hdf5 file
-    model.save('pad_binary_classify_model.h5')
+    model.save(os.path.join(child_log_dir, 'pad_binary_classify_model.h5'))
 
     # save history
     import pickle
-    with open('pad_binary_classify_history.pkl', 'wb') as p:
+    with open(os.path.join(child_log_dir, 'pad_binary_classify_history.pkl'), 'wb') as p:
         pickle.dump(history.history, p)
 
 

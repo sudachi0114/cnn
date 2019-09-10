@@ -54,10 +54,7 @@ def main():
     #print(data_checker[1])
     #print(label_checker[1])
     
-    if data_checker.shape[3] == 3:
-        ch = 3
-    else:
-        ch = 1
+    ch = data_checker.shape[3]
     print("set channel : ", ch)
         
     model = Sequential()
@@ -90,18 +87,24 @@ def main():
                                   epochs=30,
                                   validation_data=validation_generator,
                                   validation_steps=validation_steps)
+
+    # make log dir
+    log_dir = os.path.join(cnn_dir, 'log')
+    os.makedirs(log_dir, exist_ok=True)
+    child_log_dir = os.path.join(log_dir, "binary_classifer_log")
+    os.makedirs(child_log_dir, exist_ok=True)
     
     # save model in json file
     model2json = model.to_json()
-    with open('binary_dogs_vs_cats_model.json', 'w') as f:
+    with open(os.path.join(child_log_dir, 'binary_dogs_vs_cats_model.json'), 'w') as f:
         f.write(model2json)
 
     # save weights in hdf5 file
-    model.save_weights('binary_dogs_vs_cats_weights.h5')
+    model.save_weights(os.path.join(child_log_dir, 'binary_dogs_vs_cats_weights.h5'))
 
     # save history
     import pickle
-    with open('binary_dogs_vs_cats_history.pkl', 'wb') as p:
+    with open(os.path.join(child_log_dir, 'binary_dogs_vs_cats_history.pkl'), 'wb') as p:
         pickle.dump(history.history, p)
                                   
 
