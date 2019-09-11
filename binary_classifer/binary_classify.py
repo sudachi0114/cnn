@@ -94,13 +94,8 @@ def main():
     child_log_dir = os.path.join(log_dir, "binary_classifer_log")
     os.makedirs(child_log_dir, exist_ok=True)
     
-    # save model in json file
-    model2json = model.to_json()
-    with open(os.path.join(child_log_dir, 'binary_dogs_vs_cats_model.json'), 'w') as f:
-        f.write(model2json)
-
-    # save weights in hdf5 file
-    model.save_weights(os.path.join(child_log_dir, 'binary_dogs_vs_cats_weights.h5'))
+    # save model & weights
+    model.save(os.path.join(child_log_dir, 'binary_dogs_vs_cats_model.h5'))
 
     # save history
     import pickle
