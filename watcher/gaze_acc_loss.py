@@ -7,18 +7,47 @@ import matplotlib.pyplot as plt
 
 cwd = os.getcwd()
 cnn_dir = os.path.dirname(cwd)
-print(cnn_dir)
+log_dir = os.path.join(cnn_dir, "log")
+print("logs are in ", log_dir)
 
-binary_path = os.path.join(cnn_dir, "binary_classifer")
+log_list = os.listdir(log_dir)
+print("please chose folder from ...\n", log_list)
+choice_log = input(">>> ")
 
-file_name = "binary_dogs_vs_cats_history.pkl"
+child_log_dir = os.path.join(log_dir, choice_log)
 
-target = os.path.join(binary_path, file_name)
+file_list = os.listdir(child_log_dir)
 
-with open(target, mode='rb') as pkl:
+found = 0
+target_list = []
+
+for file_name in file_list:
+    if file_name.find("history") != -1:
+        found += 1
+        print("find {} history file!".format(found))
+        target_list.append(file_name)
+        print(target_list)
+    else:
+        pass
+
+if not found:
+    print("please chose folder from ...\n", file_list)
+    file_name = input(">>> ")    
+elif found > 1:
+    print("please chose folder from ...\n", target_list)
+    file_name = input(">>> ")
+elif found == 1:
+    file_name = target_list[0]
+
+
+file_path = os.path.join(child_log_dir, file_name)
+print("open file in ", file_path)
+
+with open(file_path, mode='rb') as pkl:
     history = pickle.load(pkl)
 
-    print(history.keys())  # dict_keys(['val_loss', 'val_acc', 'loss', 'acc'])
+    keys = history.keys()
+    print("dict keys : ", keys)  # dict_keys(['val_loss', 'val_acc', 'loss', 'acc'])
 
     acc = history['acc']
     #print(acc)
