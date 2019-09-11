@@ -62,18 +62,15 @@ def main():
     child_log_dir = os.path.join(log_dir, "opcheck_mnist_log")
     os.makedirs(child_log_dir, exist_ok=True)
 
-    # save model in json file
-    model2json = model.to_json()
-    with open(os.path.join(child_log_dir, 'cnn_minist_model.json'), 'w') as f:
-        f.write(model2json)
-
-    # save weights in hdf5 file
-    model.save_weights(os.path.join(child_log_dir, 'cnn_minist_weights.h5'))
+    # save model & weights in hdf5 file
+    model.save(os.path.join(child_log_dir, 'cnn_minist_model.h5'))
 
     # save history
     import pickle
     with open(os.path.join(child_log_dir, 'cnn_mnist_history.pkl'), 'wb') as p:
         pickle.dump(history.history, p)
+
+    print("export log in ", child_log_dir)
 
 if __name__ == '__main__':
     main()
