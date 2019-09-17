@@ -100,7 +100,7 @@ def main(filter_num=64, margin=5):
 
         # results grid を表示 (layer 毎?)
         plt.figure(figsize=(20,20))
-        plt.imshow(results.astype('uint8'))
+        plt.imshow(results.astype('uint8'))  # 参考書にはないが、ここで型変換してやらないと表示できない (画素がほとんど白)
         plt.show()
 
 if __name__ == '__main__':
