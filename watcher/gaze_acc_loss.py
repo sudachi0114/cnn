@@ -48,10 +48,11 @@ with open(file_path, mode='rb') as pkl:
 
     keys = history.keys()
     print("dict keys : ", keys)  # dict_keys(['val_loss', 'val_acc', 'loss', 'acc'])
+    # acc の場合と accuray の場合がある。(おそらく metrices で指定した値によって変わる)
 
-    acc = history['acc']
+    acc = history['accuracy']
     #print(acc)
-    val_acc = history['val_acc']
+    val_acc = history['val_accuracy']
 
     loss = history['loss']
     val_loss = history['val_loss']
