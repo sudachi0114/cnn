@@ -13,4 +13,4 @@
 *.zip
 train*
 test*
-dogs_vs_cats_smaller
+dogs_vs_cats_*
