@@ -55,7 +55,7 @@ for name in data_split:
                 pic_name_list.append("{}.{}.jpg".format(class_name, i))
             print("-> confirm : len(train_pic_name_list) = ", len(pic_name_list))
 
-        elif name == "test":
+        elif name == "validation":
             print("Amount of {}/{} pictures is : {}".format(name, class_name, validation_num))
             for i in range(train_num, data_amount):
                 pic_name_list.append("{}.{}.jpg".format(class_name, i))
