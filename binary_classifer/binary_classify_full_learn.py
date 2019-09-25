@@ -103,7 +103,7 @@ def main():
     with open(os.path.join(child_log_dir, 'binary_dogs_vs_cats_full_learn_history.pkl'), 'wb') as p:
         pickle.dump(history.history, p)
                                   
-
+    print("export logs in ", child_log_dir)
 
 if __name__ == '__main__':
     main()
