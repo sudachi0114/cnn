@@ -87,7 +87,9 @@ def main():
                                   steps_per_epoch=steps_per_epoch,
                                   epochs=30,
                                   validation_data=validation_generator,
-                                  validation_steps=validation_steps)
+                                  validation_steps=validation_steps,
+                                  verbose=2
+    )
 
     # make log dir
     log_dir = os.path.join(cnn_dir, 'log')
