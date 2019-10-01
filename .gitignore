@@ -4,6 +4,7 @@
 .vscode
 
 # logs
+*.log
 *model.json
 *model.h5
 *weights.h5
