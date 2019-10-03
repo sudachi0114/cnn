@@ -1,5 +1,5 @@
 
-# 2値分類 のプログラムにする。
+# 2値分類 のプログラム:
 
 # ----- import -----
 import os
@@ -12,10 +12,9 @@ sess = tf.Session(config=config)
 
 from keras.models import Sequential
 from keras.layers import Conv2D, MaxPooling2D, Flatten, Dense
-
 from keras.optimizers import Adam
-
 from keras.preprocessing.image import ImageDataGenerator
+
 
 def main():
 
@@ -27,11 +26,11 @@ def main():
     #print("current : ", cwd)
 
     cnn_dir = os.path.dirname(cwd)
-    base_dir = os.path.join(cnn_dir, "dogs_vs_cats_smaller")
-    train_dir = os.path.join(base_dir, "train")
+    data_dir = os.path.join(cnn_dir, "dogs_vs_cats_smaller")
+    train_dir = os.path.join(data_dir, "train")
     print("train data is in ... ", train_dir)
-    test_dir = os.path.join(base_dir, "test")
-    print("test data is in ... ", test_dir)
+    validation_dir = os.path.join(data_dir, "test")
+    print("validation data is in ... ", validation_dir)
     
     # rescaring all images to 1/255
     train_datagen = ImageDataGenerator(rescale=1.0/255.0)
@@ -42,7 +41,7 @@ def main():
                                                   batch_size=batch_size,
                                                   class_mode='binary')
 
-    validation_generator = validation_datagen.flow_from_directory(test_dir,
+    validation_generator = validation_datagen.flow_from_directory(validation_dir,
                                                                   target_size=(input_size, input_size),
                                                                   batch_size=batch_size,
                                                                   class_mode='binary')
@@ -89,9 +88,9 @@ def main():
                                   validation_steps=validation_steps)
 
     # make log dir
-    log_dir = os.path.join(cnn_dir, 'log')
+    log_dir = os.path.join(cwd, 'log')
     os.makedirs(log_dir, exist_ok=True)
-    child_log_dir = os.path.join(log_dir, "binary_classifer_log")
+    child_log_dir = os.path.join(log_dir, "binary_classify_log")
     os.makedirs(child_log_dir, exist_ok=True)
     
     # save model & weights
@@ -102,7 +101,7 @@ def main():
     with open(os.path.join(child_log_dir, 'binary_dogs_vs_cats_history.pkl'), 'wb') as p:
         pickle.dump(history.history, p)
                                   
-
+    print("export logs in ", child_log_dir)
 
 if __name__ == '__main__':
     main()
