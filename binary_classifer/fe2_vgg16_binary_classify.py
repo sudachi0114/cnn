@@ -11,7 +11,6 @@ config.gpu_options.allow_growth = True
 sess = tf.Session(config=config)
 
 from keras.preprocessing.image import ImageDataGenerator
-
 from keras.models import Sequential
 from keras.applications import VGG16
 from keras.layers import Flatten, Dense, Dropout
@@ -23,15 +22,17 @@ def main(input_size=150, batch_size=10, epochs=30):
     # directory -----
     cwd = os.getcwd()
     cnn_dir = os.path.dirname(cwd)
-    base_dir = os.path.join(cnn_dir, "dogs_vs_cats_smaller")
-    train_dir = os.path.join(base_dir, "train")
+    data_dir = os.path.join(cnn_dir, "dogs_vs_cats_smaller")
+    train_dir = os.path.join(data_dir, "train")
     print("train data is in ... ", train_dir)
-    test_dir = os.path.join(base_dir, "test")
-    print("test data is in ... ", test_dir)
+    validation_dir = os.path.join(data_dir, "validation")
+    print("validation data is in ... ", validation_dir)
 
-    log_dir = os.path.join(cnn_dir, "log")
-    child_log_dir = os.path.join(log_dir, "fe2_vgg16_binary_classifer_log")
+    log_dir = os.path.join(cwd, "log")
+    os.makedirs(log_dir, exist_ok=True)
+    child_log_dir = os.path.join(log_dir, "fe2_vgg16_binary_classify_log")
     os.makedirs(child_log_dir, exist_ok=True)
+    
 
     datagen = ImageDataGenerator(rescale=1/255.)
 
@@ -40,7 +41,7 @@ def main(input_size=150, batch_size=10, epochs=30):
                                                   batch_size=batch_size,
                                                   class_mode='binary')
 
-    validation_generator = datagen.flow_from_directory(test_dir,
+    validation_generator = datagen.flow_from_directory(validation_dir,
                                                        target_size=(input_size, input_size),
                                                        batch_size=batch_size,
                                                        class_mode='binary')
