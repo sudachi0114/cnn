@@ -13,10 +13,10 @@ sess = tf.Session(config=config)
 
 from keras.models import Sequential
 from keras.layers import Conv2D, MaxPooling2D, Flatten, Dense
-
 from keras.optimizers import Adam
-
 from keras.preprocessing.image import ImageDataGenerator
+
+
 
 def main():
 
@@ -28,11 +28,18 @@ def main():
     #print("current : ", cwd)
 
     cnn_dir = os.path.dirname(cwd)
-    base_dir = os.path.join(cnn_dir, "dogs_vs_cats_full")
-    train_dir = os.path.join(base_dir, "train")
+    data_dir = os.path.join(cnn_dir, "dogs_vs_cats_full")
+    train_dir = os.path.join(data_dir, "train")
     print("train data is in ... ", train_dir)
-    validation_dir = os.path.join(base_dir, "validation")
+    validation_dir = os.path.join(data_dir, "validation")
     print("validation data is in ... ", validation_dir)
+
+    # make log dir
+    log_dir = os.path.join(cwd, 'log')
+    os.makedirs(log_dir, exist_ok=True)
+    child_log_dir = os.path.join(log_dir, "pad_binary_classify_full_learn_log")
+    os.makedirs(child_log_dir, exist_ok=True)    
+
     
     # rescaring all images to 1/255
     train_datagen = ImageDataGenerator(rescale=1/255.0,
@@ -48,9 +55,9 @@ def main():
 
     
     train_generator = train_datagen.flow_from_directory(train_dir,
-                                                  target_size=(input_size, input_size),
-                                                  batch_size=batch_size,
-                                                  class_mode='binary')
+                                                        target_size=(input_size, input_size),
+                                                        batch_size=batch_size,
+                                                        class_mode='binary')
 
     validation_generator = validation_datagen.flow_from_directory(validation_dir,
                                                                   target_size=(input_size, input_size),
@@ -99,12 +106,6 @@ def main():
                                   validation_steps=validation_steps,
                                   verbose=2)
 
-    # make log dir
-    log_dir = os.path.join(cnn_dir, 'log')
-    os.makedirs(log_dir, exist_ok=True)
-    child_log_dir = os.path.join(log_dir, "pad_binary_classifer_full_learn_log")
-    os.makedirs(child_log_dir, exist_ok=True)
-    
     # save model & weights
     model.save(os.path.join(child_log_dir, 'pad_binary_dogs_vs_cats_full_learn_model.h5'))
 
