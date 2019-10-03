@@ -18,7 +18,7 @@ from keras.layers import Flatten, Dense, Dropout
 from keras.optimizers import Adam
 
 
-def main(input_size=150, batch_size=10, epochs=30):
+def main(input_size=150, batch_size=100, epochs=30):
 
     # directory -----
     cwd = os.getcwd()
