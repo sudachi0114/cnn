@@ -8,13 +8,12 @@ config.gpu_options.allow_growth = True
 sess = tf.Session(config=config)
 
 from keras.preprocessing.image import ImageDataGenerator
-
 from keras.models import Sequential
 from keras.layers import Dense, Flatten
-
 from keras.applications import VGG16
-
 from keras.optimizers import Adam
+
+
 
 def main(input_size=150, batch_size=10, epochs=30):
 
@@ -24,13 +23,13 @@ def main(input_size=150, batch_size=10, epochs=30):
 
     data_dir = os.path.join(cnn_dir, "dogs_vs_cats_smaller")
     train_dir = os.path.join(data_dir, "train")
-    validation_dir = os.path.join(data_dir, "test")
+    validation_dir = os.path.join(data_dir, "validation")
 
     print("train datas are in ... ", train_dir)
     print("validation datas are in ... ", validation_dir)
 
-    log_dir = os.path.join(cnn_dir, "log")
-    child_log_dir = os.path.join(log_dir, "pad_vgg16_binary_classifer_log")
+    log_dir = os.path.join(cwd, "log")
+    child_log_dir = os.path.join(log_dir, "pad_vgg16_binary_classify_log")
     os.makedirs(child_log_dir, exist_ok=True)
 
     # data gen -----
