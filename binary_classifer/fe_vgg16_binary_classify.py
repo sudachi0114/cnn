@@ -11,11 +11,11 @@ config.gpu_options.allow_growth = True
 sess = tf.Session(config=config)
 
 from keras.preprocessing.image import ImageDataGenerator
-
 from keras.models import Sequential
 from keras.applications import VGG16
 from keras.layers import Dense, Dropout
 from keras.optimizers import Adam
+
 
 def conv_gen(input_size, ch, summary=True):
 
@@ -58,11 +58,12 @@ def main(input_size=150, ch=3, batch_size=10, epochs=30, train_size=100, validat
     base_dir = os.path.join(cnn_dir, "dogs_vs_cats_smaller")
     train_dir = os.path.join(base_dir, "train")
     print("train data is in ... ", train_dir)
-    test_dir = os.path.join(base_dir, "test")
-    print("test data is in ... ", test_dir)
+    validation_dir = os.path.join(base_dir, "validation")
+    print("test data is in ... ", validation_dir)
 
-    log_dir = os.path.join(cnn_dir, "log")
-    child_log_dir = os.path.join(log_dir, "fe_vgg16_binary_classifer_log")
+    log_dir = os.path.join(cwd, "log")
+    os.makedirs(log_dir, exist_ok=True)
+    child_log_dir = os.path.join(log_dir, "fe_vgg16_binary_classify_log")
     os.makedirs(child_log_dir, exist_ok=True)
 
     # create conv_base -----
@@ -70,7 +71,7 @@ def main(input_size=150, ch=3, batch_size=10, epochs=30, train_size=100, validat
 
     # feature extraction -----
     train_features, train_labels = feature_extracter(conv_base, train_dir, input_size, train_size)
-    validation_features, validation_labels = feature_extracter(conv_base, test_dir, input_size, validation_size)
+    validation_features, validation_labels = feature_extracter(conv_base, validation_dir, input_size, validation_size)
 
     # reshape (Flatten) -----
     train_features = np.reshape(train_features, (train_size, 4*4*512))
