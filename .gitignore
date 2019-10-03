@@ -2,6 +2,7 @@
 # system file
 .DS_store
 .vscode
+*~
 
 # logs
 *.log
