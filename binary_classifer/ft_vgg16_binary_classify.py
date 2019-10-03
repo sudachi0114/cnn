@@ -8,13 +8,12 @@ config.gpu_options.allow_growth = True
 sess = tf.Session(config=config)
 
 from keras.preprocessing.image import ImageDataGenerator
-
 from keras.models import Sequential
 from keras.layers import Dense, Flatten
-
 from keras.applications import VGG16
-
 from keras.optimizers import Adam
+
+
 
 def main(input_size=150, batch_size=10, epochs=30):
 
@@ -29,10 +28,12 @@ def main(input_size=150, batch_size=10, epochs=30):
     print("train datas are in ... ", train_dir)
     print("validation datas are in ... ", validation_dir)
 
-    log_dir = os.path.join(cnn_dir, "log")
-    child_log_dir = os.path.join(log_dir, "ft_vgg16_binary_classifer_log")
+    log_dir = os.path.join(cwd, "log")
+    os.makedirs(log_dir, exist_ok=True)
+    child_log_dir = os.path.join(log_dir, "ft_vgg16_binary_classify_log")
     os.makedirs(child_log_dir, exist_ok=True)
 
+    
     # data gen -----
     train_datagen = ImageDataGenerator(rescale=1/255.0,
                                        rotation_range=40,
@@ -103,7 +104,7 @@ def main(input_size=150, batch_size=10, epochs=30):
                                   validation_steps=validation_steps,
                                   verbose=1)
 
-    print("Done.\n")
+    print("Feature Extraction has Done.\n")
 
     """ 先に Feature extraction を行う。
         分類器は initialize された時に重みがランダムに初期化されるため、
@@ -140,7 +141,7 @@ def main(input_size=150, batch_size=10, epochs=30):
                   optimizer=Adam(lr=1e-5),
                   metrics=['accuracy'])
 
-    # fit (feature extraction) -----
+    # fit (fine tuning) -----
     print("fit fine tuning...\n")
     
     history = model.fit_generator(train_generator,
