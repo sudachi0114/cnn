@@ -10,15 +10,14 @@ config.gpu_options.allow_growth = True
 sess = tf.Session(config=config)
 
 from keras.preprocessing.image import ImageDataGenerator
-
 from keras.models import Sequential
 from keras.layers import Dense, Flatten
-
 from keras.applications import VGG16
-
 from keras.optimizers import Adam
 
-def main(input_size=150, batch_size=10, epochs=30):
+
+
+def main(input_size=150, batch_size=32, epochs=30):
 
     # directory ----
     cwd = os.getcwd()
@@ -31,8 +30,9 @@ def main(input_size=150, batch_size=10, epochs=30):
     print("train datas are in ... ", train_dir)
     print("validation datas are in ... ", validation_dir)
 
-    log_dir = os.path.join(cnn_dir, "log")
-    child_log_dir = os.path.join(log_dir, "ft_vgg16_binary_classifer_full_learn_log")
+    log_dir = os.path.join(cwd, "log")
+    os.makedirs(log_dir, exist_ok=True)
+    child_log_dir = os.path.join(log_dir, "ft_vgg16_binary_classify_full_learn_log")
     os.makedirs(child_log_dir, exist_ok=True)
 
     # data gen -----
@@ -97,7 +97,8 @@ def main(input_size=150, batch_size=10, epochs=30):
 
     # fit (feature extraction) -----
     print("fit classifer head...\n")
-    
+
+    """ 先に Feature extraction を行う """
     history = model.fit_generator(train_generator,
                                   steps_per_epoch=steps_per_epoch,
                                   epochs=epochs,
@@ -105,22 +106,8 @@ def main(input_size=150, batch_size=10, epochs=30):
                                   validation_steps=validation_steps,
                                   verbose=1)
 
-    print("Done.\n")
+    print("Feature Extranction has Done.\n")
 
-    """ 先に Feature extraction を行う。
-        分類器は initialize された時に重みがランダムに初期化されるため、
-        最初からパラメータを一部解凍して学習させると
-        誤差伝播の信号が大きすぎて
-        fine tuing の対象となる層によって以前に学習された表現が破壊されてしまう。
-
-
-        転移学習 : fine tuning を行うときの手順
-        1. conv_base に classifer head を追加する。
-        2. conv_base の weight を凍結する。
-        3. classifer head を訓練する。
-        4. conv_base の一部の層の weight を解凍する。
-        5. 解凍した部分と、classifer head の訓練をする。
-    """
 
     # defrost weights in part of conv_base
     conv_base.trainable = True
@@ -142,7 +129,7 @@ def main(input_size=150, batch_size=10, epochs=30):
                   optimizer=Adam(lr=1e-5),
                   metrics=['accuracy'])
 
-    # fit (feature extraction) -----
+    # fit (fine tuning) -----
     print("fit fine tuning...\n")
     
     history = model.fit_generator(train_generator,
