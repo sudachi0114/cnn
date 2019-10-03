@@ -59,7 +59,7 @@ def main(input_size=150, ch=3, batch_size=10, epochs=30, train_size=100, validat
     train_dir = os.path.join(base_dir, "train")
     print("train data is in ... ", train_dir)
     validation_dir = os.path.join(base_dir, "validation")
-    print("test data is in ... ", validation_dir)
+    print("validation data is in ... ", validation_dir)
 
     log_dir = os.path.join(cwd, "log")
     os.makedirs(log_dir, exist_ok=True)
