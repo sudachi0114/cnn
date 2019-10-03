@@ -21,7 +21,7 @@ from keras.preprocessing.image import ImageDataGenerator
 def main():
 
     input_size = 150
-    batch_size = 32
+    batch_size = 100
 
     # directory define
     cwd = os.getcwd()
@@ -73,7 +73,8 @@ def main():
     
     ch = data_checker.shape[3]
     print("set channel : ", ch)
-        
+    print("batch_size : ", batch_size)
+
     model = Sequential()
 
     model.add(Conv2D(32, (3,3), activation='relu', input_shape=(input_size, input_size, ch)))
@@ -104,7 +105,7 @@ def main():
                                   epochs=50,
                                   validation_data=validation_generator,
                                   validation_steps=validation_steps,
-                                  verbose=2)
+                                  verbose=1)
 
     # save model & weights
     model.save(os.path.join(child_log_dir, 'pad_binary_dogs_vs_cats_full_learn_model.h5'))
