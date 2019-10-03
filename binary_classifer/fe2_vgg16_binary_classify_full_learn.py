@@ -20,6 +20,9 @@ from keras.optimizers import Adam
 
 def main(input_size=150, batch_size=100, epochs=30):
 
+
+    print("batch_size : ", batch_size)
+    
     # directory -----
     cwd = os.getcwd()
     cnn_dir = os.path.dirname(cwd)
