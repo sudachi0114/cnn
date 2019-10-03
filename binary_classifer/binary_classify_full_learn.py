@@ -32,6 +32,13 @@ def main():
     print("train data is in ... ", train_dir)
     validation_dir = os.path.join(data_dir, "validation")
     print("validation data is in ... ", validation_dir)
+
+    # make log dir
+    log_dir = os.path.join(cwd, 'log')
+    os.makedirs(log_dir, exist_ok=True)
+    child_log_dir = os.path.join(log_dir, "binary_classify_full_learn_log")
+    os.makedirs(child_log_dir, exist_ok=True)
+    
     
     # rescaring all images to 1/255
     train_datagen = ImageDataGenerator(rescale=1.0/255.0)
@@ -89,12 +96,6 @@ def main():
                                   validation_steps=validation_steps,
                                   verbose=1)
 
-    # make log dir
-    log_dir = os.path.join(cwd, 'log')
-    os.makedirs(log_dir, exist_ok=True)
-    child_log_dir = os.path.join(log_dir, "binary_classify_full_learn_log")
-    os.makedirs(child_log_dir, exist_ok=True)
-    
     # save model & weights
     model.save(os.path.join(child_log_dir, 'binary_dogs_vs_cats_full_learn_model.h5'))
 
