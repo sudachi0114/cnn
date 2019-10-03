@@ -23,7 +23,7 @@ def main(input_size=150, batch_size=10, epochs=30):
 
     data_dir = os.path.join(cnn_dir, "dogs_vs_cats_smaller")
     train_dir = os.path.join(data_dir, "train")
-    validation_dir = os.path.join(data_dir, "test")
+    validation_dir = os.path.join(data_dir, "validation")
 
     print("train datas are in ... ", train_dir)
     print("validation datas are in ... ", validation_dir)
