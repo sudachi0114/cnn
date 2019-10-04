@@ -57,7 +57,7 @@ def create_model(input_size=150, ch=3):
 def main(input_size=150, batch_size=10):
 
     validation_generator = validationDataGenerator(validation_dir)
-    train_generator = trainDataGenerator(validation_dir)
+    train_generator = trainDataGenerator(train_dir)
 
  
     data_checker, label_checker = next(train_generator)
