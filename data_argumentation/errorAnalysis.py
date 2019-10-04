@@ -94,18 +94,19 @@ def main():
     print(pred)
 
     confuse = pred[pred['collect'] == False].index.tolist()
-    #print(confuse)
+    print("wrong recognized amount is ", len(confuse))
+    print("wrong rate : ", 100*len(confuse)/len(labels), " %")
 
-    plt.figure(figsize=(8, 8))
-    #plt.subplot_adjust(hspace=0.02, wspace=0.02, top=0.95, bottom=0.02, left=0.02, right=0.98)
-    #plt.text(0.1, 0.1, str(confuse), fontsize=12)
-    #plot.title("Confusion picures")
-    for i in range(len(confuse)):
-        ax = plt.subplot(10, 10, 1+i)
-        ax.imshow(pred_target[confuse[i]])
-        ax.axis(False)
-    plt.title("Confusion picures #={}".format(len(confuse)))
-    img_file_place = os.path.join(child_log_dir, "confuse_pictures.png")
+    plt.figure(figsize=(10, 10))
+    plt.subplots_adjust(hspace=0.5)
+    #plt.title("Confusion picures #={}".format(len(confuse)))
+
+    for i, idx in enumerate(confuse):
+        plt.subplot(7, 7, 1+i)
+        plt.imshow(pred_target[idx])
+        plt.axis(False)
+        plt.title("p:{0}|l:{1}".format(pred['class'][idx], pred['label'][idx]))
+    img_file_place = os.path.join(child_log_dir, "0_confuse_pictures.png")
     plt.savefig(img_file_place)
 
 
