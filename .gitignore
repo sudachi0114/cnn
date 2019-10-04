@@ -10,6 +10,7 @@
 *model.h5
 *weights.h5
 *history.pkl
+*.png
 
 # data dir
 *.zip
