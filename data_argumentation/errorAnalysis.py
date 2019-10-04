@@ -1,0 +1,128 @@
+
+# 誤認識した画像をプロットして考察する:
+
+
+import os
+import numpy as np
+import pandas as pd
+import matplotlib.pyplot as plt
+
+import tensorflow as tf
+session_config = tf.ConfigProto(gpu_options=tf.GPUOptions(allow_growth=True))
+tf.Session(config=session_config)
+
+from keras.preprocessing.image import ImageDataGenerator
+from keras.models import load_model
+
+
+def testDataGenerator(test_dir, input_size=150, batch_size=10):
+
+    test_datagen = ImageDataGenerator(rescale=1.0/255.0)
+    test_generator = test_datagen.flow_from_directory(test_dir,
+                                                      target_size=(input_size, input_size),
+                                                      batch_size=batch_size,
+                                                      shuffle=False,
+                                                      class_mode='binary')
+    return test_generator
+
+
+
+def reloadModel(child_log_dir):
+
+    child_log_list = os.listdir(child_log_dir)
+
+    for f in child_log_list:
+        if "model" in f:
+            model_file = os.path.join(child_log_dir, f)
+    print("Use saved model : ", model_file)
+
+    model = load_model(model_file, compile=False)
+
+    return model
+
+
+
+def predStocker(generator, model, batch_size=10):
+
+    pred_steps = generator.n//batch_size    
+
+    # predict -----
+    pred_result = model.predict_generator(generator,
+                                          steps=pred_steps,
+                                          verbose=1)
+
+
+    # stock -----
+    pred_target, labels = [], []
+    for i in range(pred_steps):
+        tmp_target, tmp_label = next(generator)
+        if i == 0:
+            pred_target = tmp_target
+            labels = tmp_label
+        else:
+            pred_target = np.vstack((pred_target, tmp_target))
+            labels = np.hstack((labels, tmp_label))
+
+
+    return pred_result, pred_target, labels  # 最初のクラスの予測値(確率)のnp配列, 予測target(画像), 正解label
+
+
+
+def main():
+
+    test_generator = testDataGenerator(test_dir)
+
+    model = reloadModel(child_log_dir)
+    #model.summary()
+
+    pred_result, pred_target, labels = predStocker(test_generator, model)
+    #print("pred_result : ", pred_result)
+    #print(labels)
+
+    labels_class = []
+    for i in range(len(labels)):
+        if labels[i] == 0:
+            labels_class.append('cat')
+        elif labels[i] == 1:
+            labels_class.append('dog')
+
+    pred = pd.DataFrame(pred_result, columns=['cat'])
+    pred['dog'] = 1.0 - pred['cat']
+    pred['class'] = pred.idxmax(axis=1)
+    pred['label'] = labels_class
+    pred['collect'] = (pred['class'] == pred['label'])
+    print(pred)
+
+    confuse = pred[pred['collect'] == False].index.tolist()
+    #print(confuse)
+
+    plt.figure(figsize=(8, 8))
+    #plt.subplot_adjust(hspace=0.02, wspace=0.02, top=0.95, bottom=0.02, left=0.02, right=0.98)
+    #plt.text(0.1, 0.1, str(confuse), fontsize=12)
+    #plot.title("Confusion picures")
+    for i in range(len(confuse)):
+        ax = plt.subplot(10, 10, 1+i)
+        ax.imshow(pred_target[confuse[i]])
+        ax.axis(False)
+    plt.title("Confusion picures #={}".format(len(confuse)))
+    img_file_place = os.path.join(child_log_dir, "confuse_pictures.png")
+    plt.savefig(img_file_place)
+
+
+if __name__ == '__main__':
+
+    cwd = os.getcwd()
+    cnn_dir = os.path.dirname(cwd)
+
+    data_dir = os.path.join(cnn_dir, "dogs_vs_cats_smaller")
+    test_dir = os.path.join(data_dir, "test")
+    print("test dir is in ... ", test_dir)
+    #print(len(os.listdir(test_dir)))  # 2 (dog/cat)
+
+    log_dir = os.path.join(cwd, "log")
+    child_log_dir = os.path.join(log_dir, "da_source")  # ここは入力にしてもいいかもしれない。
+    print(child_log_dir)
+    print(os.listdir(child_log_dir))  # log list [history.pkl, model&weights.h5, log]
+
+    
+    main()
