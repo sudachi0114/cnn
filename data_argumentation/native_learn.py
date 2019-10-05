@@ -120,7 +120,7 @@ if __name__ == '__main__':
     # make log dir -----
     log_dir = os.path.join(cwd, 'log')
     os.makedirs(log_dir, exist_ok=True)
-    child_log_dir = os.path.join(log_dir, "da_source")
+    child_log_dir = os.path.join(log_dir, "native_learn")
     os.makedirs(child_log_dir, exist_ok=True)
 
     
