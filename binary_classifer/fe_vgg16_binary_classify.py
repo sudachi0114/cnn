@@ -53,7 +53,11 @@ def feature_extracter(conv_base, directory, input_size, data_size, batch_size=10
 def main(input_size=150, ch=3, batch_size=10, epochs=30, train_size=100, validation_size=50):
 
     # directory -----
-    cwd = os.getcwd()
+    current_location = os.path.abspath(__file__)
+    cwd, base_name = os.path.split(current_location)
+    file_name, _ = os.path.splitext(base_name)
+    print("current location : ", cwd, ", this file : ", file_name)
+    
     cnn_dir = os.path.dirname(cwd)
     base_dir = os.path.join(cnn_dir, "dogs_vs_cats_smaller")
     train_dir = os.path.join(base_dir, "train")
@@ -63,7 +67,7 @@ def main(input_size=150, ch=3, batch_size=10, epochs=30, train_size=100, validat
 
     log_dir = os.path.join(cwd, "log")
     os.makedirs(log_dir, exist_ok=True)
-    child_log_dir = os.path.join(log_dir, "fe_vgg16_binary_classify_log")
+    child_log_dir = os.path.join(log_dir, "{}_log".format(file_name))
     os.makedirs(child_log_dir, exist_ok=True)
 
     # create conv_base -----
@@ -97,11 +101,11 @@ def main(input_size=150, ch=3, batch_size=10, epochs=30, train_size=100, validat
                         validation_data=(validation_features, validation_labels))
 
     # save model in hdf5 file -----
-    model.save(os.path.join(child_log_dir, "fe_vgg16_binary_classify_model.h5"))
+    model.save(os.path.join(child_log_dir, "{}_model.h5".format(file_name)))
 
     # save history -----
     import pickle
-    with open(os.path.join(child_log_dir, "fe_vgg16_binary_classify_history.pkl"), 'wb') as p:
+    with open(os.path.join(child_log_dir, "{}_history.pkl".format(file_name)), 'wb') as p:
         pickle.dump(history.history, p)
 
     print("export logs in ", child_log_dir)
