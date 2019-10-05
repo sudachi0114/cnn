@@ -94,11 +94,11 @@ def main(input_size=150, batch_size=10):
                                   verbose=1)
 
     # save model & weights
-    model.save(os.path.join(child_log_dir, 'da_source_model.h5'))
+    model.save(os.path.join(child_log_dir, '{}_model.h5'.format(file_name)))
 
     # save history
     import pickle
-    with open(os.path.join(child_log_dir, 'da_source_history.pkl'), 'wb') as p:
+    with open(os.path.join(child_log_dir, '{}_history.pkl'.format(file_name)), 'wb') as p:
         pickle.dump(history.history, p)
 
     print("export logs in ", child_log_dir)
@@ -107,9 +107,13 @@ def main(input_size=150, batch_size=10):
     
 if __name__ == '__main__':
 
-    cwd = os.getcwd()
-    cnn_dir = os.path.dirname(cwd)
+    current_location = os.path.abspath(__file__)  # このファイルの絶対パスを取得
+    cwd, base_name = os.path.split(current_location)  # path と ファイル名に分割
+    file_name, _ = os.path.splitext(base_name)  # ファイル名と拡張子を分離
+    print("current location : ", cwd, ", this file : ", file_name)
 
+    cnn_dir = os.path.dirname(cwd)
+    
     # 少ないデータに対して水増しを行いたいので smaller を選択
     data_dir = os.path.join(cnn_dir, "dogs_vs_cats_smaller")
     train_dir = os.path.join(data_dir, "train")  # global
@@ -117,10 +121,12 @@ if __name__ == '__main__':
     print("train data is in ... ", train_dir)
     print("validation data is in ...", validation_dir)
 
+    
+
     # make log dir -----
     log_dir = os.path.join(cwd, 'log')
     os.makedirs(log_dir, exist_ok=True)
-    child_log_dir = os.path.join(log_dir, "native_learn")
+    child_log_dir = os.path.join(log_dir, file_name)
     os.makedirs(child_log_dir, exist_ok=True)
 
     
