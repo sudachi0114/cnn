@@ -123,7 +123,7 @@ if __name__ == '__main__':
     #print(len(os.listdir(test_dir)))  # 2 (dog/cat)
 
     log_dir = os.path.join(cwd, "log")
-    child_log_dir = os.path.join(log_dir, "da_source")  # ここは入力にしてもいいかもしれない。
+    child_log_dir = os.path.join(log_dir, "native_learn")  # ここは入力にしてもいいかもしれない。
     print(child_log_dir)
     print(os.listdir(child_log_dir))  # log list [history.pkl, model&weights.h5, log]
 
