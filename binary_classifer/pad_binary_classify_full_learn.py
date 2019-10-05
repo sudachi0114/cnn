@@ -24,9 +24,11 @@ def main():
     batch_size = 100
 
     # directory define
-    cwd = os.getcwd()
-    #print("current : ", cwd)
-
+    current_location = os.path.abspath(__file__)
+    cwd, base_name = os.path.split(current_location)
+    file_name, _ = os.path.splitext(base_name)
+    print("current location : ", cwd, ", this file : ", file_name)
+    
     cnn_dir = os.path.dirname(cwd)
     data_dir = os.path.join(cnn_dir, "dogs_vs_cats_full")
     train_dir = os.path.join(data_dir, "train")
@@ -37,7 +39,7 @@ def main():
     # make log dir
     log_dir = os.path.join(cwd, 'log')
     os.makedirs(log_dir, exist_ok=True)
-    child_log_dir = os.path.join(log_dir, "pad_binary_classify_full_learn_log")
+    child_log_dir = os.path.join(log_dir, "{}_log".format(file_name))
     os.makedirs(child_log_dir, exist_ok=True)    
 
     
@@ -108,11 +110,11 @@ def main():
                                   verbose=1)
 
     # save model & weights
-    model.save(os.path.join(child_log_dir, 'pad_binary_dogs_vs_cats_full_learn_model.h5'))
+    model.save(os.path.join(child_log_dir, '{}_model.h5'.format(file_name)))
 
     # save history
     import pickle
-    with open(os.path.join(child_log_dir, 'pad_binary_dogs_vs_cats_full_learn_history.pkl'), 'wb') as p:
+    with open(os.path.join(child_log_dir, '{}_history.pkl'.format(file_name)), 'wb') as p:
         pickle.dump(history.history, p)
                                   
     print("export logs in ", child_log_dir)
