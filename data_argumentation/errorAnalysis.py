@@ -107,7 +107,7 @@ def main():
         plt.subplot(7, 7, 1+i)
         plt.imshow(pred_target[idx])
         plt.axis(False)
-        plt.title("p:{0}|l:{1}".format(pred['class'][idx], pred['label'][idx]))
+        plt.title("[{0}] p:{1}".format(idx, pred['class'][idx]))
     img_file_place = os.path.join(child_log_dir, "0_confusePics_{0:%y%m%d}_{1:%H%M}.png".format(now, now))
     plt.savefig(img_file_place)
 
