@@ -2,7 +2,8 @@
 # 誤認識した画像をプロットして考察する:
 
 
-import os
+import os, datetime
+now = datetime.datetime.now()
 import numpy as np
 import pandas as pd
 import matplotlib.pyplot as plt
@@ -94,8 +95,9 @@ def main():
     print(pred)
 
     confuse = pred[pred['collect'] == False].index.tolist()
+    print("wrong recognized indeices are ", confuse)
     print("wrong recognized amount is ", len(confuse))
-    print("wrong rate : ", 100*len(confuse)/len(labels), " %")
+    print("wrong rate : ", 100*len(confuse)/len(labels), "%")
 
     plt.figure(figsize=(10, 10))
     plt.subplots_adjust(hspace=0.5)
@@ -106,7 +108,7 @@ def main():
         plt.imshow(pred_target[idx])
         plt.axis(False)
         plt.title("p:{0}|l:{1}".format(pred['class'][idx], pred['label'][idx]))
-    img_file_place = os.path.join(child_log_dir, "0_confuse_pictures.png")
+    img_file_place = os.path.join(child_log_dir, "0_confusePics_{0:%y%m%d}_{1:%H%M}.png".format(now, now))
     plt.savefig(img_file_place)
 
 
