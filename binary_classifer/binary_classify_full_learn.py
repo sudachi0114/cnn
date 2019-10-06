@@ -103,7 +103,7 @@ def main():
 
     # save history
     import pickle
-    with open(os.path.join(child_log_dir, '{}.pkl'.format(file_name)), 'wb') as p:
+    with open(os.path.join(child_log_dir, '{}_history.pkl'.format(file_name)), 'wb') as p:
         pickle.dump(history.history, p)
                                   
     print("export logs in ", child_log_dir)
