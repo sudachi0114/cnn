@@ -20,7 +20,7 @@ from keras.preprocessing.image import ImageDataGenerator
 def main():
 
     input_size = 150
-    batch_size = 32
+    batch_size = 100
 
     # directory defin -----
     current_location = os.path.abspath(__file__)
