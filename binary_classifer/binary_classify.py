@@ -31,7 +31,7 @@ def main():
     data_dir = os.path.join(cnn_dir, "dogs_vs_cats_smaller")
     train_dir = os.path.join(data_dir, "train")
     print("train data is in ... ", train_dir)
-    validation_dir = os.path.join(data_dir, "test")
+    validation_dir = os.path.join(data_dir, "validation")
     print("validation data is in ... ", validation_dir)
 
     # make log dir -----
