@@ -9,13 +9,14 @@
 
 from keras.applications import VGG16
 import keras.backend as K
-import tensorflow as tf
 
+import tensorflow as tf
 print("GPU available: ", tf.test.is_gpu_available())
 if tf.test.is_gpu_available():
     config = tf.ConfigProto()
     config.gpu_options.allow_growth=True
     sess = tf.Session(config=config)
+    #K.set_session(sess)
 
 import os, platform
 import numpy as np
