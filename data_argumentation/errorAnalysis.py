@@ -108,7 +108,7 @@ def main():
         plt.imshow(pred_target[idx])
         plt.axis(False)
         plt.title("[{0}] p:{1}".format(idx, pred['class'][idx]))
-    img_file_place = os.path.join(child_log_dir, "0_confusePics_{0:%y%m%d}_{1:%H%M}.png".format(now, now))
+    img_file_place = os.path.join(child_log_dir, "{0}_confusePics_{1:%y%m%d}_{2:%H%M}.png".format(selected_child_log_dir, now, now))
     plt.savefig(img_file_place)
 
 
@@ -123,9 +123,19 @@ if __name__ == '__main__':
     #print(len(os.listdir(test_dir)))  # 2 (dog/cat)
 
     log_dir = os.path.join(cwd, "log")
-    child_log_dir = os.path.join(log_dir, "native_learn")  # ここは入力にしてもいいかもしれない。
-    print(child_log_dir)
-    print(os.listdir(child_log_dir))  # log list [history.pkl, model&weights.h5, log]
+    child_log_list = os.listdir(log_dir)
+    
+    print("\nfind logs below -----")
+    for i, child in enumerate(child_log_list):
+        print(i, " | ", child)
+    print("\nPlease chose one child_log by index ...")
+    selected_child_log_idx = input(">>> ")
+    
+    selected_child_log_dir = child_log_list[int(selected_child_log_idx)]
+    child_log_dir = os.path.join(log_dir, selected_child_log_dir)
+    
+    print("\nuse log at ", child_log_dir, "\n")
+    print("this directory contain : ", os.listdir(child_log_dir))  # log list [history.pkl, model&weights.h5, log]
 
     
     main()
