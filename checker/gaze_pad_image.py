@@ -8,8 +8,8 @@ import matplotlib.pyplot as plt
 cwd = os.getcwd()
 cnn_dir = os.path.dirname(cwd)
 
-base_dir = os.path.join(cnn_dir, "dogs_vs_cats_smaller")
-image_dir = os.path.join(base_dir, "train")
+data_dir = os.path.join(cnn_dir, "dogs_vs_cats_smaller")
+train_dir = os.path.join(data_dir, "train")
 
 from keras.preprocessing.image import ImageDataGenerator
 
@@ -17,15 +17,16 @@ def main(input_size=150, batch_size = 10, show_all=False, shuffle=True):
 
     datagen = ImageDataGenerator(rescale=None,
                                  rotation_range=40,  # 画像をランダムに回転させる(0 ~ 180)
-                                 width_shift_range=0.2,  # 画像をランダムに水平に平行移動させる
-                                 height_shift_range=0.2,  # 画像を垂直に平行移動させる
-                                 shear_range=0.2,  # 等積変形(shear変形) をランダムに適用
-                                 zoom_range=0.2,  # 画像の内側をランダムにズーム
-                                 horizontal_flip=True,  # 画像の半分を水平方向にランダムに反転
-                                 fill_mode='nearest'  # 新たに作成されたピクセルを近くの画素の情報を元に埋める
+                                 #width_shift_range=0.2,  # 画像をランダムに水平に平行移動させる
+                                 #height_shift_range=0.2,  # 画像を垂直に平行移動させる
+                                 #shear_range=0.2,  # 等積変形(shear変形) をランダムに適用
+                                 #zoom_range=0.2,  # 画像の内側をランダムにズーム
+                                 #horizontal_flip=True,  # 画像の半分を水平方向にランダムに反転
+                                 #fill_mode='nearest'  # 新たに作成されたピクセルを近くの画素の情報を元に埋める
+                                 channel_shift_range=5.0 # 色調をランダム変更
                                  )
 
-    image_generator = datagen.flow_from_directory(image_dir,
+    image_generator = datagen.flow_from_directory(train_dir,
                                                   target_size=(input_size, input_size),
                                                   batch_size=batch_size,
                                                   shuffle=shuffle,
@@ -52,7 +53,7 @@ def main(input_size=150, batch_size = 10, show_all=False, shuffle=True):
     print("labels.shape : ", labels.shape)
 
     # 画像の表示
-    plt.figure(figsize=(15, 10))
+    plt.figure(figsize=(12, 6))
 
     for i in range(images.shape[0]):
         if not show_all:
