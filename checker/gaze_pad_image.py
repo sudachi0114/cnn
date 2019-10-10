@@ -15,15 +15,15 @@ from keras.preprocessing.image import ImageDataGenerator
 
 def main(input_size=150, batch_size = 10, show_all=False, shuffle=True):
 
-    datagen = ImageDataGenerator(rescale=None,
-                                 rotation_range=40,  # 画像をランダムに回転させる(0 ~ 180)
-                                 #width_shift_range=0.2,  # 画像をランダムに水平に平行移動させる
-                                 #height_shift_range=0.2,  # 画像を垂直に平行移動させる
-                                 #shear_range=0.2,  # 等積変形(shear変形) をランダムに適用
-                                 #zoom_range=0.2,  # 画像の内側をランダムにズーム
-                                 #horizontal_flip=True,  # 画像の半分を水平方向にランダムに反転
-                                 #fill_mode='nearest'  # 新たに作成されたピクセルを近くの画素の情報を元に埋める
-                                 channel_shift_range=5.0 # 色調をランダム変更
+    datagen = ImageDataGenerator(rescale=None
+                                 ,horizontal_flip=True  # 画像の半分を水平方向にランダムに反転
+                                 ,width_shift_range=18/150  # 画像をランダムに水平に平行移動させる
+                                 ,height_shift_range=18/150  # 画像を垂直に平行移動させる
+                                 #,rotation_range=40  # 画像をランダムに回転させる(0 ~ 180)
+                                 #,shear_range=0.2  # 等積変形(shear変形) をランダムに適用
+                                 #,zoom_range=0.2  # 画像の内側をランダムにズーム
+                                 #,fill_mode='nearest'  # 新たに作成されたピクセルを近くの画素の情報を元に埋める
+                                 #,channel_shift_range=5.0 # 色調をランダム変更
                                  )
 
     image_generator = datagen.flow_from_directory(train_dir,
@@ -81,4 +81,5 @@ def main(input_size=150, batch_size = 10, show_all=False, shuffle=True):
     
 
 if __name__ == '__main__':
-    main(shuffle=False)
+    #main(shuffle=False)
+    main(show_all=True, shuffle=False)
