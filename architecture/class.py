@@ -10,7 +10,7 @@ config.gpu_options.allow_growth=True
 sess=tf.Session(config=config)
 
 from keras.models import Sequential
-from keras.layers import GlobalAveragePooling2D, Dense
+from keras.layers import GlobalAveragePooling2D, Flatten, Dense
 from keras.optimizers import Adam
 from keras.applications import MobileNetV2
 from keras.preprocessing.image import ImageDataGenerator
@@ -29,6 +29,7 @@ class myMobilenetV2():
         current_location = os.path.abspath(__file__)
         cwd, base_name = os.path.split(current_location)
         file_name, _ = os.path.splitext(base_name)
+        self.file_name = file_name
         print("current location: ", cwd, ", this file: ", file_name)
 
         self.dirs['cnn_dir'] = os.path.dirname(cwd)
@@ -86,7 +87,9 @@ class myMobilenetV2():
         model = Sequential()
         # 設計は沈さんのモデルを拝借 (activites/20190718)
         model.add(base_model)
-        model.add(GlobalAveragePooling2D())
+        #model.add(GlobalAveragePooling2D())
+        model.add(Flatten())
+        model.add(Dense(512, activation='relu'))
         model.add(Dense(1, activation='softmax'))
 
         model.compile(optimizer=Adam(lr=0.0001),
@@ -115,12 +118,12 @@ class myMobilenetV2():
                             validation_steps=validation_steps,
                             verbose=1)
         # save model & weights -----
-        model_file = os.path.join(self.dirs['child_log_dir'], '{}_model.h5'.format(file_name))
+        model_file = os.path.join(self.dirs['child_log_dir'], '{}_model.h5'.format(self.file_name))
         model.save(model_file)
 
         # save history -----
-        history_file = os.path.join(self.dirs['child_log_dir'], '{}_hisoty.pkl'.format(file_name))
-        with open(hisory_file, 'wb') as p:
+        history_file = os.path.join(self.dirs['child_log_dir'], '{}_hisoty.pkl'.format(self.file_name))
+        with open(history_file, 'wb') as p:
             pickle.dump(history.history, p)
 
         print("export logs in ... ", self.dirs['child_log_dir'])
