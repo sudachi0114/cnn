@@ -123,7 +123,7 @@ class myMobilenetV2():
         model.save(model_file)
 
         # save history -----
-        history_file = os.path.join(self.dirs['child_log_dir'], '{}_hisoty.pkl'.format(self.file_name))
+        history_file = os.path.join(self.dirs['child_log_dir'], '{}_history.pkl'.format(self.file_name))
         with open(history_file, 'wb') as p:
             pickle.dump(history.history, p)
 
