@@ -16,7 +16,7 @@ from keras.preprocessing.image import ImageDataGenerator
 from keras.models import load_model
 
 
-def testDataGenerator(test_dir, input_size=150, batch_size=10):
+def testDataGenerator(test_dir, input_size, batch_size=10):
 
     test_datagen = ImageDataGenerator(rescale=1.0/255.0)
     test_generator = test_datagen.flow_from_directory(test_dir,
@@ -71,10 +71,13 @@ def predStocker(generator, model, batch_size=10):
 
 def main():
 
-    test_generator = testDataGenerator(test_dir)
-
+    # 先にモデルを読み込み、モデルの input_shape を test_generator に渡す
     model = reloadModel(child_log_dir)
-    #model.summary()
+    #model.summary()    
+
+    input_size = model.inputs[0].shape[1]
+    test_generator = testDataGenerator(test_dir, input_size=input_size)
+
 
     pred_result, pred_target, labels = predStocker(test_generator, model)
     #print("pred_result : ", pred_result)
@@ -139,3 +142,4 @@ if __name__ == '__main__':
 
     
     main()
+    
