@@ -9,10 +9,12 @@ import numpy as np
 import pandas as pd
 import matplotlib.pyplot as plt
 
+#server_flg = False
 import tensorflow as tf
-if tf.test.is_gpu_available():
-    session_config = tf.ConfigProto(gpu_options=tf.GPUOptions(allow_growth=True))
-    tf.Session(config=session_config)
+#if tf.test.is_gpu_available():
+server_flg = True
+session_config = tf.ConfigProto(gpu_options=tf.GPUOptions(allow_growth=True))
+tf.Session(config=session_config)
 
 from keras.preprocessing.image import ImageDataGenerator
 from keras.models import load_model
@@ -121,10 +123,12 @@ def main():
         plt.subplot(5, 10, 1+i)
         plt.imshow(pred_target[i])
         plt.axis(False)
-        plt.title("pred:{}".format(idx, pred['class'][idx]))
-    #img_file_place = os.path.join(child_log_dir, "{0}_confusePics_{1:%y%m%d}_{2:%H%M}.png".format(selected_child_log_dir, now, now))
-    #plt.savefig(img_file_place)
-    plt.show()
+        plt.title("pred:{}".format(pred['class'][i]))
+    if server_flg:
+        img_file_place = os.path.join(child_log_dir, "{0}_AllPics_{1:%y%m%d}_{2:%H%M}.png".format(selected_child_log_dir, now, now))
+        plt.savefig(img_file_place)
+    else:
+        plt.show()
 
 
 if __name__ == '__main__':
