@@ -14,7 +14,7 @@ tf.Session(config=session_config)
 
 from keras.preprocessing.image import ImageDataGenerator
 from keras.models import load_model
-
+from keras.optimizers import Adam
 
 def testDataGenerator(test_dir, input_size, batch_size=10):
 
@@ -37,7 +37,7 @@ def reloadModel(child_log_dir):
             model_file = os.path.join(child_log_dir, f)
     print("Use saved model : ", model_file)
 
-    model = load_model(model_file, compile=False)
+    model = load_model(model_file, compile=True)
 
     return model
 
@@ -90,17 +90,26 @@ def main():
         elif labels[i] == 1:
             labels_class.append('dog')
 
-    pred = pd.DataFrame(pred_result, columns=['cat'])
-    pred['dog'] = 1.0 - pred['cat']
+    #pred = pd.DataFrame(pred_result, columns=['cat'])
+    #pred['dog'] = 1.0 - pred['cat']
+    pred = pd.DataFrame(pred_result, columns=['dog'])
+    pred['cat'] = 1.0 - pred['dog']
     pred['class'] = pred.idxmax(axis=1)
     pred['label'] = labels_class
     pred['collect'] = (pred['class'] == pred['label'])
     print(pred)
 
     confuse = pred[pred['collect'] == False].index.tolist()
-    print("wrong recognized indeices are ", confuse)
+    print("\nwrong recognized indeices are ", confuse)
     print("wrong recognized amount is ", len(confuse))
     print("wrong rate : ", 100*len(confuse)/len(labels), "%")
+
+    # wrong rate の check 用
+    print("\ncheck secence ...")
+    score = model.evaluate(pred_target, labels, verbose=1)
+    print("test accuracy: ", score[1])
+    print("test wrong rate must be (1-accuracy): ", 1.0-score[1])
+    
 
     plt.figure(figsize=(10, 10))
     plt.subplots_adjust(hspace=0.5)
