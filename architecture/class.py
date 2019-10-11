@@ -84,6 +84,7 @@ class myMobilenetV2():
         base_model = MobileNetV2(input_shape=self.INPUT_SHAPE,
                                  weights='imagenet',
                                  include_top=False)
+        base_model.trainable = False
         model = Sequential()
         # 設計は沈さんのモデルを拝借 (activites/20190718)
         model.add(base_model)
