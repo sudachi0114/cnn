@@ -23,7 +23,7 @@ class myMobilenetV2():
         self.TARGET_SIZE = (self.INPUT_SIZE, self.INPUT_SIZE)
         self.CHANNEL = 3
         self.INPUT_SHAPE = (self.INPUT_SIZE, self.INPUT_SIZE, self.CHANNEL)
-        self.batch_size = 30
+        self.batch_size = 10
         self.dirs = {}
 
         current_location = os.path.abspath(__file__)
@@ -46,7 +46,7 @@ class myMobilenetV2():
         self.epochs = 30
 
     def validation_data_iterator(self):
-        validation_datagen = ImageDataGenerator(rescale=1/255.0)
+        validation_datagen = ImageDataGenerator(rescale=1.0/255.0)
         validation_generator = validation_datagen.flow_from_directory(self.dirs['validation_dir'],
                                                                       target_size=self.TARGET_SIZE,
                                                                       batch_size=self.batch_size,
@@ -54,7 +54,7 @@ class myMobilenetV2():
         return validation_generator
 
     def train_data_iterator(self):
-        train_datagen = ImageDataGenerator(rescale=1/255.0)
+        train_datagen = ImageDataGenerator(rescale=1.0/255.0)
         train_generator = train_datagen.flow_from_directory(self.dirs['train_dir'],
                                                             target_size=self.TARGET_SIZE,
                                                             batch_size=self.batch_size,
@@ -88,9 +88,10 @@ class myMobilenetV2():
         # 設計は沈さんのモデルを拝借 (activites/20190718)
         model.add(base_model)
         #model.add(GlobalAveragePooling2D())
+        # activites/20190712 のものも採用
         model.add(Flatten())
         model.add(Dense(512, activation='relu'))
-        model.add(Dense(1, activation='softmax'))
+        model.add(Dense(1, activation='sigmoid'))  # 2値分類の時は sigmoid を選択する
 
         model.compile(optimizer=Adam(lr=0.0001),
                       loss='binary_crossentropy',
@@ -111,12 +112,12 @@ class myMobilenetV2():
         print(steps_per_epoch, " [steps / epoch]")
         print(validation_steps, " (validation steps)")
 
-        history = model.fit(train_generator,
-                            steps_per_epoch=steps_per_epoch,
-                            epochs=self.epochs,
-                            validation_data=validation_generator,
-                            validation_steps=validation_steps,
-                            verbose=1)
+        history = model.fit_generator(train_generator,
+                                      steps_per_epoch=steps_per_epoch,
+                                      epochs=self.epochs,
+                                      validation_data=validation_generator,
+                                      validation_steps=validation_steps,
+                                      verbose=1)
         # save model & weights -----
         model_file = os.path.join(self.dirs['child_log_dir'], '{}_model.h5'.format(self.file_name))
         model.save(model_file)
@@ -131,16 +132,6 @@ class myMobilenetV2():
         
 
 if __name__ == '__main__':
-    mymnv2 = myMobilenetV2()
-    #print(mymnv2.INPUT_SHAPE)
-    
-    #train_generator = mymnv2.train_data_iterator()
-    #validation_generator = mymnv2.validation_data_iterator()
-    
-    #x_train, y_train = mymnv2.train_data_stocker()
-    #print("x_train.shape: ", x_train.shape)
-    #print("y_train.shape: ", y_train.shape)
-    
-    #model = mymnv2.create_model()
 
+    mymnv2 = myMobilenetV2()
     mymnv2.train_save()
