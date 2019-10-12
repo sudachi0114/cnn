@@ -84,7 +84,7 @@ class im2npz():
             save_file = os.path.join(self.dirs['data_dir'], '{}.npz'.format(self.data_purpose))
             np.savez(save_file, data=x, label=y)
 
-            print("\nCollectory Saved!: ", save_file)
+            print("Collectory Saved!: ", save_file)
 
 if __name__ == '__main__':
 
