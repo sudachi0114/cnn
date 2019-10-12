@@ -48,8 +48,6 @@ class im2npz():
         return data_generator
 
     def stack(self):
-        
-        x, y = [], []
 
         data_generator = self.DataGenerator()
         #data_checker, label_checker = next(data_generator)
