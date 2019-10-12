@@ -6,6 +6,7 @@ import os
 cwd = os.getcwd()
 log_dir =os.path.join(cwd, 'log')
 
+
 # child log 選択 -----
 
 child_log_list = os.listdir(log_dir)
@@ -19,30 +20,31 @@ selected_idx = int(input(">>> "))
 
 child_log_dir =  os.path.join(log_dir, child_log_list[selected_idx])
 
+
 # log file 選別 -----
 
 target_list = os.listdir(child_log_dir)
 
+sieve_target_list = []
 for i, file_name in enumerate(target_list):
     if "formatted" in file_name:
-        target_list.pop(i)
-        #20191006_formatted.log
-    elif "log" not in file_name:
-        target_list.pop(i)
-  
+        pass
+    elif "log" in file_name:
+        sieve_target_list.append(file_name)
+
 
 # log file 選択 -----
 
-if len(target_list) == 1:
-    target_file = os.path.join(child_log_dir, target_list[0])
-elif len(target_list) > 1:
+if len(sieve_target_list) == 1:
+    target_file = os.path.join(child_log_dir, sieve_target_list[0])
+elif len(sieve_target_list) > 1:
     print("Please chose log below by number -----")
 
-    for i, file_name in enumerate(target_list):
+    for i, file_name in enumerate(sieve_target_list):
         print(i, "|", file_name)
 
     selected_idx = int(input(">>> "))
-    target_file = os.path.join(child_log_dir, target_list[selected_idx])
+    target_file = os.path.join(child_log_dir, sieve_target_list[selected_idx])
 
 
 # 処理開始 -----
