@@ -10,9 +10,9 @@ def read_npz(file_path):
     npz = np.load(file_path)
 
     print(npz)  # <numpy.lib.npyio.NpzFile object at 0x106dccf28>
-    print(npz.files)  # ['train_data', 'train_label']
+    print(npz.files)  # ['data', 'label']
 
-    train_data, train_label = npz['train_data'], npz['train_label']
+    train_data, train_label = npz['data'], npz['label']
 
     return train_data, train_label
 
@@ -36,7 +36,11 @@ if __name__ == '__main__':
     cnn_dir = os.path.dirname(cwd)
     data_dir = os.path.join(cnn_dir, "dogs_vs_cats_smaller")
 
-    file_path = os.path.join(data_dir, "train.npz")
+    purpose_list = ["train", "validation", "test"]
+    purpose = purpose_list[2]  # ココを変更
+    print("set purpose: ", purpose)
+
+    file_path = os.path.join(data_dir, "{}.npz".format(purpose))
 
     train_data, train_label = read_npz(file_path)
 
