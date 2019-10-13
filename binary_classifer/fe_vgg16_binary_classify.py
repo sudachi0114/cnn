@@ -12,22 +12,10 @@ sess = tf.Session(config=config)
 
 from keras.preprocessing.image import ImageDataGenerator
 from keras.models import Sequential
-from keras.applications import VGG16
 from keras.layers import Dense, Dropout
 from keras.optimizers import Adam
 
-
-def conv_gen(input_size, ch, summary=True):
-
-    # using Conv base@VGG16
-    conv_base = VGG16(weights='imagenet',
-                      include_top=False,
-                      input_shape=(input_size, input_size, ch))
-
-    if summary:
-        conv_base.summary()
-
-    return conv_base
+from vgg16_model import build_base_model
 
 
 def feature_extracter(conv_base, directory, input_size, data_size, batch_size=10):
@@ -71,7 +59,7 @@ def main(input_size=150, ch=3, batch_size=10, epochs=30, train_size=100, validat
     os.makedirs(child_log_dir, exist_ok=True)
 
     # create conv_base -----
-    conv_base = conv_gen(input_size, ch)
+    conv_base = build_base_model(input_size, ch)
 
     # feature extraction -----
     train_features, train_labels = feature_extracter(conv_base, train_dir, input_size, train_size)
