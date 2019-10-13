@@ -16,11 +16,10 @@ from keras.layers import Conv2D, MaxPooling2D, Flatten, Dense
 from keras.optimizers import Adam
 from keras.preprocessing.image import ImageDataGenerator
 
+from model import build_model
+from data_generator import DataGenerator
 
 def main():
-
-    input_size = 150
-    batch_size = 100
 
     # directory defin -----
     current_location = os.path.abspath(__file__)
@@ -40,51 +39,27 @@ def main():
     os.makedirs(log_dir, exist_ok=True)
     child_log_dir = os.path.join(log_dir, "{}_log".format(file_name))
     os.makedirs(child_log_dir, exist_ok=True)
-    
-    
-    # rescaring all images to 1/255
-    train_datagen = ImageDataGenerator(rescale=1.0/255.0)
-    validation_datagen = ImageDataGenerator(rescale=1.0/255.0)
 
-    train_generator = train_datagen.flow_from_directory(train_dir,
-                                                        target_size=(input_size, input_size),
-                                                        batch_size=batch_size,
-                                                        class_mode='binary')
 
-    validation_generator = validation_datagen.flow_from_directory(validation_dir,
-                                                                  target_size=(input_size, input_size),
-                                                                  batch_size=batch_size,
-                                                                  class_mode='binary')
+    generator = DataGenerator()
+    print("batch size before:", generator.BATCH_SIZE)
+    generator.BATCH_SIZE = 100
+    print("batch size after:", generator.BATCH_SIZE)
+    
+    train_generator = generator.Generator(train_dir)
+    validation_generator = generator.Generator(validation_dir)
     
     data_checker, label_checker = next(train_generator)
     print("data shape : ", data_checker.shape)
     print("label shape : ", label_checker.shape)
 
-    #print(data_checker[1])
-    #print(label_checker[1])
-    
+    batch_size = data_checker.shape[0]
+    input_size = data_checker.shape[1]
     ch = data_checker.shape[3]
-    print("set channel : ", ch)
         
-    model = Sequential()
-
-    model.add(Conv2D(32, (3,3), activation='relu', input_shape=(input_size, input_size, ch)))
-    model.add(MaxPooling2D((2,2)))
-    model.add(Conv2D(64, (3,3), activation='relu'))
-    model.add(MaxPooling2D((2,2)))
-    model.add(Conv2D(128, (3,3), activation='relu'))
-    model.add(MaxPooling2D((2,2)))
-    model.add(Conv2D(128, (3,3), activation='relu'))
-    model.add(MaxPooling2D((2,2)))
-    model.add(Flatten())
-    model.add(Dense(512, activation='relu'))
-    model.add(Dense(1, activation='sigmoid'))
+    model = build_model(input_size, ch)
 
     model.summary()
-
-    model.compile(loss='binary_crossentropy',
-                  optimizer=Adam(lr=1e-4),
-                  metrics=['accuracy'])
 
     steps_per_epoch = train_generator.n // batch_size
     validation_steps = validation_generator.n // batch_size
@@ -107,6 +82,7 @@ def main():
         pickle.dump(history.history, p)
                                   
     print("export logs in ", child_log_dir)
+
 
 if __name__ == '__main__':
     main()
