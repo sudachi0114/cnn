@@ -10,14 +10,11 @@ config = tf.ConfigProto()
 config.gpu_options.allow_growth = True
 sess = tf.Session(config=config)
 
-from keras.preprocessing.image import ImageDataGenerator
-from keras.models import Sequential
-from keras.applications import VGG16
-from keras.layers import Flatten, Dense, Dropout
-from keras.optimizers import Adam
+from vgg16_model import build_model 
+from data_generator import DataGenerator
 
 
-def main(input_size=150, batch_size=10, epochs=30):
+def main(epochs=30):
 
     # directory -----
     current_location = os.path.abspath(__file__)
@@ -38,45 +35,22 @@ def main(input_size=150, batch_size=10, epochs=30):
     os.makedirs(child_log_dir, exist_ok=True)
     
 
-    datagen = ImageDataGenerator(rescale=1/255.)
+    generator = DataGenerator()
 
-    train_generator = datagen.flow_from_directory(train_dir,
-                                                  target_size=(input_size, input_size),
-                                                  batch_size=batch_size,
-                                                  class_mode='binary')
-
-    validation_generator = datagen.flow_from_directory(validation_dir,
-                                                       target_size=(input_size, input_size),
-                                                       batch_size=batch_size,
-                                                       class_mode='binary')
+    train_generator = generator.Generator(train_dir)
+    validation_generator = generator.Generator(validation_dir)
 
     data_checker, label_checker = next(train_generator)
     data_shape = data_checker.shape  # (batch_size, width, height, ch)
 
+    batch_size = data_shape[0]
+    input_size = data_shape[1]
+    ch = data_shape[3]
 
-    # create conv_base -----
-    #   using Conv base@VGG16
-    conv_base = VGG16(weights='imagenet',
-                      include_top=False,
-                      input_shape=(data_shape[1], data_shape[2], data_shape[3]))
-
-    # conv_base のパラメータを凍結
-    conv_base.trainable = False
-
-    # model -----
-    model = Sequential()
-
-    model.add(conv_base)
-    model.add(Flatten())
-    model.add(Dense(256, activation='relu'))
-    model.add(Dropout(0.5))
-    model.add(Dense(1, activation='sigmoid'))
+    model = build_model(input_size, ch)
 
     model.summary()
 
-    model.compile(loss='binary_crossentropy',
-                  optimizer=Adam(lr=1e-4),
-                  metrics=['accuracy'])
 
     steps_per_epoch = train_generator.n // batch_size
     validation_steps = validation_generator.n // batch_size
