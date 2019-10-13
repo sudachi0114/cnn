@@ -15,8 +15,8 @@ class DataGenerator():
         self.BATCH_SIZE = 10
         self.CLASS_MODE = 'binary'
 
-    # DA などを行わない基本的な DataGenerator
-    def DataGenerator(self, target_dir):
+    # DA などを行わない基本的な Generator
+    def Generator(self, target_dir):
 
         print("\nStart DataGenerator ...")
 
