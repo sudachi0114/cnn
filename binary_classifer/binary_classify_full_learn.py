@@ -11,11 +11,6 @@ config = tf.ConfigProto()
 config.gpu_options.allow_growth = True
 sess = tf.Session(config=config)
 
-from keras.models import Sequential
-from keras.layers import Conv2D, MaxPooling2D, Flatten, Dense
-from keras.optimizers import Adam
-from keras.preprocessing.image import ImageDataGenerator
-
 from model import build_model
 from data_generator import DataGenerator
 
