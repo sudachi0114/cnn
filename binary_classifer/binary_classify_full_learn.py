@@ -3,7 +3,8 @@
 #   dogs vs cats 12500*2 枚 全てを学習
 
 # ----- import -----
-import os
+import os, sys
+sys.path.append(os.pardir)
 
 import tensorflow as tf
 # GPU を用いるときの tf の session の設定
@@ -11,8 +12,8 @@ config = tf.ConfigProto()
 config.gpu_options.allow_growth = True
 sess = tf.Session(config=config)
 
-from model import build_model
-from data_generator import DataGenerator
+from model_handler import ModelHandler
+from data_handler import DataHandler
 
 def main():
 
@@ -36,13 +37,13 @@ def main():
     os.makedirs(child_log_dir, exist_ok=True)
 
 
-    generator = DataGenerator()
-    print("batch size before:", generator.BATCH_SIZE)
-    generator.BATCH_SIZE = 100
-    print("batch size after:", generator.BATCH_SIZE)
+    data_handler = DataHandler()
+    print("batch size before:", data_handler.BATCH_SIZE)
+    data_handler.BATCH_SIZE = 100
+    print("batch size after:", data_handler.BATCH_SIZE)
     
-    train_generator = generator.Generator(train_dir)
-    validation_generator = generator.Generator(validation_dir)
+    train_generator = data_handler.dataGenerator(train_dir)
+    validation_generator = data_handler.dataGenerator(validation_dir)
     
     data_checker, label_checker = next(train_generator)
     print("data shape : ", data_checker.shape)
@@ -51,8 +52,10 @@ def main():
     batch_size = data_checker.shape[0]
     input_size = data_checker.shape[1]
     ch = data_checker.shape[3]
+
+    model_handler = ModelHandler(input_size, ch)
         
-    model = build_model(input_size, ch)
+    model = model_handler.buildMyModel()
 
     model.summary()
 
