@@ -1,18 +1,19 @@
 
 # VGG16 を用いた転移学習 (fine tuning)
-import os
+import os,sys
+sys.path.append(os.pardir)
 
 import tensorflow as tf
 config = tf.ConfigProto()
 config.gpu_options.allow_growth = True
 sess = tf.Session(config=config)
 
-from keras.preprocessing.image import ImageDataGenerator
 from keras.models import Sequential
 from keras.layers import Dense, Flatten
-from keras.applications import VGG16
 from keras.optimizers import Adam
 
+from model_handler import ModelHandler
+from data_handler import DataHandler
 
 
 def main(input_size=150, batch_size=10, epochs=30):
@@ -39,42 +40,29 @@ def main(input_size=150, batch_size=10, epochs=30):
 
     
     # data gen -----
-    train_datagen = ImageDataGenerator(rescale=1/255.0,
-                                       rotation_range=40,
-                                       width_shift_range=0.2,
-                                       height_shift_range=0.2,
-                                       shear_range=0.2,
-                                       zoom_range=0.2,
-                                       horizontal_flip=True,
-                                       fill_mode='nearest')
+    data_handler = DataHandler()
     
-    validation_datagen = ImageDataGenerator(rescale=1/255.0)
+    train_generator = data_handler.dataGenerator(train_dir)
 
-
-    train_generator = train_datagen.flow_from_directory(train_dir,
-                                                        target_size=(input_size, input_size),
-                                                        batch_size=batch_size,
-                                                        class_mode='binary')
-
-    validation_generator = validation_datagen.flow_from_directory(validation_dir,
-                                                                  target_size=(input_size, input_size),
-                                                                  batch_size=batch_size,
-                                                                  class_mode='binary')
+    validation_generator = data_handler.dataGenerator(validation_dir)
 
     data_checker, label_checker = next(train_generator)
     data_shape = data_checker.shape
 
     print("train data shape : ", data_shape)
-    print("validation data shape : ", label_checker.shape)    
+    print("validation data shape : ", label_checker.shape)
 
-    # conv_base -----
-    conv_base = VGG16(weights='imagenet',
-                      include_top=False,
-                      input_shape=(data_shape[1], data_shape[2], data_shape[3]))
-                          
+    batch_size = data_shape[0]
+    input_size = data_shape[1]
+    ch = data_shape[3]
+    
+
     
     # model -----
     model = Sequential()
+    
+    model_handler = ModelHandler(input_size, ch)
+    conv_base = model_handler.buildVgg16Base()
 
     model.add(conv_base)
     model.add(Flatten())
