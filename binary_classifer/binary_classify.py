@@ -2,7 +2,8 @@
 # 2値分類 のプログラム:
 
 # ----- import -----
-import os
+import os, sys
+sys.path.append(os.pardir)  # 親ディレクトリのインポート
 
 import tensorflow as tf
 # GPU を用いるときの tf の session の設定
@@ -10,10 +11,8 @@ config = tf.ConfigProto()
 config.gpu_options.allow_growth = True
 sess = tf.Session(config=config)
 
-from keras.preprocessing.image import ImageDataGenerator
-
-from model import build_model
-from data_generator import DataGenerator
+from model_handler import ModelHandler
+from data_handler import DataHandler
 
 def main():
 
@@ -37,10 +36,10 @@ def main():
     child_log_dir = os.path.join(log_dir, "{}_log".format(file_name))
     os.makedirs(child_log_dir, exist_ok=True)    
 
-    generator = DataGenerator()
+    data_handler = DataHandler()
     
-    train_generator = generator.Generator(train_dir)
-    validation_generator = generator.Generator(validation_dir)
+    train_generator = data_handler.dataGenerator(train_dir)
+    validation_generator = data_handler.dataGenerator(validation_dir)
 
     
     data_checker, label_checker = next(train_generator)
@@ -52,7 +51,8 @@ def main():
     ch = data_checker.shape[3]
     print("set channel : ", ch)
         
-    model = build_model(input_size, ch)
+    model_handler = ModelHandler(input_size, ch)
+    model = model_handler.buildMyModel()
 
     model.summary()
 
