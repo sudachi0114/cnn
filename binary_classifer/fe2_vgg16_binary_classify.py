@@ -2,7 +2,8 @@
 # pre-trained model : VGG16 を用いて画像認識 (特徴量抽出 feature extraction)
 #   conv_base の上に分類器を載せてそのままぶん回す方式
 
-import os
+import os,sys
+sys.path.append(os.pardir)
 import numpy as np
 
 import tensorflow as tf
@@ -10,9 +11,8 @@ config = tf.ConfigProto()
 config.gpu_options.allow_growth = True
 sess = tf.Session(config=config)
 
-from vgg16_model import build_model 
-from data_generator import DataGenerator
-
+from model_handler import ModelHandler
+from data_handler import DataHandler
 
 def main(epochs=30):
 
@@ -35,10 +35,10 @@ def main(epochs=30):
     os.makedirs(child_log_dir, exist_ok=True)
     
 
-    generator = DataGenerator()
+    data_handler = DataHandler()
 
-    train_generator = generator.Generator(train_dir)
-    validation_generator = generator.Generator(validation_dir)
+    train_generator = data_handler.dataGenerator(train_dir)
+    validation_generator = data_handler.dataGenerator(validation_dir)
 
     data_checker, label_checker = next(train_generator)
     data_shape = data_checker.shape  # (batch_size, width, height, ch)
@@ -47,7 +47,8 @@ def main(epochs=30):
     input_size = data_shape[1]
     ch = data_shape[3]
 
-    model = build_model(input_size, ch)
+    model_handler = ModelHandler(input_size, ch)
+    model = model_handler.buildTlearnModel(base='vgg16')
 
     model.summary()
 
