@@ -2,7 +2,8 @@
 # pre-trained model : VGG16 を用いて画像認識 (特徴量抽出 feature extraction)
 #   特徴量抽出を先に行い、その結果を用いて、NNで学習する方法。
 
-import os
+import os, sys
+sys.path.append(os.pardir)
 import numpy as np
 
 import tensorflow as tf
@@ -10,24 +11,24 @@ config = tf.ConfigProto()
 config.gpu_options.allow_growth = True
 sess = tf.Session(config=config)
 
-from keras.preprocessing.image import ImageDataGenerator
 from keras.models import Sequential
 from keras.layers import Dense, Dropout
 from keras.optimizers import Adam
 
-from vgg16_model import build_base_model
+from data_handler import DataHandler
+from model_handler import ModelHandler
 
 
 def feature_extracter(conv_base, directory, input_size, data_size, batch_size=10):
     features = np.zeros(shape=(data_size, 4, 4, 512))
     labels = np.zeros(shape=(data_size))
 
-    datagen = ImageDataGenerator(rescale=1/255.)
+    data_handler = DataHandler()
+    print("INPUT_SIZE before: ", data_handler.INPUT_SIZE)
+    data_handler.INPUT_SIZE = input_size
+    print("INPUT_SIZE after: ", data_handler.INPUT_SIZE)
 
-    generator = datagen.flow_from_directory(directory,
-                                            target_size=(input_size, input_size),
-                                            batch_size=batch_size,
-                                            class_mode='binary')
+    generator = data_handler.dataGenerator(directory)
 
     for i in range(generator.n // batch_size):
         inputs_batch, labels_batch = next(generator)
@@ -59,7 +60,8 @@ def main(input_size=150, ch=3, batch_size=10, epochs=30, train_size=100, validat
     os.makedirs(child_log_dir, exist_ok=True)
 
     # create conv_base -----
-    conv_base = build_base_model(input_size, ch)
+    model_handler = ModelHandler(input_size, ch)
+    conv_base = model_handler.buildVgg16Base()
 
     # feature extraction -----
     train_features, train_labels = feature_extracter(conv_base, train_dir, input_size, train_size)
