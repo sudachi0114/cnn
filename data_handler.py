@@ -9,6 +9,27 @@ class DataHandler:
 
     def __init__(self):
 
+        # directory ------
+        self.dirs = {}
+        self.dirs['cnn_dir'] = os.getcwd()
+
+        dataset_list = ['dogs_vs_cats']
+        dataset_size_list = ['small', 'mid300', 'full']
+
+        self.dataset = dataset_list[0]  # 冗長な書き方 (FIXME:)
+        self.dataset_size = dataset_size_list[0]
+
+        selected_dataset = '{}_{}'.format(self.dataset, self.dataset_size)
+        
+        self.dirs['data_dir'] = os.path.join(self.dirs['cnn_dir'], selected_dataset)
+
+        data_purpose_list = ['train', 'validation', 'test']
+
+        self.data_purpose = ''
+
+        if self.data_purpose != '':
+            target_dir = os.path.join(self.dirs['data_dir'], self.data_purpose)
+       
         # attribute -----
         self.DO_RESCALE = True
         self.INPUT_SIZE = 224
