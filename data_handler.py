@@ -21,7 +21,7 @@ class DataHandler:
         self.dataset_size = dataset_size_list[0]
 
         selected_dataset = '{}_{}'.format(self.dataset, self.dataset_size)
-        
+
         self.dirs['data_dir'] = os.path.join(self.dirs['cnn_dir'], selected_dataset)
 
         data_purpose_list = ['train', 'validation', 'test']
@@ -63,7 +63,7 @@ class DataHandler:
         return data_generator
 
     
-    def npzLoader(self, target_file):
+    def npzLoader(self, target_file=''):
 
         print("\nStart Loading npz file ...")
 
