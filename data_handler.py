@@ -11,10 +11,11 @@ class DataHandler:
 
         # directory ------
         self.dirs = {}
-        self.dirs['cnn_dir'] = os.getcwd()
+        self.dirs['cwd'] = os.getcwd()
+        self.dirs['cnn_dir'] = os.path.dirname(self.dirs['cwd'])
 
         dataset_list = ['dogs_vs_cats']
-        dataset_size_list = ['small', 'mid300', 'full']
+        dataset_size_list = ['smaller', 'mid300', 'full']
 
         self.dataset = dataset_list[0]  # 冗長な書き方 (FIXME:)
         self.dataset_size = dataset_size_list[0]
@@ -27,9 +28,6 @@ class DataHandler:
 
         self.data_purpose = ''
 
-        if self.data_purpose != '':
-            target_dir = os.path.join(self.dirs['data_dir'], self.data_purpose)
-       
         # attribute -----
         self.DO_RESCALE = True
         self.INPUT_SIZE = 224
@@ -38,7 +36,7 @@ class DataHandler:
 
 
     # DA などを行わない基本的な Generator
-    def dataGenerator(self, target_dir):
+    def dataGenerator(self, target_dir=''):
 
         print("\nStart DataGenerator ...")
 
@@ -48,6 +46,12 @@ class DataHandler:
             datagen = ImageDataGenerator()
 
         TARGET_SIZE = (self.INPUT_SIZE, self.INPUT_SIZE)
+
+        
+        if target_dir == '':
+            target_dir = os.path.join(self.dirs['data_dir'], self.data_purpose)
+        else:
+            target_dir = self.target_dir
 
         data_generator = datagen.flow_from_directory(target_dir,
                                                      target_size=TARGET_SIZE,
