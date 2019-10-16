@@ -104,6 +104,7 @@ def main():
     print(pred)
 
     confuse = pred[pred['collect'] == False].index.tolist()
+    collect = pred[pred['collect'] == True].index.tolist()
     print("\nwrong recognized indeices are ", confuse)
     print("wrong recognized amount is ", len(confuse))
     print("wrong rate : ", 100*len(confuse)/len(labels), "%")
@@ -113,17 +114,35 @@ def main():
     score = model.evaluate(pred_target, labels, verbose=1)
     print("test accuracy: ", score[1])
     print("test wrong rate must be (1-accuracy): ", 1.0-score[1])
-    
+
 
     plt.figure(figsize=(12, 6))
+    plt.subplots_adjust(left=0.1, right=0.95, bottom=0.01, top=0.95)
     plt.subplots_adjust(hspace=0.5)
     #plt.title("Confusion picures #={}".format(len(confuse)))
 
-    for i in range(len(pred_target)):
-        plt.subplot(5, 10, 1+i)
-        plt.imshow(pred_target[i])
-        plt.axis(False)
-        plt.title("pred:{}".format(pred['class'][i]))
+    n_row = 8
+    n_col = 8
+
+    for i in range(2):
+        if i == 0:
+            j = 0
+            for idx in confuse:
+                plt.subplot(n_row, n_row, 1+j)
+                plt.imshow(pred_target[idx])
+                plt.axis(False)
+                plt.title("[{0}] p:{1}".format(idx, pred['class'][idx]))
+                j+=1
+        else:
+            mod = j%n_row  # 最後の行のマスが余っている個数
+            # ちょうどまであといくつ? <= n_col - あまり
+            nl = j + (n_col-mod)  # newline
+            for k, idx in enumerate(collect):
+                plt.subplot(n_row, n_col, 1+nl+k)
+                plt.imshow(pred_target[idx])
+                plt.axis(False)
+                plt.title("[{0}] p:{1}".format(idx, pred['class'][idx]))
+
     if server_flg:
         img_file_place = os.path.join(child_log_dir, "{0}_AllPics_{1:%y%m%d}_{2:%H%M}.png".format(selected_child_log_dir, now, now))
         plt.savefig(img_file_place)
