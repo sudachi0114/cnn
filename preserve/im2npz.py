@@ -1,5 +1,8 @@
 
 # 学習用の画像を numpy 配列にして保存しておくプログラム
+#   # 注意!!
+#   #   npz で保存すると、入力画像の解像度 (サンプリングサイズ) を静的に固定することになるので
+#   #   train (validation) / test の model の入力層はデータの解像度にあわせるようにする。
 
 import os
 import numpy as np
@@ -88,4 +91,4 @@ if __name__ == '__main__':
 
     changer = im2npz()
     changer.save2npz()
-    
+
