@@ -16,6 +16,4 @@ __pycache__
 
 # data dir
 *.zip
-train/
-test1/
 dogs_vs_cats_*
