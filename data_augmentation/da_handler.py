@@ -4,6 +4,8 @@ from random import randint
 import numpy as np
 import matplotlib.pyplot as plt
 
+import imageio
+
 import imgaug as ia
 import imgaug.augmenters as iaa
 from keras.preprocessing.image import ImageDataGenerator
@@ -44,7 +46,7 @@ class DaHandler:
 
         return train_data, train_label
 
-    def keras_augment(self, mode):
+    def keras_augment(self, mode='native'):
 
         self.keras_mode_list = ['native', 'rotation', 'hflip', 'width_shift', 'height_shift', 'zoom', 'swize_center', 'swize_std_normalize', 'vflip', 'standard']
         print("現在 keras で選択できる DA のモードは以下の通りです。")
@@ -101,8 +103,9 @@ class DaHandler:
         return data_generator
 
 
-    def imgaug_aug(self, mode=''):
+    def imgaug_augment(self, mode=''):
 
+        self.imgaug_mode_list = ['', 'gnoise', 'lnoise', 'pgnoise', 'lcontrast', 'flatten', 'sharpen', 'invert', 'emboss', 'someof']
         print("現在 imgaug で選択できる DA のモードは以下の通りです。")
         print(self.imgaug_mode_list, "\n")
 
@@ -122,13 +125,23 @@ class DaHandler:
         elif mode == 'lcontrast':
             imgaug_aug = iaa.LinearContrast((0.5, 2.0))  # 明度変換
         elif mode == 'flatten':
-            imgaug_aug= iaa.GaussianBlur(sigma=(0, 3.0))  # blur: ぼかし (平滑化)
+            imgaug_aug = iaa.GaussianBlur(sigma=(0, 3.0))  # blur: ぼかし (平滑化)
         elif mode == 'sharpen':
             imgaug_aug = iaa.Sharpen(alpha=(0, 1.0), lightness=(0.75, 1.5)) # sharpen images (鮮鋭化)
         elif mode == 'invert':
-            imgaug_aug= iaa.Invert(p=0.2, per_channel=True)  # 色反転 (20% いずれかのチャンネルが(場合によっては複数)死ぬ)
+            imgaug_aug = iaa.Invert(p=0.2, per_channel=True)  # 色反転 (20% いずれかのチャンネルが(場合によっては複数)死ぬ)
         elif mode == 'emboss':
-            imgaug_aug= iaa.Emboss(alpha=(0, 1.0), strength=(0, 2.0))  # Edge 強調
+            imgaug_aug = iaa.Emboss(alpha=(0, 1.0), strength=(0, 2.0))  # Edge 強調
+        elif mode == 'someof':  # 上記のうちのどれか1つ
+            imgaug_aug = iaa.SomeOf(1, [
+                iaa.AdditiveGaussianNoise(scale=[0, 0.25*255]),
+                iaa.AdditivePoissonNoise(lam=(0, 30), per_channel=True),
+                iaa.AdditivePoissonNoise(lam=(0, 30), per_channel=True),
+                iaa.LinearContrast((0.5, 2.0)),
+                iaa.GaussianBlur(sigma=(0, 3.0)),
+                iaa.Invert(p=0.2, per_channel=True),
+                iaa.Emboss(alpha=(0, 1.0), strength=(0, 2.0))
+            ])
         else:
             raise ValueError("予期されないモードが選択されています。")
 
@@ -141,17 +154,39 @@ class DaHandler:
         return aug_data, label
 
 
+    def save_imgauged_img(self, mode='image'):
+
+        aug_data, label = self.imgaug_augment(mode='someof')
+        auged_data_dir = os.path.join(self.dirs['cnn_dir'], "dogs_vs_cats_auged")
+        os.makedirs(auged_data_dir, exist_ok=True)
+
+        if mode == 'image':  # 画像として保存
+            for i in range(len(label)):
+                if label[i] == 0:
+                    auged_data_dir_cat =  os.path.join(auged_data_dir, 'cat')
+                    os.makedirs(auged_data_dir_cat, exist_ok=True)
+                    save_file_cats = os.path.join(auged_data_dir_cat, "cat.{}.jpg".format(i))
+                    imageio.imwrite(save_file_cats, aug_data[i], format='jpg')
+                elif label[i] == 1:
+                    auged_data_dir_dog =  os.path.join(auged_data_dir, 'dog')
+                    os.makedirs(auged_data_dir_dog, exist_ok=True)
+                    save_file_dogs = os.path.join(auged_data_dir_dog, "dog.{}.jpg".format(i))
+                    imageio.imwrite(save_file_dogs, aug_data[i], format='jpg')
+        elif mode == 'npz':  # npz file として保存
+            save_file = os.path.join(auged_data_dir, "auged.npz")
+            np.save(save_file, data=aug_data, label=label)
+
+
     def adopt_keras_imgaug(self):
         # FIXME:データ一枚単位でランダムに適用できるようにしなければいけない??
         #   全体の hoge% にノイズを付与 <= 一枚ずつでなくてもいい
         #   noize を付与することもあれば 拡大縮小することもある <= 分けなければならない
-        imgaug_mode_list = ['', 'gnoise', 'lnoise', 'pgnoise', 'lcontrast', 'flatten', 'sharpen', 'invert', 'emboss']
 
         selected_mode = randint(0, len(imgaug_mode_list))
 
         rand_mode = imgaug_mode_list[selected_mode]
 
-        aug_data, label = self.imgaug_aug(mode=rand_mode)
+        aug_data, label = self.imgaug_augment(mode=rand_mode)
 
 
     def display(self):
@@ -178,7 +213,7 @@ class DaHandler:
 
         for n_confirm in range(3):  # 三回出力して確認
             self.DO_SHUFFLE = False
-            data, label = self.imgaug_aug(mode='invert')
+            data, label = self.imgaug_augment(mode='someof')
 
             print(data[0])
 
@@ -199,27 +234,30 @@ class DaHandler:
 
 if __name__ == '__main__':
 
-    da_handler = DaHandler()
-    validation_data, validation_label = da_handler.validationData()
+    dh = DaHandler()
+    validation_data, validation_label = dh.validationData()
 
     print("validation_data's shape: ", validation_data.shape)
     print("validation_label's shape: ", validation_label.shape)
 
-    test_data, test_label = da_handler.testData()
+    test_data, test_label = dh.testData()
 
     print("test_data's shape: ", test_data.shape)
     print("test_label's shape: ", test_label.shape)
 
-    train_data, train_label = da_handler.trainData()
+    train_data, train_label = dh.trainData()
 
     print("train_data's shape: ", train_data.shape)
     print("train_label's shape: ", train_label.shape)
 
-    data_generator = da_handler.keras_augment()
+    data_generator = dh.keras_augment()
     data_checker, label_checker = next(data_generator)
 
     print("data_checker's shape: ", data_checker.shape)
     print("label_checker's shape: ", label_checker.shape)
 
-    da_handler.display()
-    #da_handler.display_imgaug()
+    #dh.display()
+    dh.display_imgaug()
+
+    dh.save_imgauged_img(mode='image')
+
