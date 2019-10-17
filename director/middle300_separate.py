@@ -11,7 +11,7 @@ print("cwd : ", cwd)
 cnn_dir = os.path.dirname(cwd) # ../cnn
 print("cnn_dir : ", cnn_dir) 
 
-origin_data_dir = os.path.join(cnn_dir, "train")
+origin_data_dir = os.path.join(cnn_dir, "dogs_vs_cats_origin")
 print("origin_data_dir : ", origin_data_dir)
 
 # データセットを小さくしたディレクトリへの PATH

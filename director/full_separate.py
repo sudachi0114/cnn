@@ -10,7 +10,7 @@ print("cwd : ", cwd)
 cnn_dir = os.path.dirname(cwd) # .../cnn
 print("cnn_dir : ", cnn_dir) 
 
-origin_data_dir = os.path.join(cnn_dir, "train")  # 今 test1 dir にある画像使ってない..
+origin_data_dir = os.path.join(cnn_dir, "dogs_vs_cats_origin")
 print("origin_train_data_dir : ", origin_data_dir)
 
 # 分類先のディレクトリへの PATH
