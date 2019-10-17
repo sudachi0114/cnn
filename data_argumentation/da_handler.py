@@ -1,8 +1,11 @@
 
 import os
+from random import randint
 import numpy as np
 import matplotlib.pyplot as plt
 
+import imgaug as ia
+import imgaug.augmenters as iaa
 from keras.preprocessing.image import ImageDataGenerator
 
 class DaHandler:
@@ -41,7 +44,12 @@ class DaHandler:
 
         return train_data, train_label
 
-    def data_augment_keras(self, mode='native'):
+    def keras_augment(self, mode):
+
+        self.keras_mode_list = ['native', 'rotation', 'hflip', 'width_shift', 'height_shift', 'zoom', 'swize_center', 'swize_std_normalize', 'vflip', 'standard']
+        print("現在 keras で選択できる DA のモードは以下の通りです。")
+        print(self.keras_mode_list, "\n")
+
 
         if mode == 'native':
             keras_da = ImageDataGenerator(rescale=1.0/255.0)
@@ -81,7 +89,7 @@ class DaHandler:
                                            width_shift_range=0.125,
                                            height_shift_range=0.125)
         else:
-            raise ValueError("正しくないモードが選択されています。")
+            raise ValueError("予期されないモードが選択されています。")
 
         train_data, train_label = self.trainData()
 
@@ -92,13 +100,69 @@ class DaHandler:
 
         return data_generator
 
+
+    def imgaug_aug(self, mode=''):
+
+        print("現在 imgaug で選択できる DA のモードは以下の通りです。")
+        print(self.imgaug_mode_list, "\n")
+
+
+        data, label = self.trainData()
+
+        if mode == '':
+            aug_data = data
+        elif mode == 'gnoise':
+            imgaug_aug = iaa.AdditiveGaussianNoise(scale=[0, 0.25*255])  # Gaussian Noise
+        elif mode == 'lnoise':
+            imgaug_aug = iaa.AdditiveLaplaceNoise(scale=[0, 0.25*255])  # LaplaceNoise
+        elif mode == 'pnoise':
+            imgaug_aug = iaa.AdditivePoissonNoise(lam=(0, 30), per_channel=True)  # PoissonNoise
+        #elif mode == 'scontrast':
+        #    imgaug_aug = iaa.SigmoidContrast(gain=(5, 20), cutoff=(0.25, 0.75), per_channel=True)  # 彩度変換
+        elif mode == 'lcontrast':
+            imgaug_aug = iaa.LinearContrast((0.5, 2.0))  # 明度変換
+        elif mode == 'flatten':
+            imgaug_aug= iaa.GaussianBlur(sigma=(0, 3.0))  # blur: ぼかし (平滑化)
+        elif mode == 'sharpen':
+            imgaug_aug = iaa.Sharpen(alpha=(0, 1.0), lightness=(0.75, 1.5)) # sharpen images (鮮鋭化)
+        elif mode == 'invert':
+            imgaug_aug= iaa.Invert(p=0.2, per_channel=True)  # 色反転 (20% いずれかのチャンネルが(場合によっては複数)死ぬ)
+        elif mode == 'emboss':
+            imgaug_aug= iaa.Emboss(alpha=(0, 1.0), strength=(0, 2.0))  # Edge 強調
+        else:
+            raise ValueError("予期されないモードが選択されています。")
+
+
+        if mode != '':
+            aug_data = imgaug_aug.augment_images(data)
+
+        aug_data /= 255.0
+
+        return aug_data, label
+
+
+    def adopt_keras_imgaug(self):
+        # FIXME:データ一枚単位でランダムに適用できるようにしなければいけない??
+        #   全体の hoge% にノイズを付与 <= 一枚ずつでなくてもいい
+        #   noize を付与することもあれば 拡大縮小することもある <= 分けなければならない
+        imgaug_mode_list = ['', 'gnoise', 'lnoise', 'pgnoise', 'lcontrast', 'flatten', 'sharpen', 'invert', 'emboss']
+
+        selected_mode = randint(0, len(imgaug_mode_list))
+
+        rand_mode = imgaug_mode_list[selected_mode]
+
+        aug_data, label = self.imgaug_aug(mode=rand_mode)
+
+
     def display(self):
 
         for n_confirm in range(3):  # 三回出力して確認
             self.DO_SHUFFLE = False
-            data_generator = self.data_augment_keras(mode='fwize_center')
+            data_generator = self.keras_augment(mode='rotation')
 
             data_checker, label_checker = next(data_generator)
+
+            print(data_checker[0])
 
             plt.figure(figsize=(12, 6))
 
@@ -106,6 +170,26 @@ class DaHandler:
                 plt.subplot(2, 5, i+1)
                 plt.imshow(data_checker[i])
                 plt.title("l: [{}]".format(label_checker[i]))
+                plt.axis(False)
+
+            plt.show()
+
+    def display_imgaug(self):
+
+        for n_confirm in range(3):  # 三回出力して確認
+            self.DO_SHUFFLE = False
+            data, label = self.imgaug_aug(mode='invert')
+
+            print(data[0])
+
+            #data_checker, label_checker = next(data_generator)
+
+            plt.figure(figsize=(12, 6))
+
+            for i in range(10):
+                plt.subplot(2, 5, i+1)
+                plt.imshow(data[i])
+                plt.title("l: [{}]".format(label[i]))
                 plt.axis(False)
 
             plt.show()
@@ -131,10 +215,11 @@ if __name__ == '__main__':
     print("train_data's shape: ", train_data.shape)
     print("train_label's shape: ", train_label.shape)
 
-    data_generator = da_handler.data_augment_keras()
+    data_generator = da_handler.keras_augment()
     data_checker, label_checker = next(data_generator)
 
     print("data_checker's shape: ", data_checker.shape)
     print("label_checker's shape: ", label_checker.shape)
 
     da_handler.display()
+    #da_handler.display_imgaug()
