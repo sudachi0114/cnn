@@ -45,18 +45,50 @@ class DaHandler:
 
         if mode == 'native':
             keras_da = ImageDataGenerator(rescale=1.0/255.0)
+        elif mode == 'rotation':  # 個人的には rotation は DA の中でも効果を発揮してくれると思っている..
+            keras_da = ImageDataGenerator(rescale=1.0/255.0,
+                                          rotation_range=90)  # 回転 (max 90度まで)
+        elif mode == 'hflip':
+            keras_da = ImageDataGenerator(rescale=1.0/255.0,
+                                          horizontal_flip=True)  # 左右反転
         elif mode == 'width_shift':
             keras_da = ImageDataGenerator(rescale=1.0/255.0,
-                                          width_shift_range=0.125)  # 1/8 平行移動
+                                          width_shift_range=0.125)  # 1/8 平行移動(左右)
+        elif mode == 'height_shift':
+            keras_da = ImageDataGenerator(rescale=1.0/255.0,
+                                          height_shift_range=0.125)  # 1/8 平行移動(上下)
+        elif mode == 'zoom':
+            keras_da = ImageDataGenerator(rescale=1.0/255.0,
+                                          zoom_range=0.2)  # (0.8 ~ 1.2 の間で) 拡大/縮小
+        #elif mode == 'fwize_center':
+        #    keras_da = ImageDataGenerator(rescale=1.0/255.0,
+        #                                  featurewise_center=True)  # 平均を0に正規化(入力wiseに)
+        elif mode == 'swize_center':
+            keras_da = ImageDataGenerator(rescale=1.0/255.0,
+                                          samplewise_center=True)  # 平均を0に正規化(画像1枚wiseに)
+        #elif mode == 'fwize_std_normalize':
+        #    keras_da = ImageDataGenerator(rescale=1.0/255.0,
+        #                                  featurewise_std_normalization=True)  # 標準偏差正規化(入力wiseに)
+        elif mode == 'swize_std_normalize':
+            keras_da = ImageDataGenerator(rescale=1.0/255.0,
+                                          samplewise_std_normalization=True)  # 標準偏差正規化(画像1枚wiseに)
+        elif mode == 'vflip':
+            keras_da = ImageDataGenerator(rescale=1.0/255.0,
+                                          vertical_flip=True)  # 上下反転
+        elif mode == 'standard':
+            keras_da = ImageDataGenerator(rescale=1.0/255.0,
+                                           horizontal_flip=True,
+                                           width_shift_range=0.125,
+                                           height_shift_range=0.125)
         else:
-            pass
+            raise ValueError("正しくないモードが選択されています。")
 
         train_data, train_label = self.trainData()
 
         data_generator = keras_da.flow(train_data,
                                        train_label,
-                                        batch_size=self.BATCH_SIZE,
-                                        shuffle=self.DO_SHUFFLE)
+                                       batch_size=self.BATCH_SIZE,
+                                       shuffle=self.DO_SHUFFLE)
 
         return data_generator
 
@@ -64,7 +96,7 @@ class DaHandler:
 
         for n_confirm in range(3):  # 三回出力して確認
             self.DO_SHUFFLE = False
-            data_generator = self.data_augment_keras(mode='width_shift')
+            data_generator = self.data_augment_keras(mode='fwize_center')
 
             data_checker, label_checker = next(data_generator)
 
@@ -75,7 +107,7 @@ class DaHandler:
                 plt.imshow(data_checker[i])
                 plt.title("l: [{}]".format(label_checker[i]))
                 plt.axis(False)
-            
+
             plt.show()
 
 
