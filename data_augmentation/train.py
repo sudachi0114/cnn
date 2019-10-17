@@ -2,24 +2,25 @@
 # Data Argumentation の効果検証用プログラム
 #   train 担当
 
-import os, pickle
+import os, sys, pickle
+sys.path.append(os.pardir)
 import tensorflow as tf
 session_config = tf.ConfigProto(gpu_options=tf.GPUOptions(allow_growth=True))
 tf.Session(config=session_config)
 
-from my_model import build_model
+from model_handler import ModelHandler
 from da_handler import DaHandler
 
-chosen_mode = 'rotation'
+chosen_mode = 'native'
 
 
 def train(set_epochs=50):
 
-    da_handler = DaHandler()
+    dh = DaHandler()
 
-    validation_data, validation_label = da_handler.validationData()
-    #train_data, train_label = da_handler.keras_augment(mode=chosen_mode)
-    train_generator = da_handler.keras_augment(mode=chosen_mode)
+    validation_data, validation_label = dh.validationData()
+    #train_data, train_label = dh.keras_augment(mode=chosen_mode)
+    train_generator = dh.keras_augment(mode=chosen_mode)
 
     data_checker, label_checker = next(train_generator)
 
@@ -47,7 +48,8 @@ def train(set_epochs=50):
     #data_size = train_data.shape[0]
     #print("batch_size : ", batch_size)
 
-    model = build_model(INPUT_SIZE, CHANNEL)
+    mh = ModelHandler(INPUT_SIZE, CHANNEL)
+    model = mh.buildMyModel()
 
     model.summary()
 
