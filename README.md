@@ -4,6 +4,7 @@
 ## ディレクトリ構造
 
     ```
+
     .
     ├── architecture
     ├── binary_classifer
@@ -18,6 +19,7 @@
     ├── train
     ├── vis_cnn_activation
     └── vis_cnn_filter
+
     ```
 
 
@@ -57,11 +59,9 @@
             * validation 100枚 (各class 50枚 * 2class)
             * test 100枚 (各class 50枚 * 2class)
         + full ( `dogs_vs_cats_full/` )
-            * train 22500枚 (各class 11250枚 * 2class)
+            * train 20000枚 (各class 10000枚 * 2class)
             * validation 2500枚 (各class 1250枚 * 2class)
-            * test はない.. (仕様です!! ごめんなさい!!)
-                + TODO: validation -> test に名称変更
-                + validation も作るようにする!
+            * test 2500枚 (各class 1250枚 * 2class)
 
 
 ## opcheck
@@ -73,6 +73,7 @@
     - 保存方法は 2つ
         + npz (numpy 固有のデータの保存方法)
         + pickler (python 固有のデータの保存方法)
+    - 読み込み元の画像ディレクトリに上記のどちらかのファイル形式で保存することにしている。
 
 ## vis_cnn_activation
 * CNN (VGG16 の imagenet のものだった気がする) のアクティベーションに関して描画するプログラム。
@@ -85,13 +86,16 @@
 
 ## train / test data の位置について
 * cnn 直下に配置することを想定
+    - split しなおしたものも同様。
 
 
 ## datasets
 * しばらくは Kaggle の Dogs vs Cats で遊ぶ予定。
     - train : dog / cat 12500 枚 => 計 25000枚
         + train.zip
+        + 紛らわしいので、dogs_vs_cats_origin と名前を変更して使う。
     - test1 : dog / cat 12500 枚 (random?)
+        + 使わないので削除。
     - 数枚ピックアップして使う。
 
 * binary classifer が完成してきたら 自分の取ってきたデータでやる。
