@@ -109,7 +109,6 @@ class DaHandler:
                                        batch_size=self.BATCH_SIZE,
                                        shuffle=self.DO_SHUFFLE)
 
-        # FIXME: Generator で返すのわかりづらい (なにかいい方法を考える)
         return data_generator
 
 
@@ -151,11 +150,10 @@ class DaHandler:
                                  'flatten',
                                  'sharpen',
                                  'invert',
-                                 'emboss',
+                                 'emboss',  # 13
                                  'someof']
         print("現在 imgaug で選択できる DA のモードは以下の通りです。")
         print(self.imgaug_mode_list, "\n")
-
 
         data, label = self.trainNpzLoader()
 
@@ -196,19 +194,27 @@ class DaHandler:
             imgaug_aug = iaa.Emboss(alpha=(0, 1.0), strength=(0, 2.0))  # Edge 強調
         elif mode == 'someof':  # 上記のうちのどれか1つ
             imgaug_aug = iaa.SomeOf(1, [
-                iaa.AdditiveGaussianNoise(scale=[0, 0.25*255]),
-                iaa.AdditivePoissonNoise(lam=(0, 30), per_channel=True),
-                iaa.AdditivePoissonNoise(lam=(0, 30), per_channel=True),
+                iaa.Affine(rotate=(-90, 90), order=1, mode="edge"),
+                iaa.Fliplr(0.5),
+                iaa.Affine(translate_percent={"x": (-0.125, 0.125)}, order=1, mode="edge"),
+                iaa.Affine(translate_percent={"y": (-0.125, 0.125)}, order=1, mode="edge"),
+                iaa.Affine(scale={"x": (0.8, 1.2), "y": (0.8, 1.2)}, order=1, mode="edge"),
                 iaa.LinearContrast((0.5, 2.0)),
+                iaa.AdditiveGaussianNoise(scale=[0, 0.25*255]),
+                iaa.AdditiveLaplaceNoise(scale=[0, 0.25*255]),
+                iaa.AdditivePoissonNoise(lam=(0, 30), per_channel=True),
                 iaa.GaussianBlur(sigma=(0, 3.0)),
+                iaa.Sharpen(alpha=(0, 1.0), lightness=(0.75, 1.5)),
                 iaa.Invert(p=0.2, per_channel=True),
-                iaa.Emboss(alpha=(0, 1.0), strength=(0, 2.0))
+                iaa.Emboss(alpha=(0, 1.0), strength=(0, 2.0))  # 13
             ])
         else:
             raise ValueError("予期されないモードが選択されています。")
 
         aug_data = imgaug_aug.augment_images(data)
+        aug_data = np.clip(aug_data, 0, 255)
 
+        # 注意: 戻り値の範囲は [0, 255] です。
         return aug_data, label
 
 
@@ -221,15 +227,11 @@ class DaHandler:
 
         if mode == 'image':  # 画像として保存
             for i, data in enumerate(aug_data):
-                #print(type(data.astype('uint8')))
-                #print(data.astype('uint8'))
-                #print(data.shape)
                 if label[i] == 0:
                     auged_data_dir_cat =  os.path.join(auged_data_dir, 'cat')
                     os.makedirs(auged_data_dir_cat, exist_ok=True)
                     save_file_cats = os.path.join(auged_data_dir_cat, "cat.{}.jpg".format(i))
                     pil_auged_img = Image.fromarray(data.astype('uint8'))  # float の場合は [0,1]/uintの場合は[0,255]で保存
-                    #print(type(pil_auged_img))
                     pil_auged_img.save(save_file_cats)
                 elif label[i] == 1:
                     auged_data_dir_dog =  os.path.join(auged_data_dir, 'dog')
@@ -242,29 +244,12 @@ class DaHandler:
             np.save(save_file, data=aug_data, label=label)
 
 
-    def adopt_keras_imgaug(self):
-        # FIXME:データ一枚単位でランダムに適用できるようにしなければいけない??
-        #   全体の hoge% にノイズを付与 <= 一枚ずつでなくてもいい
-        #   noize を付与することもあれば 拡大縮小することもある <= 分けなければならない
-
-        selected_mode = randint(0, len(imgaug_mode_list))
-
-        rand_mode = imgaug_mode_list[selected_mode]
-
-        aug_data, label = self.imgaug_augment(mode=rand_mode)
-
-
-
     def display_imgaug(self):
 
         for n_confirm in range(3):  # 三回出力して確認
             self.DO_SHUFFLE = False
-            data, label = self.imgaug_augment(mode='zoom')
-            data /= 255  # ここで rescale しても warning が出る FIXME:
-
-            print(data[0])
-
-            #data_checker, label_checker = next(data_generator)
+            data, label = self.imgaug_augment(mode='rotation')
+            data /= 255
 
             plt.figure(figsize=(12, 6))
 
@@ -306,5 +291,5 @@ if __name__ == '__main__':
     #dh.display_keras()
     dh.display_imgaug()
 
-    #dh.save_imgauged_img(mode='image')
+    dh.save_imgauged_img(mode='image')
 
