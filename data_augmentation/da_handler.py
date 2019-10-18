@@ -295,7 +295,7 @@ if __name__ == '__main__':
     print("label_checker's shape: ", label_checker.shape)
 
     #dh.display_keras()
-    dh.display_imgaug()
+    #dh.display_imgaug()
 
     dh.save_imgauged_img(mode='image')
 
