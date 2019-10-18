@@ -44,8 +44,12 @@
 
 ## data_argumentation
 * Data Augmentarion (データの水増し) に関しての実験用ディレクトリ
-* ごちゃっとしているので、近々整理する予定。
-    - 期限は未定..
+* 大方整理をした。
+    - DA に関するメソッドは da_handler.py にまとめた。
+    - mode を選択する形で DA を切り替えて Data Generate する。
+        + return の形が統一的ではないため修正したい TODO:
+        + 切り替えた mode の名前を chidl_log_dir の名前として付与する。
+    - model に関しては上層の model_handler.py を読む方針
 
 ## director
 * 訓練用のデータセットを作るプログラム。
@@ -62,7 +66,10 @@
             * train 20000枚 (各class 10000枚 * 2class)
             * validation 2500枚 (各class 1250枚 * 2class)
             * test 2500枚 (各class 1250枚 * 2class)
-
+        + auged
+            * smallerを Data Augmentation した画像を保存しておくディレクトリ。
+            * 作っているのは `data_augmentation/da_handler.py`
+            * 保存されているのは train 100枚 (各class 50枚 * 2class)
 
 ## opcheck
 * 動作確認用のプログラムが置いてある。
@@ -102,3 +109,15 @@
     - crawler というディレクトリを切って scraping program を配置予定
         + program は部分的に記載済み。
 
+# Coding 規約 (方針)
+* ファイル名: スネーク記法 + 拡張子
+    - `file_name.ext`
+* 変数名: スネーク記法
+    - `cnn_dir`, `save_file_name` など
+* Class 名: UpperCamelCase
+    - `HogeHandler` など
+    - method 名: lowerCamelCase
+        + `dataGenerator` など
+    - attribute 名: 大文字英語 (基本)
+        + `INPUT_SIZE`, `CHANNEL` など
+        + ただし変数名と同じ場合あり
