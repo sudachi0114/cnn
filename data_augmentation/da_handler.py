@@ -48,7 +48,16 @@ class DaHandler:
 
     def ImageDataGeneratorForker(self, mode='native'):
 
-        self.keras_mode_list = ['native', 'rotation', 'hflip', 'width_shift', 'height_shift', 'zoom', 'swize_center', 'swize_std_normalize', 'vflip', 'standard']
+        self.keras_mode_list = ['native',
+                                'rotation',
+                                'hflip',
+                                'width_shift',
+                                'height_shift',
+                                'zoom',
+                                'swize_center',
+                                'swize_std_normalize',
+                                'vflip',
+                                'standard']
         print("現在 keras で選択できる DA のモードは以下の通りです。")
         print(self.keras_mode_list, "\n")
 
@@ -104,9 +113,46 @@ class DaHandler:
         return data_generator
 
 
+    def display_keras(self):
+
+        for n_confirm in range(3):  # 三回出力して確認
+            self.DO_SHUFFLE = False
+            data_generator = self.ImageDataGeneratorForker(mode='rotation')
+
+            data_checker, label_checker = next(data_generator)
+
+            print(data_checker[0])
+
+            plt.figure(figsize=(12, 6))
+
+            for i in range(len(label_checker)):
+                plt.subplot(2, 5, i+1)
+                plt.imshow(data_checker[i])
+                plt.title("l: [{}]".format(label_checker[i]))
+                plt.axis(False)
+
+            plt.show()
+
+
+
+
     def imgaug_augment(self, mode=''):
 
-        self.imgaug_mode_list = ['', 'gnoise', 'lnoise', 'pgnoise', 'lcontrast', 'flatten', 'sharpen', 'invert', 'emboss', 'someof']
+        self.imgaug_mode_list = ['',
+                                 'rotation',
+                                 'hflip',
+                                 'width_shift',
+                                 'height_shift',
+                                 'zoom',
+                                 'lcontrast',
+                                 'gnoise',
+                                 'lnoise',
+                                 'pgnoise',
+                                 'flatten',
+                                 'sharpen',
+                                 'invert',
+                                 'emboss',
+                                 'someof']
         print("現在 imgaug で選択できる DA のモードは以下の通りです。")
         print(self.imgaug_mode_list, "\n")
 
@@ -115,16 +161,31 @@ class DaHandler:
 
         if mode == '':
             return data, label
+        elif mode == 'rotation':
+            imgaug_aug = iaa.Affine(rotate=(-90, 90), order=1, mode="edge")  # 90度回転
+            # keras と仕様が異なることに注意
+            #   keras は変化量 / imgaug は 変化の最大角を指定している
+            #   開いた部分の穴埋めができない..?? mode="edge" にするとそれなり..
+        elif mode == 'hflip':
+            imgaug_aug = iaa.Fliplr(0.5)  # 左右反転
+        elif mode == 'width_shift':
+            imgaug_aug = iaa.Affine(translate_percent={"x": (-0.125, 0.125)}, order=1, mode="edge")  # 1/8 平行移動(左右)
+        elif mode == 'height_shift':
+            imgaug_aug = iaa.Affine(translate_percent={"y": (-0.125, 0.125)}, order=1, mode="edge")  # 1/8 平行移動(上下)
+            # imgaug_aug = iaa.Crop(px=(0, 40))  <= 平行移動ではなく、切り抜き
+        elif mode == 'zoom':
+            imgaug_aug = iaa.Affine(scale={"x": (0.8, 1.2), "y": (0.8, 1.2)}, order=1, mode="edge")  # 80~120% ズーム
+            # これも keras と仕様が違って、縦横独立に拡大・縮小されるようである。
+        #elif mode == 'scontrast':
+        #    imgaug_aug = iaa.SigmoidContrast(gain=(5, 20), cutoff=(0.25, 0.75), per_channel=True)  # 彩度変換
+        elif mode == 'lcontrast':
+            imgaug_aug = iaa.LinearContrast((0.5, 2.0))  # 明度変換
         elif mode == 'gnoise':
             imgaug_aug = iaa.AdditiveGaussianNoise(scale=[0, 0.25*255])  # Gaussian Noise
         elif mode == 'lnoise':
             imgaug_aug = iaa.AdditiveLaplaceNoise(scale=[0, 0.25*255])  # LaplaceNoise
         elif mode == 'pnoise':
             imgaug_aug = iaa.AdditivePoissonNoise(lam=(0, 30), per_channel=True)  # PoissonNoise
-        #elif mode == 'scontrast':
-        #    imgaug_aug = iaa.SigmoidContrast(gain=(5, 20), cutoff=(0.25, 0.75), per_channel=True)  # 彩度変換
-        elif mode == 'lcontrast':
-            imgaug_aug = iaa.LinearContrast((0.5, 2.0))  # 明度変換
         elif mode == 'flatten':
             imgaug_aug = iaa.GaussianBlur(sigma=(0, 3.0))  # blur: ぼかし (平滑化)
         elif mode == 'sharpen':
@@ -149,6 +210,7 @@ class DaHandler:
         aug_data = imgaug_aug.augment_images(data)
 
         return aug_data, label
+
 
 
     def save_imgauged_img(self, mode='image'):
@@ -192,32 +254,13 @@ class DaHandler:
         aug_data, label = self.imgaug_augment(mode=rand_mode)
 
 
-    def display(self):
-
-        for n_confirm in range(3):  # 三回出力して確認
-            self.DO_SHUFFLE = False
-            data_generator = self.ImageDataGeneratorForker(mode='rotation')
-
-            data_checker, label_checker = next(data_generator)
-
-            print(data_checker[0])
-
-            plt.figure(figsize=(12, 6))
-
-            for i in range(len(label_checker)):
-                plt.subplot(2, 5, i+1)
-                plt.imshow(data_checker[i])
-                plt.title("l: [{}]".format(label_checker[i]))
-                plt.axis(False)
-
-            plt.show()
 
     def display_imgaug(self):
 
         for n_confirm in range(3):  # 三回出力して確認
             self.DO_SHUFFLE = False
-            data, label = self.imgaug_augment(mode='someof')
-            data /= 255
+            data, label = self.imgaug_augment(mode='zoom')
+            data /= 255  # ここで rescale しても warning が出る FIXME:
 
             print(data[0])
 
@@ -260,7 +303,7 @@ if __name__ == '__main__':
     print("data_checker's shape: ", data_checker.shape)
     print("label_checker's shape: ", label_checker.shape)
 
-    #dh.display()
+    #dh.display_keras()
     dh.display_imgaug()
 
     #dh.save_imgauged_img(mode='image')
