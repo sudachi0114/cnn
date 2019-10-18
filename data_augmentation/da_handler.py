@@ -221,26 +221,32 @@ class DaHandler:
 
     def save_imgauged_img(self, mode='image'):
 
-        aug_data, label = self.imgaug_augment(mode='gnoise')
-        auged_data_dir = os.path.join(self.dirs['cnn_dir'], "dogs_vs_cats_auged")
+        selected_aug_mode='rotation'
+        aug_data, label = self.imgaug_augment(mode=selected_aug_mode)
+        auged_data_dir = os.path.join(self.dirs['cnn_dir'], "dogs_vs_cats_auged_{}".format(selected_aug_mode))
         os.makedirs(auged_data_dir, exist_ok=True)
 
         if mode == 'image':  # 画像として保存
+            j = 0
             for i, data in enumerate(aug_data):
                 if label[i] == 0:
                     auged_data_dir_cat =  os.path.join(auged_data_dir, 'cat')
                     os.makedirs(auged_data_dir_cat, exist_ok=True)
                     save_file_cats = os.path.join(auged_data_dir_cat, "cat.{}.jpg".format(i))
+
                     pil_auged_img = Image.fromarray(data.astype('uint8'))  # float の場合は [0,1]/uintの場合は[0,255]で保存
                     pil_auged_img.save(save_file_cats)
                 elif label[i] == 1:
                     auged_data_dir_dog =  os.path.join(auged_data_dir, 'dog')
                     os.makedirs(auged_data_dir_dog, exist_ok=True)
-                    save_file_dogs = os.path.join(auged_data_dir_dog, "dog.{}.jpg".format(i))
+                    save_file_dogs = os.path.join(auged_data_dir_dog, "dog.{}.jpg".format(j))
+                    j+=1
+
                     pil_auged_img = Image.fromarray(data.astype('uint8'))
                     pil_auged_img.save(save_file_dogs)
+
         elif mode == 'npz':  # npz file として保存
-            save_file = os.path.join(auged_data_dir, "auged.npz")
+            save_file = os.path.join(auged_data_dir, "auged_{}.npz".format(selected_aug_mode))
             np.save(save_file, data=aug_data, label=label)
 
 
