@@ -51,7 +51,7 @@ class DataHandler:
         if target_dir == '':
             target_dir = os.path.join(self.dirs['data_dir'], self.data_purpose)
         else:
-            target_dir = self.target_dir
+            target_dir = target_dir
 
         data_generator = datagen.flow_from_directory(target_dir,
                                                      target_size=TARGET_SIZE,
