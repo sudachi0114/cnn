@@ -33,13 +33,12 @@ class DaHandler:
         validation_data, validation_label = npz['data'], npz['label']
         return validation_data, validation_label
 
-    def testDataLoader(self):
+    def testNpzLoader(self):
         npz = np.load(self.test_file)
         test_data, test_label = npz['data'], npz['label']
-
         return test_data, test_label
 
-    def trainDataLoader(self):
+    def trainNpzLoader(self):
         npz = np.load(self.train_file)
         train_data, train_label = npz['data'], npz['label']
 
@@ -92,7 +91,7 @@ class DaHandler:
         else:
             raise ValueError("予期されないモードが選択されています。")
 
-        train_data, train_label = self.trainDataLoader()
+        train_data, train_label = self.trainNpzLoader()
 
         data_generator = keras_da.flow(train_data,
                                        train_label,
@@ -109,7 +108,7 @@ class DaHandler:
         print(self.imgaug_mode_list, "\n")
 
 
-        data, label = self.trainDataLoader()
+        data, label = self.trainNpzLoader()
 
         if mode == '':
             aug_data = data
@@ -239,12 +238,12 @@ if __name__ == '__main__':
     print("validation_data's shape: ", validation_data.shape)
     print("validation_label's shape: ", validation_label.shape)
 
-    test_data, test_label = dh.testDataLoader()
+    test_data, test_label = dh.testNpzLoader()
 
     print("test_data's shape: ", test_data.shape)
     print("test_label's shape: ", test_label.shape)
 
-    train_data, train_label = dh.trainDataLoader()
+    train_data, train_label = dh.trainNpzLoader()
 
     print("train_data's shape: ", train_data.shape)
     print("train_label's shape: ", train_label.shape)
