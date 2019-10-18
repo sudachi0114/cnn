@@ -25,6 +25,35 @@ class DaHandler:
         self.validation_file = os.path.join(self.dirs['data_dir'], "validation.npz")
         self.test_file = os.path.join(self.dirs['data_dir'], "test.npz")
 
+        # list of keras DA modes -----
+        self.keras_mode_list = ['native',
+                                'rotation',
+                                'hflip',
+                                'width_shift',
+                                'height_shift',
+                                'zoom',
+                                'swize_center',
+                                'swize_std_normalize',
+                                'vflip',
+                                'standard']
+
+        # list of imgaug DA modes -----
+        self.imgaug_mode_list = ['',
+                                 'rotation',
+                                 'hflip',
+                                 'width_shift',
+                                 'height_shift',
+                                 'zoom',
+                                 'lcontrast',
+                                 'gnoise',
+                                 'lnoise',
+                                 'pnoise',
+                                 'flatten',
+                                 'sharpen',
+                                 'invert',
+                                 'emboss',  # 13
+                                 'someof']
+
         # attributes -----
         self.BATCH_SIZE = 10
         self.DO_SHUFFLE = True
@@ -48,16 +77,6 @@ class DaHandler:
 
     def ImageDataGeneratorForker(self, mode='native'):
 
-        self.keras_mode_list = ['native',
-                                'rotation',
-                                'hflip',
-                                'width_shift',
-                                'height_shift',
-                                'zoom',
-                                'swize_center',
-                                'swize_std_normalize',
-                                'vflip',
-                                'standard']
         print("現在 keras で選択できる DA のモードは以下の通りです。")
         print(self.keras_mode_list, "\n")
 
@@ -137,21 +156,6 @@ class DaHandler:
 
     def imgaug_augment(self, mode=''):
 
-        self.imgaug_mode_list = ['',
-                                 'rotation',
-                                 'hflip',
-                                 'width_shift',
-                                 'height_shift',
-                                 'zoom',
-                                 'lcontrast',
-                                 'gnoise',
-                                 'lnoise',
-                                 'pgnoise',
-                                 'flatten',
-                                 'sharpen',
-                                 'invert',
-                                 'emboss',  # 13
-                                 'someof']
         print("現在 imgaug で選択できる DA のモードは以下の通りです。")
         print(self.imgaug_mode_list, "\n")
 
@@ -219,9 +223,9 @@ class DaHandler:
 
 
 
-    def save_imgauged_img(self, mode='image'):
+    def save_imgauged_img(self, mode='image', aug='rotation'):
 
-        selected_aug_mode='rotation'
+        selected_aug_mode=aug
         aug_data, label = self.imgaug_augment(mode=selected_aug_mode)
         auged_data_dir = os.path.join(self.dirs['cnn_dir'], "dogs_vs_cats_auged_{}".format(selected_aug_mode))
         os.makedirs(auged_data_dir, exist_ok=True)
@@ -297,5 +301,5 @@ if __name__ == '__main__':
     #dh.display_keras()
     #dh.display_imgaug()
 
-    dh.save_imgauged_img(mode='image')
+    dh.save_imgauged_img(mode='image', aug='rotation')
 
