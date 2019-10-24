@@ -2,7 +2,7 @@
 import os
 
 from keras.models import Sequential
-from keras.applications import VGG16, MobileNetV2
+from keras.applications import VGG16, MobileNetV2, Xception
 from keras.layers import Conv2D, MaxPooling2D, Flatten, Dense, Dropout
 from keras.optimizers import Adam
 
@@ -14,7 +14,7 @@ class ModelHandler:
 
         self.INPUT_SIZE = input_size
         self.CHANNEL = channel
-        self.INPUT_SHAPE = (self.INPUT_SIZE, self.INPUT_SIZE, self.CHANNEL)
+        self.INPUT_SHAPE = (self.INPUT_SIZE, self.INPUT_SIZE, self.CHANNEL)  # ch_last
 
         self.BASE_MODEL_FREEZE = True
 
@@ -55,6 +55,8 @@ class ModelHandler:
 
         print("building vgg16 base...")
 
+        #self.INPUT_SIZE = 224  # default値
+
         base_model = VGG16(input_shape=self.INPUT_SHAPE,
                            weights='imagenet',
                            include_top=False)
@@ -66,9 +68,23 @@ class ModelHandler:
 
         print("building MobileNetV2 base model...")
 
+        #self.INPUT_SIZE = 224  # default値
+        
         base_model = MobileNetV2(input_shape=self.INPUT_SHAPE,
                                  weights='imagenet',
                                  include_top=False)
+
+        return base_model
+
+    def buildXceptionBase(self):
+
+        print("building Xception base model...")
+
+        #self.INPUT_SIZE = 299  # default値
+
+        base_model = Xception(input_shape=self.INPUT_SHAPE,
+                              weights='imagenet',
+                              include_top=False)
 
         return base_model
 
@@ -84,12 +100,14 @@ class ModelHandler:
             base_model = self.buildVgg16Base()
         elif base == 'mnv2':
             base_model = self.buildMnv2Base()
+        elif base == 'xception':
+            base_model = self.buildXceptionBase()
 
         print("attempt classifer head on base model.")
 
         model.add(base_model)
         model.add(Flatten())
-        model.add(Dense(256, activation='relu'))
+        model.add(Dense(256, activation='relu'))  # base_model に寄らない設計でいいのか??
         model.add(Dropout(0.5))
         model.add(Dense(1, activation='sigmoid'))
 
@@ -100,7 +118,6 @@ class ModelHandler:
             print("trainable weights after freeze: ", len(model.trainable_weights))
 
 
-
         return self.modelCompile(model)
 
         
@@ -109,11 +126,10 @@ class ModelHandler:
 
 if __name__ == '__main__':
 
-    model_hander = ModelHandler()
+    mh = ModelHandler()
 
-    #model = model_hander.buildMyModel()
-    #model = model_hander.buildVgg16Model()
-    model = model_hander.buildTlearnModel(base='vgg16')
-    #model = model_hander.buildTlearnModel(base='mnv2')
+    #model = mh.buildMyModel()
+    #model = mh.buildVgg16Base()
+    model = mh.buildTlearnModel(base='xception')
     
     model.summary()
