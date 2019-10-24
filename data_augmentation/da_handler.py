@@ -203,7 +203,7 @@ class DaHandler:
             #   keras は変化量 / imgaug は 変化の最大角を指定している
             #   開いた部分の穴埋めができない..?? mode="edge" にするとそれなり..
         elif mode == 'hflip':
-            imgaug_aug = iaa.Fliplr(0.5)  # 左右反転
+            imgaug_aug = iaa.Fliplr(1.0)  # 左右反転
         elif mode == 'width_shift':
             imgaug_aug = iaa.Affine(translate_percent={"x": (-0.125, 0.125)}, order=1, mode="edge")  # 1/8 平行移動(左右)
         elif mode == 'height_shift':
