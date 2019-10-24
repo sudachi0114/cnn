@@ -21,7 +21,6 @@ from data_handler import DataHandler
 
 class errorAnalysis:
 
-    #def _dir_walker(self):
     def __init__(self):
 
         self.dirs = {}
@@ -171,6 +170,63 @@ class errorAnalysis:
         plt.savefig(img_file_place)
 
 
+    def displayAll(self, data, label, pred_result):
+
+        labels_class = []
+        for i in range(len(label)):
+            if label[i] == 0:
+                labels_class.append('cat')
+            elif label[i] == 1:
+                labels_class.append('dog')
+
+        # 予測結果を表に起こす
+        pred = pd.DataFrame(pred_result, columns=['dog'])
+        pred['cat'] = 1.0 - pred['dog']
+        pred['class'] = pred.idxmax(axis=1)
+        pred['label'] = labels_class
+        pred['collect'] = (pred['class'] == pred['label'])
+        print(pred)
+
+        confuse = pred[pred['collect'] == False].index.tolist()
+        collect = pred[pred['collect'] == True].index.tolist()
+        print("\nwrong recognized indeices are ", confuse)
+        print("wrong recognized amount is ", len(confuse))
+        print("\ncollect recognized indeices are ", collect)
+        print("collect recognized amount is ", len(collect))
+        print("wrong rate : ", 100*len(confuse)/len(label), "%")
+
+
+        plt.figure(figsize=(12, 6))
+        plt.subplots_adjust(left=0.1, right=0.95, bottom=0.01, top=0.95)
+        plt.subplots_adjust(hspace=0.5)
+        #plt.title("Confusion picures #={}".format(len(confuse)))
+
+        n_row = 8
+        n_col = 8
+
+        for i in range(2):
+            if i == 0:
+                j = 0
+                for idx in confuse:
+                    plt.subplot(n_row, n_row, 1+j)
+                    plt.imshow(data[idx])
+                    plt.axis(False)
+                    plt.title("[{0}] p:{1}".format(idx, pred['class'][idx]))
+                    j+=1
+            else:
+                mod = j%n_row  # 最後の行のマスが余っている個数
+                # ちょうどまであといくつ? <= n_col - あまり
+                nl = j + (n_col-mod)  # newline
+                for k, idx in enumerate(collect):
+                    plt.subplot(n_row, n_col, 1+nl+k)
+                    plt.imshow(data[idx])
+                    plt.axis(False)
+                    plt.title("[{0}] p:{1}".format(idx, pred['class'][idx]))
+
+        img_file_place = os.path.join(self.dirs['child_log_dir'], "{0}_AllPics_{1:%y%m%d}_{2:%H%M}.png".format(selected_child_log_dir, now, now))
+        plt.savefig(img_file_place)
+
+
 
     def do_whole(self):
 
@@ -184,7 +240,8 @@ class errorAnalysis:
         #print(labels)
 
         self.displayConfuse(test_data, test_label, pred_result)
-        #self.displayCollect(test_data, test_label, pred_result)
+        self.displayCollect(test_data, test_label, pred_result)
+        self.displayAll(test_data, test_label, pred_result)
 
         # wrong rate check
         self.evaluator(model, test_data, test_label)
