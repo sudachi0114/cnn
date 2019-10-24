@@ -11,7 +11,7 @@ tf.Session(config=session_config)
 from model_handler import ModelHandler
 from da_handler import DaHandler
 
-chosen_mode = 'integrated'
+chosen_mode = 'doubled'
 
 
 def train(set_epochs=50):
@@ -48,6 +48,8 @@ def train(set_epochs=50):
     print(steps_per_epoch, " [steps / epoch]")
     print(validation_steps, " (validation steps)")
 
+    if chosen_mode == 'integrated' or 'doubled':
+        set_epochs /= 2
 
     history = model.fit_generator(train_generator,
                                   steps_per_epoch=steps_per_epoch,
@@ -79,7 +81,12 @@ if __name__ == '__main__':
 
     # 少ないデータに対して水増しを行いたいので smaller を選択
     #data_dir = os.path.join(cnn_dir, "dogs_vs_cats_smaller")
-    data_dir = os.path.join(cnn_dir, "dogs_vs_cats_integrated")
+    if chosen_mode == 'integrated':
+        data_dir = os.path.join(cnn_dir, "dogs_vs_cats_integrated")
+    elif chosen_mode == 'doubled':
+        data_dir = os.path.join(cnn_dir, "dogs_vs_cats_smaller_doubled")
+    else:
+        data_dir = os.path.join(cnn_dir, "dogs_vs_cats_smaller")
     train_dir = os.path.join(data_dir, "train")  # global
     validation_dir = os.path.join(data_dir, "validation")  # global
     print("train data is in ... ", train_dir)
