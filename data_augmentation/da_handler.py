@@ -10,7 +10,7 @@ from keras.preprocessing.image import ImageDataGenerator
 
 class DaHandler:
 
-    def __init__(self):
+    def __init__(self, input_size=224, channel=3):
 
         self.dirs = {}
         self.dirs['cwd'] = os.getcwd()
@@ -56,7 +56,11 @@ class DaHandler:
 
         # attributes -----
         self.BATCH_SIZE = 10
+        self.INPUT_SIZE = input_size
+        self.CHANNEL = channel
         self.DO_SHUFFLE = True
+        self.CLASS_MODE = 'binary'
+        self.CLASS_LIST = ['cat', 'dog']
 
 
     def npzLoader(self, target_location):
@@ -109,14 +113,54 @@ class DaHandler:
             print(self.keras_mode_list, "\n")
             raise ValueError("予期されないモードが選択されています。")
 
+        return data_gen
+
+
+    def dataGenerator(self, target_data='', mode='native'):
+
         train_data, train_label = self.npzLoader(self.train_file)
 
-        data_generator = data_gen.flow(train_data,
-                                       train_label,
-                                       batch_size=self.BATCH_SIZE,
-                                       shuffle=self.DO_SHUFFLE)
+        data_gen = self.ImageDataGeneratorForker(mode=mode)
+
+        if target_data == '':
+            data_generator = data_gen.flow(train_data,
+                                           train_label,
+                                           batch_size=self.BATCH_SIZE,
+                                           shuffle=self.DO_SHUFFLE)
 
         return data_generator
+
+
+    def dataGeneratorFromDir(self, target_dir='', mode='native'):
+
+        data_gen = self.ImageDataGeneratorForker(mode=mode)
+
+        data_generator = data_gen.flow_from_directory(target_dir,
+                                                      target_size=(self.INPUT_SIZE, self.INPUT_SIZE),
+                                                      batch_size=self.BATCH_SIZE,
+                                                      shuffle=self.DO_SHUFFLE,
+                                                      class_mode=self.CLASS_MODE)
+
+        return data_generator
+
+
+    def getStackedData(self, target_dir='', mode='native'):
+
+        data_generator = self.dataGeneratorFromDir(target_dir=target_dir,
+                                                   mode=mode)
+
+        iter_n = data_generator.n//self.BATCH_SIZE
+
+        for i in range(iter_n):
+            tmp_data, tmp_label = next(data_generator)
+            if i == 0:
+                data = tmp_data
+                label = tmp_label
+            else:
+                data = np.vstack((data, tmp_data))
+                label = np.hstack((label, tmp_label))
+
+        return data, label
 
 
     def display_keras(self):
@@ -124,7 +168,8 @@ class DaHandler:
         for n_confirm in range(3):  # 三回出力して確認
             print("{}回目の出力".format(n_confirm+1))
             self.DO_SHUFFLE = False
-            data_generator = self.ImageDataGeneratorForker(mode='rotation')
+            #data_generator = self.dataGenerator(mode='rotation')
+            data_generator = self.dataGeneratorFromDir(target_dir=self.dirs["train_dir"], mode='rotation')
 
             data_checker, label_checker = next(data_generator)
 
@@ -143,10 +188,12 @@ class DaHandler:
 
 
 
-    def imgaug_augment(self, mode=''):
+    def imgaug_augment(self, target_dir='',mode=''):
 
-
-        data, label = self.npzLoader(self.train_file)
+        if target_dir == '':
+            data, label = self.npzLoader(self.train_file)
+        else:
+            data, labele = self.getStackedData(target_dir=target_dir)
 
         if mode == '':
             return data, label
@@ -212,35 +259,27 @@ class DaHandler:
 
 
 
-    def save_imgauged_img(self, mode='image', aug='rotation'):
+    def save_imgauged_img(self, targrt_dir='', mode='image', aug='rotation'):
 
         selected_aug_mode=aug
-        aug_data, label = self.imgaug_augment(mode=selected_aug_mode)
+        auged_data, label = self.imgaug_augment(target_dir=targrt_dir, mode=selected_aug_mode)
         auged_data_dir = os.path.join(self.dirs['cnn_dir'], "dogs_vs_cats_auged_{}".format(selected_aug_mode))
         os.makedirs(auged_data_dir, exist_ok=True)
 
         if mode == 'image':  # 画像として保存
-            j = 0
-            for i, data in enumerate(aug_data):
-                if label[i] == 0:
-                    auged_data_dir_cat =  os.path.join(auged_data_dir, 'cat')
-                    os.makedirs(auged_data_dir_cat, exist_ok=True)
-                    save_file_cats = os.path.join(auged_data_dir_cat, "cat.{}.jpg".format(i))
+            for j, class_name in enumerate(self.CLASS_LIST):
+                for i, data in enumerate(auged_data):
+                    if label[i] == j:
+                        auged_data_dir_each =  os.path.join(auged_data_dir, '{}'.format(class_name))
+                        os.makedirs(auged_data_dir_each, exist_ok=True)
+                        save_file_cats = os.path.join(auged_data_dir_each, "{}.{}.jpg".format(class_name, i))
 
-                    pil_auged_img = Image.fromarray(data.astype('uint8'))  # float の場合は [0,1]/uintの場合は[0,255]で保存
-                    pil_auged_img.save(save_file_cats)
-                elif label[i] == 1:
-                    auged_data_dir_dog =  os.path.join(auged_data_dir, 'dog')
-                    os.makedirs(auged_data_dir_dog, exist_ok=True)
-                    save_file_dogs = os.path.join(auged_data_dir_dog, "dog.{}.jpg".format(j))
-                    j+=1
-
-                    pil_auged_img = Image.fromarray(data.astype('uint8'))
-                    pil_auged_img.save(save_file_dogs)
+                        pil_auged_img = Image.fromarray(data.astype('uint8'))  # float の場合は [0,1]/uintの場合は[0,255]で保存
+                        pil_auged_img.save(save_file_cats)
 
         elif mode == 'npz':  # npz file として保存
             save_file = os.path.join(auged_data_dir, "auged_{}.npz".format(selected_aug_mode))
-            np.save(save_file, data=aug_data, label=label)
+            np.save(save_file, data=auged_data, label=label)
 
 
     def display_imgaug(self):
@@ -282,15 +321,20 @@ if __name__ == '__main__':
 
     print("train_data's shape: ", train_data.shape)
     print("train_label's shape: ", train_label.shape)
-
-    data_generator = dh.ImageDataGeneratorForker()
+    data_generator = dh.dataGenerator()
     data_checker, label_checker = next(data_generator)
 
     print("data_checker's shape: ", data_checker.shape)
     print("label_checker's shape: ", label_checker.shape)
+
+    #print(dh.dirs["train_dir"])
+    data, labele = dh.getStackedData(target_dir=dh.dirs["train_dir"])
+    print("data's shape: ", data.shape)
+    print("label's shape: ", labele.shape)
+
+
+    dh.display_keras()
+    #dh.display_imgaug()
     """
 
-    #dh.display_keras()
-    dh.display_imgaug()
-
-    #dh.save_imgauged_img(mode='image', aug='rotation')
+    dh.save_imgauged_img(mode='image', aug='rotation')
