@@ -59,27 +59,13 @@ class DaHandler:
         self.DO_SHUFFLE = True
 
 
-    def validationNpzLoader(self):
-        npz = np.load(self.validation_file)
-        validation_data, validation_label = npz['data'], npz['label']
-        return validation_data, validation_label
-
-    def testNpzLoader(self):
-        npz = np.load(self.test_file)
-        test_data, test_label = npz['data'], npz['label']
-        return test_data, test_label
-
-    def trainNpzLoader(self):
-        npz = np.load(self.train_file)
-        train_data, train_label = npz['data'], npz['label']
-        return train_data, train_label
+    def npzLoader(self, target_location):
+        npz = np.load(target_location)
+        data, label = npz['data'], npz['label']
+        return data, label
 
 
     def ImageDataGeneratorForker(self, mode='native'):
-
-        print("現在 keras で選択できる DA のモードは以下の通りです。")
-        print(self.keras_mode_list, "\n")
-
 
         if mode == 'native':
             data_gen = ImageDataGenerator(rescale=1.0/255.0)
@@ -119,9 +105,11 @@ class DaHandler:
                                            width_shift_range=0.125,
                                            height_shift_range=0.125)
         else:
+            print("\nError: ImageDataGeneratorForker の mode は以下のいずれかから選択してください。")
+            print(self.keras_mode_list, "\n")
             raise ValueError("予期されないモードが選択されています。")
 
-        train_data, train_label = self.trainNpzLoader()
+        train_data, train_label = self.npzLoader(self.train_file)
 
         data_generator = data_gen.flow(train_data,
                                        train_label,
@@ -134,12 +122,13 @@ class DaHandler:
     def display_keras(self):
 
         for n_confirm in range(3):  # 三回出力して確認
+            print("{}回目の出力".format(n_confirm+1))
             self.DO_SHUFFLE = False
             data_generator = self.ImageDataGeneratorForker(mode='rotation')
 
             data_checker, label_checker = next(data_generator)
 
-            print(data_checker[0])
+            #print(data_checker[0])
 
             plt.figure(figsize=(12, 6))
 
@@ -156,10 +145,8 @@ class DaHandler:
 
     def imgaug_augment(self, mode=''):
 
-        print("現在 imgaug で選択できる DA のモードは以下の通りです。")
-        print(self.imgaug_mode_list, "\n")
 
-        data, label = self.trainNpzLoader()
+        data, label = self.npzLoader(self.train_file)
 
         if mode == '':
             return data, label
@@ -213,6 +200,8 @@ class DaHandler:
                 iaa.Emboss(alpha=(0, 1.0), strength=(0, 2.0))  # 13
             ])
         else:
+            print("現在 imgaug で選択できる DA のモードは以下の通りです。")
+            print(self.imgaug_mode_list, "\n")
             raise ValueError("予期されないモードが選択されています。")
 
         aug_data = imgaug_aug.augment_images(data)
@@ -257,6 +246,7 @@ class DaHandler:
     def display_imgaug(self):
 
         for n_confirm in range(3):  # 三回出力して確認
+            print("{}回目の出力".format(n_confirm+1))
             self.DO_SHUFFLE = False
             data, label = self.imgaug_augment(mode='rotation')
             data /= 255
@@ -277,17 +267,18 @@ class DaHandler:
 if __name__ == '__main__':
 
     dh = DaHandler()
-    validation_data, validation_label = dh.validationNpzLoader()
+    """
+    validation_data, validation_label = dh.npzLoader(dh.validation_file)
 
     print("validation_data's shape: ", validation_data.shape)
     print("validation_label's shape: ", validation_label.shape)
 
-    test_data, test_label = dh.testNpzLoader()
+    test_data, test_label = dh.npzLoader(dh.test_file)
 
     print("test_data's shape: ", test_data.shape)
     print("test_label's shape: ", test_label.shape)
 
-    train_data, train_label = dh.trainNpzLoader()
+    train_data, train_label = dh.npzLoader(dh.train_file)
 
     print("train_data's shape: ", train_data.shape)
     print("train_label's shape: ", train_label.shape)
@@ -297,9 +288,9 @@ if __name__ == '__main__':
 
     print("data_checker's shape: ", data_checker.shape)
     print("label_checker's shape: ", label_checker.shape)
+    """
 
     #dh.display_keras()
-    #dh.display_imgaug()
+    dh.display_imgaug()
 
-    dh.save_imgauged_img(mode='image', aug='rotation')
-
+    #dh.save_imgauged_img(mode='image', aug='rotation')
