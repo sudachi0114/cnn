@@ -11,42 +11,31 @@ tf.Session(config=session_config)
 from model_handler import ModelHandler
 from da_handler import DaHandler
 
-chosen_mode = 'native'
+chosen_mode = 'integrated'
 
 
 def train(set_epochs=50):
 
     dh = DaHandler()
 
-    validation_data, validation_label = dh.validationNpzLoader()
-    #train_data, train_label = dh.keras_augment(mode=chosen_mode)
-    train_generator = dh.ImageDataGeneratorForker(mode=chosen_mode)
+    train_generator = dh.dataGeneratorFromDir(target_dir=train_dir)
+    validation_generator = dh.dataGeneratorFromDir(target_dir=validation_dir)
 
     data_checker, label_checker = next(train_generator)
 
-    #print("train data shape : ", train_data.shape)
-    #print("train label shape : ", train_label.shape)
     print("data_checker shape : ", data_checker.shape)
     print("label_checker shape : ", label_checker.shape)
 
-    print("validation data shape : ", validation_data.shape)
-    print("validation label shape : ", validation_label.shape)
 
-
-    #INPUT_SIZE = train_data.shape[1]
     INPUT_SIZE = data_checker.shape[1]
     print("INPUT_SIZE: ", INPUT_SIZE)
 
-    #CHANNEL = train_data.shape[3]
     CHANNEL = data_checker.shape[3]
     print("set channel : ", CHANNEL)
 
-    #batch_size = 10
     batch_size = data_checker.shape[0]
     print("batch_size : ", batch_size)
 
-    #data_size = train_data.shape[0]
-    #print("batch_size : ", batch_size)
 
     mh = ModelHandler(INPUT_SIZE, CHANNEL)
     model = mh.buildMyModel()
@@ -54,14 +43,17 @@ def train(set_epochs=50):
 
     model.summary()
 
-    steps_per_epoch = train_generator.n//batch_size
+    steps_per_epoch = train_generator.n // batch_size
+    validation_steps = validation_generator.n // batch_size
     print(steps_per_epoch, " [steps / epoch]")
+    print(validation_steps, " (validation steps)")
 
 
     history = model.fit_generator(train_generator,
                                   steps_per_epoch=steps_per_epoch,
                                   epochs=set_epochs,
-                                  validation_data=(validation_data, validation_label),
+                                  validation_data=validation_generator,
+                                  validation_steps=validation_steps,
                                   verbose=1)
 
     # save model & weights
@@ -84,9 +76,10 @@ if __name__ == '__main__':
     print("current location : ", cwd, ", this file : ", file_name)
 
     cnn_dir = os.path.dirname(cwd)
-    
+
     # 少ないデータに対して水増しを行いたいので smaller を選択
-    data_dir = os.path.join(cnn_dir, "dogs_vs_cats_smaller")
+    #data_dir = os.path.join(cnn_dir, "dogs_vs_cats_smaller")
+    data_dir = os.path.join(cnn_dir, "dogs_vs_cats_integrated")
     train_dir = os.path.join(data_dir, "train")  # global
     validation_dir = os.path.join(data_dir, "validation")  # global
     print("train data is in ... ", train_dir)
