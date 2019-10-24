@@ -1,6 +1,7 @@
 
 # mode の全てに対して実行を行うプログラム
 
+import pickle
 import os, sys
 cwd = os.getcwd()
 cnn_dir = os.path.dirname(cwd)
@@ -24,14 +25,13 @@ dth = DataHandler()
 # -----
 from model_handler import ModelHandler
 mh = ModelHandler(224, 3)  # input_size=224, ch=3(共通)
-
-model = mh.buildMyModel()
-model.summary()
 # -----
 import tensorflow as tf
 config = tf.ConfigProto()
 config.gpu_options.allow_growth=True
 sess=tf.Session(config=config)
+
+from keras.callbacks import EarlyStopping
 
 
 # -----
@@ -68,11 +68,17 @@ def auged_data_generator():
 
 def train(trainDataGeneratorIterator, validation_generator):
 
+    # 計算資源が勿体無いので CallBacks を指定(できるようにする)
+    es = EarlyStopping(monitor='val_loss', patience=5, verbose=1, mode='auto')    
+    
+
     for aug in aug_list:
         print("\n========== process", aug, "phase ==========")
-        # loop によって変わるものは 2つ
+        # loop によって変わるものは 3つ
         #   1. train_generator
         #   2. aug (augmentation の内容と名前)
+        #   3. model
+        
         train_generator = next(trainDataGeneratorIterator)
 
         data_checker, label_checker = next(train_generator)
@@ -81,6 +87,9 @@ def train(trainDataGeneratorIterator, validation_generator):
         
 
         batch_size = data_checker.shape[0] # 10枚で共通なんだけどね。
+
+        model = mh.buildMyModel()
+        model.summary()
 
         steps_per_epoch = train_generator.n // batch_size
         validation_steps = validation_generator.n // batch_size
@@ -93,6 +102,7 @@ def train(trainDataGeneratorIterator, validation_generator):
                                       epochs=50,
                                       validation_data=validation_generator,
                                       validation_steps=validation_steps,
+                                      callbacks=[es],
                                       verbose=1)
 
         # chidl_log_dir -----
