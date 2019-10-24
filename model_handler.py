@@ -120,9 +120,6 @@ class ModelHandler:
 
         return self.modelCompile(model)
 
-        
-
-        
 
 if __name__ == '__main__':
 
@@ -131,5 +128,5 @@ if __name__ == '__main__':
     #model = mh.buildMyModel()
     #model = mh.buildVgg16Base()
     model = mh.buildTlearnModel(base='xception')
-    
+
     model.summary()
