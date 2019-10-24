@@ -268,14 +268,17 @@ class DaHandler:
 
         if mode == 'image':  # 画像として保存
             for j, class_name in enumerate(self.CLASS_LIST):
+                idx = len(auged_data)//len(self.CLASS_LIST)  # 均等である場合しかうまく行かないが..
                 for i, data in enumerate(auged_data):
                     if label[i] == j:
                         auged_data_dir_each =  os.path.join(auged_data_dir, '{}'.format(class_name))
                         os.makedirs(auged_data_dir_each, exist_ok=True)
-                        save_file_cats = os.path.join(auged_data_dir_each, "{}.{}.jpg".format(class_name, i))
+                        save_file_cats = os.path.join(auged_data_dir_each, "{}.{}.jpg".format(class_name, idx))
 
                         pil_auged_img = Image.fromarray(data.astype('uint8'))  # float の場合は [0,1]/uintの場合は[0,255]で保存
                         pil_auged_img.save(save_file_cats)
+                        idx += 1
+
 
         elif mode == 'npz':  # npz file として保存
             save_file = os.path.join(auged_data_dir, "auged_{}.npz".format(selected_aug_mode))
