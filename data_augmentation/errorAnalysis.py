@@ -223,7 +223,7 @@ class errorAnalysis:
                     plt.axis(False)
                     plt.title("[{0}] p:{1}".format(idx, pred['class'][idx]))
 
-        img_file_place = os.path.join(self.dirs['child_log_dir'], "{0}_AllPics_{1:%y%m%d}_{2:%H%M}.png".format(selected_child_log_dir, now, now))
+        img_file_place = os.path.join(self.dirs['child_log_dir'], "{0}_AllPics_{1:%y%m%d}_{2:%H%M}.png".format(self.selected_child_log_dir, now, now))
         plt.savefig(img_file_place)
 
 
