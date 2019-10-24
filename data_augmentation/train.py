@@ -18,9 +18,9 @@ def train(set_epochs=50):
 
     dh = DaHandler()
 
-    validation_data, validation_label = dh.validationData()
+    validation_data, validation_label = dh.validationNpzLoader()
     #train_data, train_label = dh.keras_augment(mode=chosen_mode)
-    train_generator = dh.keras_augment(mode=chosen_mode)
+    train_generator = dh.ImageDataGeneratorForker(mode=chosen_mode)
 
     data_checker, label_checker = next(train_generator)
 
@@ -50,6 +50,7 @@ def train(set_epochs=50):
 
     mh = ModelHandler(INPUT_SIZE, CHANNEL)
     model = mh.buildMyModel()
+    #model = mh.buildTlearnModel(base='mnv2')
 
     model.summary()
 
