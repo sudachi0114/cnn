@@ -59,6 +59,8 @@ class errorAnalysis:
                 self.model_file = os.path.join(self.dirs['child_log_dir'], f)
         print("Use saved model : ", self.model_file)
 
+        self.DO_WHOLE = False
+
     # old: def testDataGenerator(test_dir, input_size, batch_size=10):
     def dataLoader(self):
 
@@ -113,13 +115,15 @@ class errorAnalysis:
         pred['class'] = pred.idxmax(axis=1)
         pred['label'] = labels_class
         pred['collect'] = (pred['class'] == pred['label'])
-        print(pred)
-
 
         confuse = pred[pred['collect'] == False].index.tolist()
-        print("\nwrong recognized indeices are ", confuse)
-        print("wrong recognized amount is ", len(confuse))
-        print("wrong rate : ", 100*len(confuse)/len(label), "%")
+
+        if not self.DO_WHOLE:
+            print(pred)
+            
+            print("\nwrong recognized indeices are ", confuse)
+            print("wrong recognized amount is ", len(confuse))
+            print("\nwrong rate : ", 100*len(confuse)/len(label), "%")
 
         # display wrong classified photo -----
         plt.figure(figsize=(7, 6))
@@ -155,6 +159,14 @@ class errorAnalysis:
 
         collect = pred[pred['collect'] == True].index.tolist()
 
+        if not self.DO_WHOLE:
+            print(pred)
+
+            print("\ncollect recognized indeices are ", collect)
+            print("collect recognized amount is ", len(collect))
+            print("\ncollect rate(accuracy) : ", 100*len(collect)/len(label), "%")
+
+
         # display collect classified photo -----
         plt.figure(figsize=(7, 6))
         plt.subplots_adjust(hspace=0.5)
@@ -185,15 +197,17 @@ class errorAnalysis:
         pred['class'] = pred.idxmax(axis=1)
         pred['label'] = labels_class
         pred['collect'] = (pred['class'] == pred['label'])
-        print(pred)
 
         confuse = pred[pred['collect'] == False].index.tolist()
         collect = pred[pred['collect'] == True].index.tolist()
+
+        print(pred)
+
         print("\nwrong recognized indeices are ", confuse)
-        print("wrong recognized amount is ", len(confuse))
+        print("    wrong recognized amount is ", len(confuse))
         print("\ncollect recognized indeices are ", collect)
-        print("collect recognized amount is ", len(collect))
-        print("wrong rate : ", 100*len(confuse)/len(label), "%")
+        print("    collect recognized amount is ", len(collect))
+        print("\nwrong rate : ", 100*len(confuse)/len(label), "%")
 
 
         plt.figure(figsize=(12, 6))
@@ -229,6 +243,8 @@ class errorAnalysis:
 
 
     def do_whole(self):
+
+        self.DO_WHOLE = True
 
         model = self.reloadModel()
         model.summary()
