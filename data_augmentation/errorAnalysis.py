@@ -35,7 +35,8 @@ class errorAnalysis:
         self.target_file = os.path.join(self.dirs['data_dir'], "test.npz")
 
         # get model file -----
-        self.dirs['log_dir'] = os.path.join(self.dirs['cwd'], "log")
+        #self.dirs['log_dir'] = os.path.join(self.dirs['cwd'], "log")
+        self.dirs['log_dir'] = os.path.join(self.dirs['cwd'], "comp_log")
         child_log_list = os.listdir(self.dirs['log_dir'])
 
         print("\nfind logs below -----")
@@ -261,6 +262,8 @@ class errorAnalysis:
 
         # wrong rate check
         self.evaluator(model, test_data, test_label)
+
+        print("\nexport pictures in: ", self.dirs['child_log_dir'], "\n")
 
 
 
