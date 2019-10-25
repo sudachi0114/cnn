@@ -97,4 +97,6 @@ class DataSeparator:
 
 if __name__ == '__main__':
     ds = DataSeparator()
-    ds.separate(split_size='large_test')
+    ds.separate(split_size='smaller')
+    #ds.separate(split_size='large_test')
+
