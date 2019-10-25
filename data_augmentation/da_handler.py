@@ -44,15 +44,17 @@ class DaHandler:
                                  'width_shift',
                                  'height_shift',
                                  'zoom',
-                                 'lcontrast',
+                                 'logcon',
+                                 'linecon',
                                  'gnoise',
                                  'lnoise',
                                  'pnoise',
                                  'flatten',
                                  'sharpen',
                                  'invert',
-                                 'emboss',  # 13
-                                 'someof']
+                                 'emboss',  # 14
+                                 'someof',
+                                 'plural']
 
         # attributes -----
         self.BATCH_SIZE = 10
@@ -186,8 +188,37 @@ class DaHandler:
             plt.show()
 
 
+    def randomDataAugument(num_trans):
+        # 以下で定義する変換処理の内ランダムに幾つかの処理を選択
+        seq = iaa.SomeOf(num_trans, [
+            iaa.Affine(rotate=(-90, 90), order=1, mode="edge"),
+            iaa.Fliplr(1.0),
+            iaa.OneOf([
+                # 同じ系統の変換はどれか1つが起きるように 1つにまとめる
+                iaa.Affine(translate_percent={"x": (-0.125, 0.125)}, order=1, mode="edge"),
+                iaa.Affine(translate_percent={"y": (-0.125, 0.125)}, order=1, mode="edge")
+            ]),
+            iaa.Affine(scale={"x": (0.8, 1.2), "y": (0.8, 1.2)}, order=1, mode="edge"),
+            iaa.OneOf([
+                iaa.AdditiveGaussianNoise(scale=[0.05 * 255, 0.2 * 255]),
+                iaa.AdditiveLaplaceNoise(scale=[0.05 * 255, 0.2 * 255]),
+                iaa.AdditivePoissonNoise(lam=(16.0, 48.0), per_channel=True)
+            ]),
+            iaa.OneOf([
+                iaa.LogContrast((0.5, 1.5)),
+                iaa.LinearContrast((0.5, 2.0))
+            ]),
+            iaa.OneOf([
+                iaa.GaussianBlur(sigma=(0.5, 1.0)),
+                iaa.Sharpen(alpha=(0, 1.0), lightness=(0.75, 1.5)),
+                iaa.Emboss(alpha=(0, 1.0), strength=(0, 2.0))
+            ]),
+            iaa.Invert(1.0)
+        ], random_order=True)
 
+        return seq
 
+    
     def imgaug_augment(self, target_dir='',mode=''):
 
         if target_dir == '':
@@ -212,40 +243,43 @@ class DaHandler:
         elif mode == 'zoom':
             imgaug_aug = iaa.Affine(scale={"x": (0.8, 1.2), "y": (0.8, 1.2)}, order=1, mode="edge")  # 80~120% ズーム
             # これも keras と仕様が違って、縦横独立に拡大・縮小されるようである。
-        #elif mode == 'scontrast':
-        #    imgaug_aug = iaa.SigmoidContrast(gain=(5, 20), cutoff=(0.25, 0.75), per_channel=True)  # 彩度変換
-        elif mode == 'lcontrast':
+        elif mode == 'logcon':
+            imgaug_aug = iaa.LogContrast((0.5, 1.5))
+        elif mode == 'linecon':
             imgaug_aug = iaa.LinearContrast((0.5, 2.0))  # 明度変換
         elif mode == 'gnoise':
-            imgaug_aug = iaa.AdditiveGaussianNoise(scale=[0, 0.25*255])  # Gaussian Noise
+            imgaug_aug = iaa.AdditiveGaussianNoise(scale=[0.05*255, 0.2*255])  # Gaussian Noise
         elif mode == 'lnoise':
-            imgaug_aug = iaa.AdditiveLaplaceNoise(scale=[0, 0.25*255])  # LaplaceNoise
+            imgaug_aug = iaa.AdditiveLaplaceNoise(scale=[0.05*255, 0.2*255])  # LaplaceNoise
         elif mode == 'pnoise':
-            imgaug_aug = iaa.AdditivePoissonNoise(lam=(0, 30), per_channel=True)  # PoissonNoise
+            imgaug_aug = iaa.AdditivePoissonNoise(lam=(16.0, 48.0), per_channel=True)  # PoissonNoise
         elif mode == 'flatten':
-            imgaug_aug = iaa.GaussianBlur(sigma=(0, 3.0))  # blur: ぼかし (平滑化)
+            imgaug_aug = iaa.GaussianBlur(sigma=(0.5, 1.0))  # blur: ぼかし (平滑化)
         elif mode == 'sharpen':
             imgaug_aug = iaa.Sharpen(alpha=(0, 1.0), lightness=(0.75, 1.5)) # sharpen images (鮮鋭化)
-        elif mode == 'invert':
-            imgaug_aug = iaa.Invert(p=0.2, per_channel=True)  # 色反転 (20% いずれかのチャンネルが(場合によっては複数)死ぬ)
         elif mode == 'emboss':
             imgaug_aug = iaa.Emboss(alpha=(0, 1.0), strength=(0, 2.0))  # Edge 強調
+        elif mode == 'invert':
+            imgaug_aug = iaa.Invert(1.0)  # 色反転
         elif mode == 'someof':  # 上記のうちのどれか1つ
             imgaug_aug = iaa.SomeOf(1, [
                 iaa.Affine(rotate=(-90, 90), order=1, mode="edge"),
-                iaa.Fliplr(0.5),
+                iaa.Fliplr(1.0),
                 iaa.Affine(translate_percent={"x": (-0.125, 0.125)}, order=1, mode="edge"),
                 iaa.Affine(translate_percent={"y": (-0.125, 0.125)}, order=1, mode="edge"),
                 iaa.Affine(scale={"x": (0.8, 1.2), "y": (0.8, 1.2)}, order=1, mode="edge"),
+                iaa.LogContrast((0.5, 1.5)),
                 iaa.LinearContrast((0.5, 2.0)),
-                iaa.AdditiveGaussianNoise(scale=[0, 0.25*255]),
-                iaa.AdditiveLaplaceNoise(scale=[0, 0.25*255]),
-                iaa.AdditivePoissonNoise(lam=(0, 30), per_channel=True),
-                iaa.GaussianBlur(sigma=(0, 3.0)),
+                iaa.AdditiveGaussianNoise(scale=[0.05*255, 0.25*255]),
+                iaa.AdditiveLaplaceNoise(scale=[0.05*255, 0.25*255]),
+                iaa.AdditivePoissonNoise(lam=(16.0, 48.0), per_channel=True),
+                iaa.GaussianBlur(sigma=(0.5, 1.0)),
                 iaa.Sharpen(alpha=(0, 1.0), lightness=(0.75, 1.5)),
-                iaa.Invert(p=0.2, per_channel=True),
-                iaa.Emboss(alpha=(0, 1.0), strength=(0, 2.0))  # 13
+                iaa.Emboss(alpha=(0, 1.0), strength=(0, 2.0)),
+                iaa.Invert(1.0)  # 14
             ])
+        elif mode == 'plural':  # 異なる系統の変換を複数
+            imgaug_aug = randomDataAugument(2)
         else:
             print("現在 imgaug で選択できる DA のモードは以下の通りです。")
             print(self.imgaug_mode_list, "\n")
@@ -337,7 +371,8 @@ if __name__ == '__main__':
 
 
     dh.display_keras()
-    #dh.display_imgaug()
     """
+    dh.display_imgaug()
 
-    dh.save_imgauged_img(mode='image', aug='rotation')
+
+    #dh.save_imgauged_img(mode='image', aug='rotation')
