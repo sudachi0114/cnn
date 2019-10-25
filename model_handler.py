@@ -2,7 +2,7 @@
 import os
 
 from keras.models import Sequential
-from keras.applications import VGG16, MobileNetV2, Xception
+from keras.applications import VGG16, MobileNet, MobileNetV2, Xception
 from keras.layers import Conv2D, MaxPooling2D, Flatten, Dense, Dropout
 from keras.optimizers import Adam
 
@@ -63,7 +63,20 @@ class ModelHandler:
 
         return base_model
 
-    
+
+    def buildMnv1Base(self):
+
+        print("building MobileNetV1 base model...")
+
+        #self.INPUT_SIZE = 224  # default値
+        
+        base_model = MobileNet(input_shape=self.INPUT_SHAPE,
+                               weights='imagenet',
+                               include_top=False)
+
+        return base_model
+
+
     def buildMnv2Base(self):
 
         print("building MobileNetV2 base model...")
@@ -98,6 +111,8 @@ class ModelHandler:
 
         if base == 'vgg16':
             base_model = self.buildVgg16Base()
+        elif base == 'mnv1':
+            base_model = self.buildMnv1Base()
         elif base == 'mnv2':
             base_model = self.buildMnv2Base()
         elif base == 'xception':
@@ -127,6 +142,6 @@ if __name__ == '__main__':
 
     #model = mh.buildMyModel()
     #model = mh.buildVgg16Base()
-    model = mh.buildTlearnModel(base='xception')
+    model = mh.buildTlearnModel(base='mnv1')
 
     model.summary()
