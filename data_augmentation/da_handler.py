@@ -35,7 +35,8 @@ class DaHandler:
                                 'swize_center',
                                 'swize_std_normalize',
                                 'vflip',
-                                'standard']
+                                'standard'
+        ]
 
         # list of imgaug DA modes -----
         self.imgaug_mode_list = ['',
@@ -54,7 +55,8 @@ class DaHandler:
                                  'invert',
                                  'emboss',  # 14
                                  'someof',
-                                 'plural']
+                                 #'plural'
+        ]
 
         # attributes -----
         self.BATCH_SIZE = 10
@@ -188,7 +190,7 @@ class DaHandler:
             plt.show()
 
 
-    def randomDataAugument(num_trans):
+    def randomDataAugument(self, num_trans):
         # 以下で定義する変換処理の内ランダムに幾つかの処理を選択
         seq = iaa.SomeOf(num_trans, [
             iaa.Affine(rotate=(-90, 90), order=1, mode="edge"),
@@ -226,6 +228,7 @@ class DaHandler:
         else:
             data, labele = self.getStackedData(target_dir=target_dir)
 
+
         if mode == '':
             return data, label
         elif mode == 'rotation':
@@ -260,7 +263,11 @@ class DaHandler:
         elif mode == 'emboss':
             imgaug_aug = iaa.Emboss(alpha=(0, 1.0), strength=(0, 2.0))  # Edge 強調
         elif mode == 'invert':
-            imgaug_aug = iaa.Invert(1.0)  # 色反転
+            #imgaug_aug = iaa.Invert(1.0)  # 色反転 <= これがうまく行かないので自分で作った。
+            aug_data = []
+            for b in range(data.shape[0]):
+                aug_data.append(255-data[b])
+            return np.array(aug_data), label
         elif mode == 'someof':  # 上記のうちのどれか1つ
             imgaug_aug = iaa.SomeOf(1, [
                 iaa.Affine(rotate=(-90, 90), order=1, mode="edge"),
@@ -278,8 +285,8 @@ class DaHandler:
                 iaa.Emboss(alpha=(0, 1.0), strength=(0, 2.0)),
                 iaa.Invert(1.0)  # 14
             ])
-        elif mode == 'plural':  # 異なる系統の変換を複数
-            imgaug_aug = randomDataAugument(2)
+        #elif mode == 'plural':  # 異なる系統の変換を複数(1つの変換あとに画素値がマイナスになるとError..)
+        #    imgaug_aug = self.randomDataAugument(2)
         else:
             print("現在 imgaug で選択できる DA のモードは以下の通りです。")
             print(self.imgaug_mode_list, "\n")
@@ -324,7 +331,7 @@ class DaHandler:
         for n_confirm in range(3):  # 三回出力して確認
             print("{}回目の出力".format(n_confirm+1))
             self.DO_SHUFFLE = False
-            data, label = self.imgaug_augment(mode='rotation')
+            data, label = self.imgaug_augment(mode='invert')
             data /= 255
 
             plt.figure(figsize=(12, 6))
