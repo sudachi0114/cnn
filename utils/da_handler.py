@@ -221,9 +221,9 @@ class DaHandler:
         return seq
 
     
-    def imgaug_augment(self, target_dir='',mode=''):
+    def imgaug_augment(self, target_dir='default',mode=''):
 
-        if target_dir == '':
+        if target_dir == 'default':
             data, label = self.npzLoader(self.train_file)
         else:
             data, labele = self.getStackedData(target_dir=target_dir)
@@ -300,29 +300,31 @@ class DaHandler:
 
 
 
-    def save_imgauged_img(self, targrt_dir='', mode='image', aug='rotation'):
+    def save_imgauged_img(self, targrt_dir='default', save_dir="prj_root", save_mode='image', aug='rotation'):
 
-        selected_aug_mode=aug
-        auged_data, label = self.imgaug_augment(target_dir=targrt_dir, mode=selected_aug_mode)
-        save_dir = os.path.join(self.dirs['cnn_dir'], "dogs_vs_cats_auged_{}".format(selected_aug_mode))
-        os.makedirs(save_dir, exist_ok=True)
+        auged_data, label = self.imgaug_augment(target_dir=targrt_dir, mode=aug)
+        if save_dir == "prj_root":
+            self.dirs["save_dir"] = os.path.join(self.dirs['cnn_dir'], "dogs_vs_cats_auged_{}".format(aug))
+        else:
+            self.dirs["save_dir"] = save_dir
+        os.makedirs(self.dirs["save_dir"], exist_ok=True)
 
-        if mode == 'image':  # 画像として保存
+        if save_mode == 'image':  # 画像として保存
             for j, class_name in enumerate(self.CLASS_LIST):
                 idx = 0
                 for i, data in enumerate(auged_data):
                     if label[i] == j:
                         save_dir_each =  os.path.join(save_dir, '{}'.format(class_name))
                         os.makedirs(save_dir_each, exist_ok=True)
-                        save_file_cats = os.path.join(save_dir_each, "{}.{}.{}.jpg".format(class_name, selected_aug_mode, idx))
+                        save_file_cats = os.path.join(save_dir_each, "{}.{}.{}.jpg".format(class_name, aug, idx))
 
                         pil_auged_img = Image.fromarray(data.astype('uint8'))  # float の場合は [0,1]/uintの場合は[0,255]で保存
                         pil_auged_img.save(save_file_cats)
                         idx += 1
 
 
-        elif mode == 'npz':  # npz file として保存
-            save_file = os.path.join(save_dir, "auged_{}.npz".format(selected_aug_mode))
+        elif save_mode == 'npz':  # npz file として保存
+            save_file = os.path.join(save_dir, "auged_{}.npz".format(aug))
             np.save(save_file, data=auged_data, label=label)
 
 
