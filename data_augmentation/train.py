@@ -16,16 +16,15 @@ cwd = os.getcwd()
 print("current location : ", cwd)
 
 cnn_dir = os.path.dirname(cwd)
-train_dir = os.path.join(cwd, "da_concat_31")
 validation_dir = os.path.join(cnn_dir, "dogs_vs_cats_smaller", "validation")
 
 # make log dir -----
-log_dir = os.path.join(cwd, 'log')
+log_dir = os.path.join(cwd, 'concat_log')
 os.makedirs(log_dir, exist_ok=True)
 
 
 
-def train(aug_no, model_mode='mymodel' ,set_epochs=10):
+def train(aug_no, model_mode='mymodel', set_epochs=10):
 
     dah = DaHandler()
 
@@ -90,5 +89,18 @@ def train(aug_no, model_mode='mymodel' ,set_epochs=10):
 
 if __name__ == '__main__':
 
-    # picked_aug_list = ["rotation", "hflip", "gnoise", "invert", "native"]
-    train(aug_no=31, model_mode='tlearn')
+    picked_aug_list = ["rotation", "hflip", "gnoise", "invert", "native"]
+
+    model_mode_list = ['mymodel', 'tlearn']
+
+    otameshi_train = [1, 31]
+    #for i in range(1, 2**len(picked_aug_list)):
+    for i in otameshi_train:
+        if i == 1:
+            set_epochs = 100
+        elif i == 31:
+            set_epochs = 20
+        for model_mode in model_mode_list:
+            print("========== auged No: {} | model: {} ==========".format(i, model_mode))
+            train(aug_no=i, model_mode=model_mode, set_epochs=set_epochs)
+    print("All task has done !!")
