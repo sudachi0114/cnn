@@ -247,7 +247,7 @@ class DaHandler:
             imgaug_aug = iaa.Affine(scale={"x": (0.8, 1.2), "y": (0.8, 1.2)}, order=1, mode="edge")  # 80~120% ズーム
             # これも keras と仕様が違って、縦横独立に拡大・縮小されるようである。
         elif mode == 'logcon':
-            imgaug_aug = iaa.LogContrast((0.5, 1.5))
+            imgaug_aug = iaa.LogContrast(gain=(5, 15))
         elif mode == 'linecon':
             imgaug_aug = iaa.LinearContrast((0.5, 2.0))  # 明度変換
         elif mode == 'gnoise':
@@ -326,12 +326,12 @@ class DaHandler:
             np.save(save_file, data=auged_data, label=label)
 
 
-    def display_imgaug(self):
+    def display_imgaug(self, mode="rotation"):
 
         for n_confirm in range(3):  # 三回出力して確認
             print("{}回目の出力".format(n_confirm+1))
             self.DO_SHUFFLE = False
-            data, label = self.imgaug_augment(mode='invert')
+            data, label = self.imgaug_augment(mode=mode)
             data /= 255
 
             plt.figure(figsize=(12, 6))
@@ -379,7 +379,7 @@ if __name__ == '__main__':
 
     dh.display_keras()
     """
-    dh.display_imgaug()
+    dh.display_imgaug(mode="invert")
 
 
     #dh.save_imgauged_img(mode='image', aug='rotation')
