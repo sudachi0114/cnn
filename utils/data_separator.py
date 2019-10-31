@@ -6,7 +6,7 @@ class DataSeparator:
     def __init__(self):
 
         self.dirs = {}
-        self.dirs['cnn_dir'] = os.getcwd()
+        self.dirs['cnn_dir'] = os.path.dirname(os.getcwd())
         self.dirs['origin_data_dir'] = os.path.join(self.dirs['cnn_dir'], "dogs_vs_cats_origin")
         self.data_amount = len(os.listdir(self.dirs['origin_data_dir']))  # クラスごと別れていない前提
 
@@ -21,6 +21,7 @@ class DataSeparator:
         self.split_dict['smaller'] = [50, 25, 25]
         self.split_dict['mid300'] = [150, 50, 50]
         self.split_dict['full'] = [10000, 2500, 2500]
+        self.split_dict['mid_test'] = [50, 25, 50]
         self.split_dict['large_test'] = [50, 25, 100]
 
 
