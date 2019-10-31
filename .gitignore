@@ -17,6 +17,7 @@ __pycache__
 # data dir
 *.zip
 dogs_vs_cats_*
+da_concat_*
 
 # old codes
 zzz_history/
