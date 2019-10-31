@@ -222,7 +222,7 @@ class DaHandler:
 
         return seq
 
-    
+
     def imgaug_augment(self, target_dir='default', mode='native'):
 
         if target_dir == 'default':
@@ -316,7 +316,7 @@ class DaHandler:
                 idx = 0
                 for i, data in enumerate(auged_data):
                     if label[i] == j:
-                        save_dir_each =  os.path.join(save_dir, '{}'.format(class_name))
+                        save_dir_each =  os.path.join(self.dirs["save_dir"], '{}'.format(class_name))
                         os.makedirs(save_dir_each, exist_ok=True)
                         save_file_cats = os.path.join(save_dir_each, "{}.{}.{}.jpg".format(class_name, aug, idx))
 
