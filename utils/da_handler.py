@@ -39,7 +39,7 @@ class DaHandler:
         ]
 
         # list of imgaug DA modes -----
-        self.imgaug_mode_list = ['',
+        self.imgaug_mode_list = ['native',
                                  'rotation',
                                  'hflip',
                                  'width_shift',
@@ -122,15 +122,17 @@ class DaHandler:
 
     def dataGenerator(self, target_data='', mode='native'):
 
-        train_data, train_label = self.npzLoader(self.train_file)
+        if target_data == '':
+            data, label = self.npzLoader(self.train_file)
+        else:
+            data, label = self.npzLoader(target_data)
 
         data_gen = self.ImageDataGeneratorForker(mode=mode)
 
-        if target_data == '':
-            data_generator = data_gen.flow(train_data,
-                                           train_label,
-                                           batch_size=self.BATCH_SIZE,
-                                           shuffle=self.DO_SHUFFLE)
+        data_generator = data_gen.flow(data,
+                                       label,
+                                       batch_size=self.BATCH_SIZE,
+                                       shuffle=self.DO_SHUFFLE)
 
         return data_generator
 
@@ -221,7 +223,7 @@ class DaHandler:
         return seq
 
     
-    def imgaug_augment(self, target_dir='default',mode=''):
+    def imgaug_augment(self, target_dir='default', mode='native'):
 
         if target_dir == 'default':
             data, label = self.npzLoader(self.train_file)
@@ -229,7 +231,7 @@ class DaHandler:
             data, labele = self.getStackedData(target_dir=target_dir)
 
 
-        if mode == '':
+        if mode == 'native':
             return data, label
         elif mode == 'rotation':
             imgaug_aug = iaa.Affine(rotate=(-90, 90), order=1, mode="edge")  # 90度回転
@@ -306,7 +308,7 @@ class DaHandler:
         if save_dir == "prj_root":
             self.dirs["save_dir"] = os.path.join(self.dirs['cnn_dir'], "dogs_vs_cats_auged_{}".format(aug))
         else:
-            self.dirs["save_dir"] = save_dir
+            self.dirs["save_dir"] = os.path.join(save_dir, "dogs_vs_cats_auged_{}".format(aug))
         os.makedirs(self.dirs["save_dir"], exist_ok=True)
 
         if save_mode == 'image':  # 画像として保存
