@@ -304,17 +304,17 @@ class DaHandler:
 
         selected_aug_mode=aug
         auged_data, label = self.imgaug_augment(target_dir=targrt_dir, mode=selected_aug_mode)
-        auged_data_dir = os.path.join(self.dirs['cnn_dir'], "dogs_vs_cats_auged_{}".format(selected_aug_mode))
-        os.makedirs(auged_data_dir, exist_ok=True)
+        save_dir = os.path.join(self.dirs['cnn_dir'], "dogs_vs_cats_auged_{}".format(selected_aug_mode))
+        os.makedirs(save_dir, exist_ok=True)
 
         if mode == 'image':  # 画像として保存
             for j, class_name in enumerate(self.CLASS_LIST):
-                idx = len(auged_data)//len(self.CLASS_LIST)  # 均等である場合しかうまく行かないが..
+                idx = 0
                 for i, data in enumerate(auged_data):
                     if label[i] == j:
-                        auged_data_dir_each =  os.path.join(auged_data_dir, '{}'.format(class_name))
-                        os.makedirs(auged_data_dir_each, exist_ok=True)
-                        save_file_cats = os.path.join(auged_data_dir_each, "{}.{}.jpg".format(class_name, idx))
+                        save_dir_each =  os.path.join(save_dir, '{}'.format(class_name))
+                        os.makedirs(save_dir_each, exist_ok=True)
+                        save_file_cats = os.path.join(save_dir_each, "{}.{}.{}.jpg".format(class_name, selected_aug_mode, idx))
 
                         pil_auged_img = Image.fromarray(data.astype('uint8'))  # float の場合は [0,1]/uintの場合は[0,255]で保存
                         pil_auged_img.save(save_file_cats)
@@ -322,7 +322,7 @@ class DaHandler:
 
 
         elif mode == 'npz':  # npz file として保存
-            save_file = os.path.join(auged_data_dir, "auged_{}.npz".format(selected_aug_mode))
+            save_file = os.path.join(save_dir, "auged_{}.npz".format(selected_aug_mode))
             np.save(save_file, data=auged_data, label=label)
 
 
