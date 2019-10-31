@@ -75,6 +75,28 @@ def daFolderConcatenate():
                     shutil.copy(copy_src, copy_dst)
 
 
+def clean():
+    cwd_list = os.listdir(cwd)
+    # print(cwd_list)
+
+    rm_file_canditate = []
+
+    for file_name in cwd_list:
+        if "dogs_vs_cats_auged" in file_name:
+            rm_file_canditate.append(file_name)
+        elif "da_concat" in file_name:
+            rm_file_canditate.append(file_name)
+
+    for file_name in rm_file_canditate:
+        print("-> find: ", file_name)
+
+    ans = input("!! これらのファイルを削除してもいいですか? (yes:y / no:n) >>> ")
+    if ans == 'y':
+        for file_name in rm_file_canditate:
+            shutil.rmtree(file_name)
+    else:
+        pass
+
 
 
 
@@ -82,7 +104,8 @@ def daFolderConcatenate():
 if __name__ == '__main__':
 
     # daImageCreate()
-    daFolderConcatenate()
+    # daFolderConcatenate()
+    clean()
 
 
 
