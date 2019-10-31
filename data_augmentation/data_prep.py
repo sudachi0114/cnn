@@ -14,21 +14,25 @@ dah = DaHandler()
 
 cwd = os.getcwd()
 
-# dogs_vs_cats_
 picked_aug_list = ["rotation", "hflip", "gnoise", "invert", "native"]
 # native を最後に置く事で、管理番号が奇数なら native が含まれている保証をできるようにする。
 
 classes = ["cat", "dog"]
 
 
-def daImgCreate():
+def CreateDaPictures():
+
+    print("Create Augmented Pictures!")
+
     for picked_aug in picked_aug_list:
         print("\nprocess ", picked_aug, " .....")
         dah.save_imgauged_img(save_dir=cwd, save_mode='image', aug=picked_aug)
         print("Done.")
 
 
-def daFolderConcatenate():
+def SieveDirList():
+
+    print("checking directory .....")
 
     raw_cwd_list = os.listdir(cwd)
     # print("raw: ", raw_cwd_list)
@@ -39,6 +43,16 @@ def daFolderConcatenate():
         if "dogs_vs_cats_auged" in canditate:
             auged_data_dirs.append(canditate)
 
+    return auged_data_dirs
+
+
+def daPictureConcatenate():
+
+    auged_data_dirs = SieveDirList()
+
+    if auged_data_dirs == []:
+        CreateDaPictures()
+        auged_data_dirs = SieveDirList()
 
     for i in range(2**len(auged_data_dirs)):
 
@@ -76,11 +90,10 @@ def daFolderConcatenate():
 
 
 def clean():
+
     cwd_list = os.listdir(cwd)
-    # print(cwd_list)
 
     rm_file_canditate = []
-
     for file_name in cwd_list:
         if "dogs_vs_cats_auged" in file_name:
             rm_file_canditate.append(file_name)
@@ -99,13 +112,10 @@ def clean():
 
 
 
-
-
 if __name__ == '__main__':
 
-    # daImageCreate()
-    # daFolderConcatenate()
-    clean()
+    daPictureConcatenate()
+    # clean()
 
 
 
