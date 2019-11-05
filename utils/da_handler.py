@@ -228,7 +228,7 @@ class DaHandler:
         if target_dir == 'default':
             data, label = self.npzLoader(self.train_file)
         else:
-            data, labele = self.getStackedData(target_dir=target_dir)
+            data, label = self.getStackedData(target_dir=target_dir)
 
 
         if mode == 'native':
