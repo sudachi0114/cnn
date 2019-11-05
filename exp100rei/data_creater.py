@@ -87,7 +87,7 @@ def separete():
             print('-*-'*10)
 
 
-def augment(target_dir=os.path.join(cwd, "experiment_0")):
+def augment(target_dir):
 
     print("Augment {} datas...".format(target_dir))
 
@@ -99,36 +99,73 @@ def augment(target_dir=os.path.join(cwd, "experiment_0")):
 
 
     dah = DaHandler()
+    dah.DO_SHUFFLE = False
     data, label = dah.imgaug_augment(train_data_location, mode=selected_mode)
 
-    print(data.shape)
-    print(label.shape)
+    print("data shape: ", data.shape)
+    print("label shape: ", label.shape)
 
-    print(data[0])
+    save_data_shape = data[0].shape
+
+    data *= 255
 
     separete_location = os.path.basename(target_dir)
     auged_data_save_location = os.path.join(cwd, "auged_{}".format(separete_location))
     os.makedirs(auged_data_save_location, exist_ok=True)
 
-    """
     for j, class_name in enumerate(class_list):
-        print("save")
+        print("\nsave {} class after generation".format(class_name))
         idx = 0  # int(amount / 2)
-        for i, data in enumerate(data):
+        for i, each_data in enumerate(data):
             if label[i] == j:
-                print(i, " | ", label[i])
                 auged_class_save_location = os.path.join(auged_data_save_location, class_name)
                 os.makedirs(auged_class_save_location, exist_ok=True)
                 save_picture_path = os.path.join(auged_class_save_location, "{}.{}.{}.jpg".format(class_name, selected_mode, idx))
 
-                pil_auged_img = Image.fromarray(data.astype('uint8'))  # float の場合は [0,1]/uintの場合は[0,255]で保存
+                assert each_data.shape == save_data_shape
+                pil_auged_img = Image.fromarray(each_data.astype('uint8'))  # float の場合は [0,1]/uintの場合は[0,255]で保存
                 pil_auged_img.save(save_picture_path)
                 idx += 1
-    """
+        print("Done.")
+    print("Collectly Saved.")
 
 
-def concat():
-    pass
+
+def concat(nomal_data_dir, auged_data_dir):
+
+    separete_location = os.path.basename(nomal_data_dir)
+    concat_data_save_location = os.path.join(cwd, "concat_{}".format(separete_location))
+    os.makedirs(concat_data_save_location, exist_ok=True)
+
+    train_location = os.path.join(nomal_data_dir, "train")
+
+    for class_name in class_list:
+        each_class_save_location = os.path.join(concat_data_save_location, class_name)
+        os.makedirs(each_class_save_location, exist_ok=True)
+        print("\nmake directory: ", each_class_save_location)
+
+        each_class_nomal_data = os.path.join(train_location, class_name)
+        each_class_auged_data = os.path.join(auged_data_dir, class_name)
+
+
+        copy_list = []
+
+        for moto_img in os.listdir(each_class_nomal_data):
+            copy_list.append( os.path.join(each_class_nomal_data, moto_img) )
+        for auged_img in os.listdir(each_class_auged_data):
+            copy_list.append( os.path.join(each_class_auged_data, auged_img) )
+
+        print(copy_list)
+
+        for pic_location in copy_list:
+            copy_src = pic_location
+            copy_dst = os.path.join(each_class_save_location)
+            shutil.copy(copy_src, copy_dst)
+        print("Collectly Concated.")
+
+        print("\n----------\n")
+
+
 
 
 
@@ -144,13 +181,22 @@ def doWhole():
     for elem in cwd_list:
         if "experiment_" in elem:
             found.append(elem)
-
     print(found)
 
     for exp_data_dir in found:
         augment(exp_data_dir)
 
-    concat()
+    auged_cwd_list = os.listdir(cwd)
+
+    auged_found = []
+    for elem in auged_cwd_list:
+        if "auged_" in elem:
+            auged_found.append(elem)
+    print(auged_found)
+
+    for i, base_dir in enumerate(found):
+        auged_dir = "auged_{}".format(os.path.basename(base_dir))
+        concat(base_dir, auged_dir)
 
 
 def clean():
@@ -183,10 +229,11 @@ if __name__ == '__main__':
 
     import argparse
 
-    parser = argparse.ArgumentParser("Data Augmentation を 100例で試そう (データ用意プログラム編)")
+    parser = argparse.ArgumentParser(description="Data Augmentation を 100例で試そう (データ用意プログラム編)")
 
     parser.add_argument("--separete", action="store_true", help="ディレクトリとデータを作成します。")
     parser.add_argument("--augment", action="store_true", help="分割下データに Data Augmentation を施します。")
+    parser.add_argument("--concat", action="store_true", help="DA したデータと。")
     parser.add_argument("--make", action="store_true", help="ディレクトリとデータを作成し水増しを行い、これら 2つのデータを結合します。")
     parser.add_argument("--clean", action="store_true", help="作成したディレクトリを削除します。")
 
@@ -195,7 +242,9 @@ if __name__ == '__main__':
     if arg.separete:
         separete()
     if arg.augment:
-        augment()
+        augment()  # os.path.join(cwd, "experiment_0")
+    elif arg.concat:
+        concat()  # os.path.join(cwd, "experiment_0") / os.path.join(cwd, "auged_experiment_0")
     elif arg.make:
         doWhole()
     elif arg.clean:
