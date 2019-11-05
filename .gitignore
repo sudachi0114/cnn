@@ -16,6 +16,8 @@ __pycache__
 
 # data dir
 *.zip
+*.jpg
+*.jpeg
 dogs_vs_cats_*
 da_concat_*
 
