@@ -5,10 +5,6 @@ sys.path.append(os.pardir)
 from utils.data_separator import DataSeparator
 from utils.da_handler import DaHandler
 
-# ランダムにたくさん smaller サンプルを取るのはあとで行う。
-#ds = DataSeparator()
-#print(ds.__dict__)
-
 # 様々な変換を施したデータを生成
 dah = DaHandler()
 
@@ -114,5 +110,16 @@ def clean():
 
 if __name__ == '__main__':
 
-    daPictureConcatenate()
-    #clean()
+    import argparse
+
+    parser = argparse.ArgumentParser(description="Augment を 4種類行い、そのデータを保存するプログラム")
+
+    parser.add_argument("--make", action="store_true", help="augmented data creation.")
+    parser.add_argument("--clean", action="store_true", help="remove auged datas.")
+
+    args = parser.parse_args()
+
+    if args.make:
+        daPictureConcatenate()
+    if args.clean:
+        clean()
