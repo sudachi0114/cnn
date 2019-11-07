@@ -7,7 +7,7 @@ from PIL import Image
 import imgaug as ia
 import imgaug.augmenters as iaa
 from img_utils import inputDataCreator
-from keras.preprocessing.image import ImageDataGenerator
+
 
 class AugWithImgaug:
 
@@ -81,7 +81,7 @@ class AugWithImgaug:
         return seq
 
 
-    def imgaug_augment(self, target_dir, aug='native'):
+    def imgaug_augment(self, target_dir, input_size, normalize=False, aug='native'):
 
         data, label = self.img2array(target_dir, input_size, normalize)
 
@@ -100,7 +100,7 @@ class AugWithImgaug:
             imgaug_aug = iaa.Affine(scale={"x": (0.8, 1.2), "y": (0.8, 1.2)}, order=1, mode="edge")  # 80~120% ズーム
             # これも keras と仕様が違って、縦横独立に拡大・縮小されるようである。
         elif aug == 'logcon':
-            imgaug_aug = iaa.LogContrast(gain=(5, 15))
+            imgaug_aug = iaa.LogContrast((0.5, 1.5))
         elif aug == 'linecon':
             imgaug_aug = iaa.LinearContrast((0.5, 2.0))  # 明度変換
         elif aug == 'gnoise':
@@ -116,11 +116,7 @@ class AugWithImgaug:
         elif aug == 'emboss':
             imgaug_aug = iaa.Emboss(alpha=(0, 1.0), strength=(0, 2.0))  # Edge 強調
         elif aug == 'invert':
-            #imgaug_aug = iaa.Invert(1.0)  # 色反転 <= これがうまく行かないので自分で作った。
-            aug_data = []
-            for b in range(data.shape[0]):
-                aug_data.append(255-data[b])
-            return np.array(aug_data), label
+            imgaug_aug = iaa.Invert(1.0)  # 色反転 <= これがうまく行かないので自分で作った。
         elif aug == 'someof':  # 上記のうちのどれか1つ
             imgaug_aug = iaa.SomeOf(1, [
                 iaa.Affine(rotate=(-90, 90), order=1, mode="edge"),
@@ -138,8 +134,8 @@ class AugWithImgaug:
                 iaa.Emboss(alpha=(0, 1.0), strength=(0, 2.0)),
                 iaa.Invert(1.0)  # 14
             ])
-        #elif mode == 'plural':  # 異なる系統の変換を複数(1つの変換あとに画素値がマイナスになるとError..)
-        #    imgaug_aug = self.randomDataAugument(2)
+        elif aug == 'plural':  # 異なる系統の変換を複数(1つの変換あとに画素値がマイナスになるとError..)
+            imgaug_aug = self.randomDataAugument(2)
         else:
             print("現在 imgaug で選択できる DA のモードは以下の通りです。")
             print(self.imgaug_aug_list, "\n")
@@ -148,7 +144,6 @@ class AugWithImgaug:
         aug_data = imgaug_aug.augment_images(data)
         aug_data = np.clip(aug_data, 0, 255)
 
-        # 注意: 戻り値の範囲は [0, 255] です。
         return aug_data, label
 
 
@@ -175,13 +170,16 @@ class AugWithImgaug:
                     idx += 1
 
 
-    def display_imgaug(self, mode="rotation"):
+    def display_imgaug(self, target_dir, input_size, normalize=False, aug="rotation"):
 
         for n_confirm in range(3):  # 三回出力して確認
             print("{}回目の出力".format(n_confirm+1))
             self.DO_SHUFFLE = False
-            data, label = self.imgaug_augment(mode=mode)
-            data /= 255
+            data, label = self.imgaug_augment(target_dir,
+                                              input_size,
+                                              normalize,
+                                              aug=aug)
+            data = data / 255
 
             plt.figure(figsize=(12, 6))
 
@@ -213,6 +211,10 @@ if __name__ == '__main__':
     print(train_data.shape)
     print(train_label.shape)
 
-    #.display_imgaug(mode="invert")
+    auged_data, label = auger.imgaug_augment(train_dir, 224, normalize=False, aug="invert")
+    print(auged_data.shape)
+    print(label.shape)
+
+    auger.display_imgaug(train_dir, 224, normalize=False, aug="plural")
 
     #dh.save_imgauged_img(mode='image', aug='rotation')
