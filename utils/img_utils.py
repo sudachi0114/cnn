@@ -44,7 +44,7 @@ def loadImageFromDir(target_dir, input_size):
     return img_arrays
 
 
-def inputDataCreator(target_dir, input_size):
+def inputDataCreator(target_dir, input_size, normalize=False):
 
     class_list = os.listdir(target_dir)
 
@@ -75,6 +75,9 @@ def inputDataCreator(target_dir, input_size):
             labels = label
         else:
             labels = np.hstack((labels, label))
+
+    if normalize:
+        img_arrays = img_arrays / 255
 
     img_arrays = np.array(img_arrays)
     labels = np.array(labels)
@@ -107,6 +110,8 @@ if __name__ == '__main__':
 
     parser = argparse.ArgumentParser(description="画像読み込みに関する自家製ミニマルライブラリ (速度はあまりコミットしてないです..)")
     parser.add_argument("--test", action="store_true")
+    parser.add_argument("--time", action="store_true")
+    parser.add_argument("--display", type=int, default=99999)
 
     args = parser.parse_args()
 
@@ -119,6 +124,22 @@ if __name__ == '__main__':
         train_cat_datas = loadImageFromDir(cat_train_data_dir, 224)
         print("  result: ", train_cat_datas.shape)
 
+        print("\ntesting inputDataCreator(train_data_dir, 224, normalize=True):")
+        data, label = inputDataCreator(train_data_dir, 224, normalize=True)
+        print("  result (data shape) : ", data.shape)
+        print("    data: \n", data[0])
+        print("  result (label shape):", label.shape)
+        print("    label: \n", label)
+
+        print("\ntesting inputDataCreator(train_data_dir, 224, normalize=False:")
+        data, label = inputDataCreator(train_data_dir, 224, normalize=False)
+        print("  result (data shape) : ", data.shape)
+        print("    data: \n", data[0])
+        print("  result (label shape): ", label.shape)
+        print("    label: \n", label)
+
+
+    if args.time:
         print("\ntesting loadImageFromDir() in large data:")
         origin_dir = os.path.join(prj_root, "dogs_vs_cats_origin")
         import time
@@ -128,14 +149,12 @@ if __name__ == '__main__':
         print("elapsed time: ", time.time() - start, " [sec]")
 
 
-        print("\ntesting inputDataCreator():")
-        data, label = inputDataCreator(train_data_dir, 224)
-        print("  result (data) : ", data.shape)
-        print("  result (label): \n", label)
-
+    if args.display != 99999:
         print("read & display...")
+        data, label = inputDataCreator(train_data_dir, 224)
+
         display(data[1])
 
-        print("Done.")
+    print("Done.")
 
 
