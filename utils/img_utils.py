@@ -87,9 +87,10 @@ def inputDataCreator(target_dir, input_size, normalize=False):
     return img_arrays, labels
 
 
-def display(img_array):
+def display(img_array, label):
 
     plt.imshow(img_array)
+    plt.title("label: {}".format(label))
     plt.show()
 
 
@@ -153,7 +154,7 @@ if __name__ == '__main__':
         print("read & display...")
         data, label = inputDataCreator(train_data_dir, 224)
 
-        display(data[1])
+        display(data[args.display], label[args.display])
 
     print("Done.")
 
