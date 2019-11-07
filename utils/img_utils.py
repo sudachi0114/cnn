@@ -59,9 +59,11 @@ def inputDataCreator(target_dir, input_size, normalize=False):
 
     each_class_img_arrays = []
     label = []
-    for class_num, class_name in enumerate(class_list):
+
+    sorted_class_list = sorted(class_list)
+    for class_num, class_name in enumerate(sorted_class_list):
         each_class_data_dir = os.path.join(target_dir, class_name)
-        print("processing class {} ".format(class_num), end="")
+        print("processing class {} as {} ".format(class_num, class_name), end="")
 
         each_class_img_arrays = loadImageFromDir(each_class_data_dir, input_size)
         label = np.full(each_class_img_arrays.shape[0], class_num)
