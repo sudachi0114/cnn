@@ -1,6 +1,6 @@
 
 
-import os, sys, datetime
+import os, sys, datetime, argparse
 sys.path.append(os.pardir)
 now = datetime.datetime.now()
 import numpy as np
@@ -16,7 +16,7 @@ from keras.models import load_model
 from utils.img_utils import inputDataCreator
 
 
-def main():
+def main(log_dir):
 
     cwd = os.getcwd()
     cnn_dir = os.path.dirname(cwd)
@@ -33,8 +33,7 @@ def main():
 
 
     # get model file -----
-    #log_dir = os.path.join(cwd, "log")
-    log_dir = os.path.join(cwd, "log_with_es")
+    print("set log_dir: ", log_dir)
     child_log_list = os.listdir(log_dir)
 
     print("\nfind logs below -----")
@@ -145,4 +144,10 @@ def main():
 
 if __name__ == '__main__':
 
-    main()
+    parser = argparse.ArgumentParser(description="学習したモデルをテストデータで評価するプログラム")
+
+    parser.add_argument("--log_dir", default="./log", help="モデルが保存されているディレクトリ")
+
+    args = parser.parse_args()
+
+    main(args.log_dir)
