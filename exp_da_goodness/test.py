@@ -76,8 +76,10 @@ def main():
             labels_class.append('dog')
 
     # 予測結果を表に起こす
-    pred = pd.DataFrame(pred_result, columns=['dog'])
-    pred['cat'] = 1.0 - pred['dog']
+    #pred = pd.DataFrame(pred_result, columns=['dog'])
+    pred = pd.DataFrame(pred_result, columns=['cat'])
+    #pred['cat'] = 1.0 - pred['dog']
+    pred['dog'] = 1.0 - pred['cat']
     pred['class'] = pred.idxmax(axis=1)
     pred['label'] = labels_class
     pred['collect'] = (pred['class'] == pred['label'])
