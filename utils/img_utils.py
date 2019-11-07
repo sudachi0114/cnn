@@ -37,7 +37,7 @@ def loadImageFromDir(target_dir, input_size):
     return img_arrays
 
 
-def inputDataGen(target_dir, input_size):
+def inputDataCreator(target_dir, input_size):
 
     class_list = os.listdir(target_dir)
     print("found {} classes ...".format(len(class_list)))
@@ -117,8 +117,8 @@ if __name__ == '__main__':
         print("elapsed time: ", time.time() - start, " [sec]")
 
 
-        print("\ntesting inputDataGen():")
-        data, label = inputDataGen(train_data_dir, 224)
+        print("\ntesting inputDataCreator():")
+        data, label = inputDataCreator(train_data_dir, 224)
         print("  result (data) : ", data.shape)
         print("  result (label): \n", label)
 
