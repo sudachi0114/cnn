@@ -95,9 +95,37 @@ class DataSeparator:
 
             print('-*-'*10)
 
+    def makeGlobalTest(self):
+
+        # global_test data の保存先を作成
+        self.dirs['save_dir'] = os.path.join(self.dirs['cnn_dir'], "dogs_vs_cats_global_test")
+        print("save_dir : ", self.dirs['save_dir'])
+        # os.makedirs(self.dirs['save_dir'], exist_ok=True)
+
+        idx_end = self.data_amount / 2
+
+        print(idx_end)
+
+
+
 
 if __name__ == '__main__':
+
+    import argparse
+
+    parser = argparse.ArgumentParser(description="origin data から トレーニング用のデータを切り分けるプログラム")
+
+    parser.add_argument("--make_dataset", action="store_true", default=False, help="任意の大きさのデータセットを作成")
+    parser.add_argument("--make_gtest", action="store_true", default=False, help="global test を作成")
+
+    args = parser.parse_args()
+
     ds = DataSeparator()
-    ds.separate(split_size='smaller')
-    #ds.separate(split_size='large_test')
+
+    if args.make_dataset:
+        ds.separate(split_size='smaller')
+        #ds.separate(split_size='large_test')
+
+    if args.make_gtest:
+        ds.makeGlobalTest()
 
