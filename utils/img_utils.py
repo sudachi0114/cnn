@@ -7,6 +7,8 @@ import numpy as np
 import matplotlib.pyplot as plt
 from PIL import Image
 
+ignore_list = [".DS_Store"]
+
 def load_img(fpath, array_size):
 
     img_obj = Image.open(fpath)
@@ -21,6 +23,11 @@ def load_img(fpath, array_size):
 def loadImageFromDir(target_dir, input_size):
 
     pic_list = os.listdir(target_dir)
+
+    for canditate in ignore_list:
+        if canditate in pic_list:
+            pic_list.remove(canditate)
+
     sorted_pic_list = sorted(pic_list)
     print("found {} images ...".format(len(pic_list)))
 
@@ -40,6 +47,11 @@ def loadImageFromDir(target_dir, input_size):
 def inputDataCreator(target_dir, input_size):
 
     class_list = os.listdir(target_dir)
+
+    for canditate in ignore_list:
+        if canditate in class_list:
+            class_list.remove(canditate)
+
     print("found {} classes ...".format(len(class_list)))
 
     img_arrays = []
