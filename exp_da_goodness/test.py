@@ -17,6 +17,7 @@ from utils.img_utils import inputDataCreator
 
 
 def main():
+
     cwd = os.getcwd()
     cnn_dir = os.path.dirname(cwd)
 
@@ -64,7 +65,9 @@ def main():
 
 
     # prediction -----
-    pred_result = model.predict(test_data, verbose=1)
+    pred_result = model.predict(test_data,
+                                batch_size=10,
+                                verbose=1)
 
 
     # class 0 -> cat / class -> dog 変換
@@ -76,10 +79,8 @@ def main():
             labels_class.append('dog')
 
     # 予測結果を表に起こす
-    #pred = pd.DataFrame(pred_result, columns=['dog'])
-    pred = pd.DataFrame(pred_result, columns=['cat'])
-    #pred['cat'] = 1.0 - pred['dog']
-    pred['dog'] = 1.0 - pred['cat']
+    pred = pd.DataFrame(pred_result, columns=['dog'])
+    pred['cat'] = 1.0 - pred['dog']
     pred['class'] = pred.idxmax(axis=1)
     pred['label'] = labels_class
     pred['collect'] = (pred['class'] == pred['label'])
@@ -98,7 +99,10 @@ def main():
 
     print("\ncheck secence ...")
 
-    score = model.evaluate(test_data, test_label, verbose=1)
+    score = model.evaluate(test_data,
+                           test_label,
+                           batch_size=10,
+                           verbose=1)
     print("test accuracy: ", score[1])
     print("test wrong rate must be (1-accuracy): ", 1.0-score[1])
 
