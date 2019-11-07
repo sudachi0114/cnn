@@ -19,7 +19,7 @@ cnn_dir = os.path.dirname(cwd)
 validation_dir = os.path.join(cnn_dir, "dogs_vs_cats_smaller", "validation")
 
 # make log dir -----
-log_dir = os.path.join(cwd, 'concat_log')
+log_dir = os.path.join(cwd, 'log')
 os.makedirs(log_dir, exist_ok=True)
 
 
