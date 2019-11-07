@@ -80,7 +80,6 @@ def inputDataCreator(target_dir, input_size):
     labels = np.array(labels)
 
     assert img_arrays.shape[0] == labels.shape[0]
-    print(labels.shape)
 
     return img_arrays, labels
 
