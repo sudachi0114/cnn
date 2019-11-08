@@ -16,7 +16,7 @@ class DataSeparator:
         # class label name
         self.class_label = ["cat", "dog"]
 
-        # dict = { split_size:[train_num, validation_num, test_num] }
+        # dict = { split_size:[train_size, validation_size, test_size] }
         self.split_dict = {}
         self.split_dict['smaller'] = [50, 25, 25]
         self.split_dict['mid300'] = [150, 50, 50]
@@ -65,24 +65,28 @@ class DataSeparator:
 
                 pic_name_list = []
                 if purpose == "train":
-                    print("Amount of {}/{} pictures is : {}".format(purpose, class_name, train_size) )
-                    print("train range is {} to {}".format(0, train_size))
-                    for i in range(train_size):  # (0 ~ 49) の50枚分
-                        pic_name_list.append("{}.{}.jpg".format(class_name, i))
+                    begin = 0
+                    size = end = train_size   
 
                 elif purpose == "validation":
-                    print("Amount of {}/{} pictures is : {}".format(purpose, class_name, validation_size) )
-                    print("validation range is {} to {}".format(validation_begin, validation_end))
-                    for i in range(validation_begin, validation_end):  # (50 ~ 74) の 25枚分
-                        pic_name_list.append("{}.{}.jpg".format(class_name, i))
+                    begin = validation_begin
+                    end = validation_end
+                    size = validation_size
 
                 elif purpose == "test":
-                    print("Amount of {}/{} pictures is : {}".format(purpose, class_name, test_size))
-                    print("test range is {} to {}".format(test_begin, test_end))
-                    for i in range(test_begin, test_end):  # (75 ~ 99) の 25枚分
-                        pic_name_list.append("{}.{}.jpg".format(class_name, i))
+                    begin = test_begin
+                    end = test_end
+                    size = test_size
+                    
 
-                print("Copy name : {}/{} | pic_name_list : {}".format(name, class_name, pic_name_list))
+                print("Amount of {}/{} pictures is : {}".format(purpose, class_name, size))
+                print("{} range is {} to {}".format(purpose, begin, end))
+                for i in range(begin, end):
+                    pic_name_list.append("{}.{}.jpg".format(class_name, i))
+
+                print("Copy name : {}/{} | pic_name_list : {}".format(purpose, class_name, pic_name_list))
+
+                assert len(pic_name_list) == size
 
                 for pic_name in pic_name_list:
                     copy_src = os.path.join(self.dirs['origin_data_dir'], pic_name)
