@@ -36,50 +36,48 @@ class DataSeparator:
         os.makedirs(self.dirs['save_dir'], exist_ok=True)
 
 
-        train_num = self.split_dict[self.split_size][0]
-        validation_num = self.split_dict[self.split_size][1]
-        test_num = self.split_dict[self.split_size][2]
+        train_size = self.split_dict[self.split_size][0]
+        validation_size = self.split_dict[self.split_size][1]
+        test_size = self.split_dict[self.split_size][2]
 
-        validation_begin = train_num
-        validation_end = train_num + validation_num
+        validation_begin = train_size
+        validation_end = validation_begin + validation_size
 
         test_begin = validation_end
-        test_end = validation_end + test_num
+        test_end = test_begin + test_size
 
 
         print('-*-'*10)
 
 
-        for name in self.data_purpose_list:
-            print("make directry : {}..".format(name))
-            target_dir = os.path.join(self.dirs['save_dir'], name)
+        for purpose in self.data_purpose_list:
+            print("make directry : {}..".format(purpose))
+            target_dir = os.path.join(self.dirs['save_dir'], purpose)
             print("target_dir : ", target_dir)
             os.makedirs(target_dir, exist_ok=True)
 
-            class_label = ["cat", "dog"]
-
-            for class_name in class_label:
+            for class_name in self.class_label:
                 # train/cats or dogs
-                print("make directry : {}/{}..".format(name, class_name))
+                print("make directry : {}/{}..".format(purpose, class_name))
                 target_class_dir = os.path.join(target_dir, class_name)
                 print("target_class_dir :", target_class_dir)
                 os.makedirs(target_class_dir, exist_ok=True)
 
                 pic_name_list = []
-                if name == "train":
-                    print("Amount of {}/{} pictures is : {}".format(name, class_name, train_num) )
-                    print("train range is {} to {}".format(0, train_num))
-                    for i in range(train_num):  # (0 ~ 49) の50枚分
+                if purpose == "train":
+                    print("Amount of {}/{} pictures is : {}".format(purpose, class_name, train_size) )
+                    print("train range is {} to {}".format(0, train_size))
+                    for i in range(train_size):  # (0 ~ 49) の50枚分
                         pic_name_list.append("{}.{}.jpg".format(class_name, i))
 
-                elif name == "validation":
-                    print("Amount of {}/{} pictures is : {}".format(name, class_name, validation_num) )
+                elif purpose == "validation":
+                    print("Amount of {}/{} pictures is : {}".format(purpose, class_name, validation_size) )
                     print("validation range is {} to {}".format(validation_begin, validation_end))
                     for i in range(validation_begin, validation_end):  # (50 ~ 74) の 25枚分
                         pic_name_list.append("{}.{}.jpg".format(class_name, i))
 
-                elif name == "test":
-                    print("Amount of {}/{} pictures is : {}".format(name, class_name, test_num))
+                elif purpose == "test":
+                    print("Amount of {}/{} pictures is : {}".format(purpose, class_name, test_size))
                     print("test range is {} to {}".format(test_begin, test_end))
                     for i in range(test_begin, test_end):  # (75 ~ 99) の 25枚分
                         pic_name_list.append("{}.{}.jpg".format(class_name, i))
@@ -100,11 +98,41 @@ class DataSeparator:
         # global_test data の保存先を作成
         self.dirs['save_dir'] = os.path.join(self.dirs['cnn_dir'], "dogs_vs_cats_global_test")
         print("save_dir : ", self.dirs['save_dir'])
-        # os.makedirs(self.dirs['save_dir'], exist_ok=True)
+        os.makedirs(self.dirs['save_dir'], exist_ok=True)
 
-        idx_end = self.data_amount / 2
+        idx_end = int(self.data_amount / 2)
 
-        print(idx_end)
+
+        test_size = 100  # / each_class
+        
+        begin = idx_end-test_size
+        pic_name_list = []
+        for class_name in self.class_label:
+            # train/cats or dogs
+            print("make directry : global_test/{}..".format(class_name))
+            target_class_dir = os.path.join(self.dirs['save_dir'], class_name)
+            print("target_class_dir :", target_class_dir)
+            os.makedirs(target_class_dir, exist_ok=True)
+
+            print("global test index range is from {} to {}".format(begin, idx_end))
+            for i in range(begin, idx_end):
+                pic_name_list.append("{}.{}.jpg".format(class_name, i))
+
+            print("Copy name : gtest/{} | pic_name_list : {}".format(class_name, pic_name_list))
+
+            assert len(pic_name_list) == test_size
+
+            for pic_name in pic_name_list:
+                copy_src = os.path.join(self.dirs['origin_data_dir'], pic_name)
+                copy_dst = os.path.join(target_class_dir, pic_name)
+                shutil.copy(copy_src, copy_dst)
+            
+
+            print("Done.")
+
+        print('-*-'*10)
+           
+            
 
 
 
