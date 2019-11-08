@@ -9,14 +9,19 @@ session_config = tf.ConfigProto(gpu_options=tf.GPUOptions(allow_growth=True))
 tf.Session(config=session_config)
 
 from utils.model_handler import ModelHandler
-from utils.da_handler import DaHandler
-
+from utils.img_utils import inputDataCreator
 
 cwd = os.getcwd()
 print("current location : ", cwd)
 
 cnn_dir = os.path.dirname(cwd)
 validation_dir = os.path.join(cnn_dir, "dogs_vs_cats_smaller", "validation")
+validation_data, validation_label = inputDataCreator(validation_dir,
+                                                     224,
+                                                     normalize=True)
+
+print("validation_data shape: ", validation_data.shape)
+print("validation_label shape: ", validation_label.shape)
 
 # make log dir -----
 log_dir = os.path.join(cwd, 'log')
@@ -24,35 +29,32 @@ os.makedirs(log_dir, exist_ok=True)
 
 
 
-def train(aug_no, model_mode='mymodel', set_epochs=10):
-
-    dah = DaHandler()
-
-    train_dir = os.path.join(cwd, "da_concat_{}".format(aug_no))
-    train_generator = dah.dataGeneratorFromDir(target_dir=train_dir)
-
-    validation_generator = dah.dataGeneratorFromDir(target_dir=validation_dir)
-
-    data_checker, label_checker = next(train_generator)
-
-    print("data_checker shape : ", data_checker.shape)
-    print("label_checker shape : ", label_checker.shape)
+def train(is_aug, model_mode, set_epochs=100):
 
 
-    INPUT_SIZE = data_checker.shape[1]
+    if is_aug:
+        train_dir = os.path.join(cwd, "da_concat")
+        set_epochs = int(set_epochs/4)        
+    else:
+        train_dir = os.path.join(cwd, "dogs_vs_cats_auged_native")
+
+    train_data, train_label = inputDataCreator(train_dir,
+                                   224,
+                                   normalize=True)
+
+    print("train_data shape : ", train_data.shape)
+    print("train_label shape : ", train_label.shape)
+
+
+    INPUT_SIZE = train_data.shape[1]
     print("INPUT_SIZE: ", INPUT_SIZE)
 
-    CHANNEL = data_checker.shape[3]
+    CHANNEL = train_data.shape[3]
     print("set channel : ", CHANNEL)
 
-    batch_size = data_checker.shape[0]
+    batch_size = 10
     print("batch_size : ", batch_size)
 
-
-    steps_per_epoch = train_generator.n // batch_size
-    validation_steps = validation_generator.n // batch_size
-    print(steps_per_epoch, " [steps / epoch]")
-    print(validation_steps, " (validation steps)")
 
     mh = ModelHandler(INPUT_SIZE, CHANNEL)
 
@@ -64,23 +66,23 @@ def train(aug_no, model_mode='mymodel', set_epochs=10):
     model.summary()
 
 
-    history = model.fit_generator(train_generator,
-                                  steps_per_epoch=steps_per_epoch,
-                                  epochs=set_epochs,
-                                  validation_data=validation_generator,
-                                  validation_steps=validation_steps,
-                                  verbose=1)
+    history = model.fit(train_data,
+                        train_label,
+                        batch_size=batch_size,
+                        epochs=set_epochs,
+                        validation_data=(validation_data, validation_label),
+                        verbose=1)
 
 
-    child_log_dir = os.path.join(log_dir, '{}_{}'.format(aug_no, model_mode))
+    child_log_dir = os.path.join(log_dir, '{}_{}'.format(is_aug, model_mode))
     os.makedirs(child_log_dir, exist_ok=True)
 
     # save model & weights
-    model_file = os.path.join(child_log_dir, '{}_{}_model.h5'.format(aug_no, model_mode))
+    model_file = os.path.join(child_log_dir, '{}_{}_model.h5'.format(is_aug, model_mode))
     model.save(model_file)
 
     # save history
-    history_file = os.path.join(child_log_dir, '{}_{}_history.pkl'.format(aug_no, model_mode))
+    history_file = os.path.join(child_log_dir, '{}_{}_history.pkl'.format(is_aug, model_mode))
     with open(history_file, 'wb') as p:
         pickle.dump(history.history, p)
 
@@ -89,18 +91,10 @@ def train(aug_no, model_mode='mymodel', set_epochs=10):
 
 if __name__ == '__main__':
 
-    picked_aug_list = ["rotation", "hflip", "gnoise", "invert", "native"]
-
     model_mode_list = ['mymodel', 'tlearn']
 
-    otameshi_train = [1, 31]
-    #for i in range(1, 2**len(picked_aug_list)):
-    for i in otameshi_train:
-        if i == 1:
-            set_epochs = 100
-        elif i == 31:
-            set_epochs = 20
+    for i in range(2):
         for model_mode in model_mode_list:
-            print("========== auged No: {} | model: {} ==========".format(i, model_mode))
-            train(aug_no=i, model_mode=model_mode, set_epochs=set_epochs)
+            print("========== is_auged : {} | model: {} ==========".format(bool(i), model_mode))
+            train(is_aug=i, model_mode=model_mode)
     print("All task has done !!")
