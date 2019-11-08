@@ -6,12 +6,21 @@ import matplotlib.pyplot as plt
 from PIL import Image
 import imgaug as ia
 import imgaug.augmenters as iaa
-from img_utils import inputDataCreator
+try:
+    from img_utils import inputDataCreator
+except:
+    from utils.img_utils import inputDataCreator
 
 
 class AugWithImgaug:
 
     def __init__(self, input_size=224, channel=3):
+
+        # 最低限の dir 構成を保持
+        self.dirs = {}
+        self.dirs['cwd'] = os.getcwd()
+        self.dirs['cnn_dir'] = os.path.dirname(self.dirs['cwd'])
+
 
         # list of imgaug DA modes -----
         self.imgaug_aug_list = ['native',
@@ -88,7 +97,7 @@ class AugWithImgaug:
         if aug == 'native':
             return data, label
         elif aug == 'rotation':
-            imgaug_aug = iaa.Affine(rotate=(-90, 90), order=1, aug="edge")  # 90度 "まで" 回転
+            imgaug_aug = iaa.Affine(rotate=(-90, 90), order=1, mode="edge")  # 90度 "まで" 回転
         elif aug == 'hflip':
             imgaug_aug = iaa.Fliplr(1.0)  # 左右反転
         elif aug == 'width_shift':
@@ -148,9 +157,12 @@ class AugWithImgaug:
 
 
 
-    def save_imgauged_img(self, targrt_dir, save_dir="prj_root", aug='rotation'):
+    def save_imgauged_img(self, targrt_dir, input_size, normalize=False, save_dir="prj_root", aug='rotation'):
 
-        auged_data, label = self.imgaug_augment(target_dir=targrt_dir, aug=aug)
+        auged_data, label = self.imgaug_augment(target_dir=targrt_dir,
+                                                input_size=input_size,
+                                                normalize=normalize,
+                                                aug=aug)
         if save_dir == "prj_root":
             self.dirs["save_dir"] = os.path.join(self.dirs['cnn_dir'], "dogs_vs_cats_auged_{}".format(aug))
         else:
