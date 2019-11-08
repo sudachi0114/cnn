@@ -10,6 +10,15 @@ from PIL import Image
 ignore_list = [".DS_Store"]
 
 def load_img(fpath, array_size):
+    """convert image file to numpy array by PIL
+
+    # Args:
+        fpath (str): 読み込みたいファイルのパス
+        array_size (int): 画像読み込みの配列のサイズ (正方形を想定)
+
+    # Returns:
+        img_array (np.ndarray): 画像を np.ndarray で読み込んだ配列
+    """
 
     img_obj = Image.open(fpath)
 
@@ -21,6 +30,15 @@ def load_img(fpath, array_size):
 
 
 def loadImageFromDir(target_dir, input_size):
+    """ディレクトリを指定して、その中にある画像を再帰的に読み込む
+
+    # Args:
+        target_dir (str): 読み込みたい画像が格納されているディレクトリ
+        input_size (int): 各画像を読み込みたい配列のサイズ (正方形を想定)
+            => これを load_img() の array_size に渡す
+
+    # Returns: img_arrays (np.ndarray): ディレクトリの中にあった画像をそれぞれ配列に変換して積み上げたもの
+    """
 
     pic_list = os.listdir(target_dir)
 
@@ -45,6 +63,21 @@ def loadImageFromDir(target_dir, input_size):
 
 
 def inputDataCreator(target_dir, input_size, normalize=False):
+    """CNN などに入力する配列を作成する
+        keras ImageDataGenerator の Iterator じゃない版
+
+    # Args:
+        target_dir (str): 画像データのディレクトリ
+        input_size (int): 各画像を読み込みたい配列のサイズ (正方形を想定)
+            => これを load_img() の array_size に渡す
+        normalize (bool): 画像を読み込む際に [0, 1] に変換するか
+            False => [0, 255] (default)
+            True => [0, 1]
+
+    # Returns
+        img_arrays (np.ndarray): 読み込んだ画像データの配列
+        labels (np.ndarray): 読み込んだ画像に対する正解ラベル
+    """
 
     class_list = os.listdir(target_dir)
 
