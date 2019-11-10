@@ -2,7 +2,8 @@ import os, sys, shutil
 sys.path.append(os.pardir)
 
 from PIL import Image
-from utils.da_handler import DaHandler
+#from utils.da_handler import DaHandler
+from utils.aug_with_imgaug import AugWithImgaug
 
 cwd = os.getcwd()
 prj_root = os.path.dirname(cwd)
@@ -98,16 +99,21 @@ def augment(target_dir):
     train_data_location = os.path.join(target_dir, "train")
 
 
-    dah = DaHandler()
-    dah.DO_SHUFFLE = False
-    data, label = dah.imgaug_augment(train_data_location, mode=selected_mode)
+    #dah = DaHandler()
+    #dah.DO_SHUFFLE = False
+    #data, label = dah.imgaug_augment(train_data_location, mode=selected_mode)
+    auger = AugWithImgaug()
+    data, label = auger.imgaug_augment(train_data_location,
+                                       224,
+                                       normalize=False,
+                                       aug=selected_mode)
 
     print("data shape: ", data.shape)
     print("label shape: ", label.shape)
 
     save_data_shape = data[0].shape
 
-    data *= 255
+    #data *= 255
 
     separete_location = os.path.basename(target_dir)
     auged_data_save_location = os.path.join(cwd, "auged_{}".format(separete_location))
