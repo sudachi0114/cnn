@@ -1,5 +1,5 @@
 
-import os, sys, argparse, pickle
+import os, sys, argparse, pickle, csv
 sys.path.append(os.pardir)
 
 import tensorflow as tf
@@ -26,10 +26,11 @@ def main(data_mode, model_mode, no, set_epochs=60, do_es=False):
     if data_mode == 'native':
         train_dir = os.path.join(cwd, "experiment_{}".format(no), "train")
     elif data_mode == 'auged':
-        auged_train_dir = os.path.join(cwd, "concat_experiment_{}".format(no))
+        train_dir = os.path.join(cwd, "concat_experiment_{}".format(no))
+        set_epochs = int( set_epochs/2 )
 
     validation_dir = os.path.join(base_dir, "validation")
-    #test_dir = os.path.join(base_dir, "test")
+    test_dir = os.path.join(base_dir, "test")
 
 
     train_data, train_label = inputDataCreator(train_dir,
@@ -40,6 +41,10 @@ def main(data_mode, model_mode, no, set_epochs=60, do_es=False):
                                                          224,
                                                          normalize=True)
 
+    test_data, test_label = inputDataCreator(test_dir,
+                                             224,
+                                             normalize=True)
+
     print("train data shape: ", train_data.shape)
     print("train label shape: ", train_label.shape)
     print("validation data shape: ", validation_data.shape)
@@ -48,6 +53,7 @@ def main(data_mode, model_mode, no, set_epochs=60, do_es=False):
     input_size = train_data.shape[1]
     channel = train_data.shape[3]
     batch_size = 10
+    print("set epochs: ", set_epochs)
 
 
     mh = ModelHandler(input_size, channel)
@@ -87,8 +93,11 @@ def main(data_mode, model_mode, no, set_epochs=60, do_es=False):
     with open(history_file, 'wb') as p:
         pickle.dump(history.history, p)
 
-    print("export logs in ", child_log_dir)
-    
+    print("\nexport logs in ", child_log_dir)
+
+    score = model.evaluate(test_data, test_label, batch_size, verbose=1)
+
+    return score
 
 
 if __name__ == '__main__':
@@ -103,9 +112,31 @@ if __name__ == '__main__':
     data_mode_list = ['native', 'auged']
     model_mode_list = ['mymodel', 'tlearn']
 
-    main(data_mode_list[0],
-         model_mode_list[0],
-         no=0,
-         do_es=args.earlystopping)
+    test_acc_list = []
+    test_loss_list = []
+
+    csv_dir = os.path.join(cwd, "csv")
+    os.makedirs(csv_dir)
+
+
+    for i in range(5):
+        for data_mode in data_mode_list:
+            for model_mode in model_mode_list:
+                print("========== No:{} | data:{} | model:{} ==========".format(i, data_mode, model_mode))
+                score = main(data_mode,
+                             model_mode,
+                             no=i,
+                             #set_epochs=5,
+                             do_es=args.earlystopping)
+
+                test_loss_list.append(score[0])
+                test_acc_list.append(score[1])
+
+                to_csv = [test_loss_list, test_acc_list]
+                with open(os.path.join(csv_dir, "{}_{}_{}_test_score.csv".format(i, data_mode, model_mode)), "w") as f:
+                    writer = csv.writer(f, lineterminator="\n")
+                    writer.writerows(to_csv)
+
+                    print("\nexport {} {} {} test score as CSV.".format(data_mode, model_mode, i))
 
 
