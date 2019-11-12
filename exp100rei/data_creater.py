@@ -22,7 +22,7 @@ def separete():
     validation_size = 50
     test_size = 100
 
-    experiment_size = 5  #100
+    experiment_size = 60
 
     for i in range(experiment_size):
         if i == 0:
