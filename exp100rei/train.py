@@ -61,7 +61,7 @@ def main(data_mode, model_mode, no, set_epochs=60, do_es=False):
     if model_mode == 'mymodel':
         model = mh.buildMyModel()
     elif model_mode == 'tlearn':
-        model = mh.buildTlearnModel()
+        model = mh.buildTlearnModel(base='mnv1')
 
     model.summary()
 
