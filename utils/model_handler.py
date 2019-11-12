@@ -3,7 +3,7 @@ import os
 
 from keras.models import Sequential
 from keras.applications import VGG16, MobileNet, MobileNetV2, Xception
-from keras.layers import Conv2D, MaxPooling2D, Flatten, Dense, Dropout
+from keras.layers import Conv2D, MaxPooling2D, Flatten, Dense, Dropout, GlobalAveragePooling2D
 from keras.optimizers import Adam
 
 class ModelHandler:
@@ -121,9 +121,13 @@ class ModelHandler:
         print("attempt classifer head on base model.")
 
         model.add(base_model)
+        """
         model.add(Flatten())
         model.add(Dense(256, activation='relu'))  # base_model に寄らない設計でいいのか??
         model.add(Dropout(0.5))
+        model.add(Dense(1, activation='sigmoid'))
+        """
+        model.add(GlobalAveragePooling2D())
         model.add(Dense(1, activation='sigmoid'))
 
         # base_model のパラメータを凍結
