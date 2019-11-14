@@ -8,6 +8,8 @@ import tensorflow as tf
 session_config = tf.ConfigProto(gpu_options=tf.GPUOptions(allow_growth=True))
 tf.Session(config=session_config)
 
+from keras.callbacks import EarlyStopping
+
 from utils.model_handler import ModelHandler
 from utils.img_utils import inputDataCreator
 
@@ -23,13 +25,9 @@ validation_data, validation_label = inputDataCreator(validation_dir,
 print("validation_data shape: ", validation_data.shape)
 print("validation_label shape: ", validation_label.shape)
 
-# make log dir -----
-log_dir = os.path.join(cwd, 'log')
-os.makedirs(log_dir, exist_ok=True)
 
 
-
-def train(is_aug, model_mode, set_epochs=100):
+def train(is_aug, model_mode, set_epochs=100, do_es=False):
 
 
     if is_aug:
@@ -65,13 +63,31 @@ def train(is_aug, model_mode, set_epochs=100):
 
     model.summary()
 
+    if do_es:
+        es = EarlyStopping(monitor='val_loss',
+                           patience=5,
+                           verbose=1,
+                           mode='auto')
+        es = [es]
+    else:
+        es = None
+    
+
 
     history = model.fit(train_data,
                         train_label,
                         batch_size=batch_size,
                         epochs=set_epochs,
                         validation_data=(validation_data, validation_label),
+                        callbacks=es,
                         verbose=1)
+
+    # make log dir -----
+    if do_es:
+        log_dir = os.path.join(cwd, 'log_with_es')
+    else:
+        log_dir = os.path.join(cwd, 'log')
+    os.makedirs(log_dir, exist_ok=True)
 
 
     child_log_dir = os.path.join(log_dir, '{}_{}'.format(is_aug, model_mode))
@@ -91,10 +107,20 @@ def train(is_aug, model_mode, set_epochs=100):
 
 if __name__ == '__main__':
 
+    import argparse
+    parser = argparse.ArgumentParser(description="いくつかの DA を施す方法の検証")
+
+    parser.add_argument("--earlystopping", "-es", action="store_true",
+                        help="学習時に EarlyStopping を ON にする.")
+
+    args = parser.parse_args()
+
     model_mode_list = ['mymodel', 'tlearn']
 
     for i in range(2):
         for model_mode in model_mode_list:
             print("========== is_auged : {} | model: {} ==========".format(bool(i), model_mode))
-            train(is_aug=i, model_mode=model_mode)
+            train(is_aug=i,
+                  model_mode=model_mode,
+                  do_es=args.earlystopping)
     print("All task has done !!")
