@@ -80,9 +80,9 @@ def main(data_mode, model_mode, no, set_epochs=60, do_es=False):
                         verbose=1)
 
     if do_es:
-        log_dir = os.path.join(cwd, "log")
-    else:
         log_dir = os.path.join(cwd, "log_with_es")
+    else:
+        log_dir = os.path.join(cwd, "log")
     os.makedirs(log_dir, exist_ok=True)
 
     child_log_dir = os.path.join(log_dir, "{}_{}_{}".format(data_mode, model_mode, no))
