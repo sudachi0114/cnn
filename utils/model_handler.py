@@ -18,10 +18,18 @@ class ModelHandler:
 
         self.BASE_MODEL_FREEZE = True
 
-        
+        self.CLASS_MODE = 'categorical'  # 'binary'
+        print("class mode:", self.CLASS_MODE)
+
+
     def modelCompile(self, model):
 
-        model.compile(loss='binary_crossentropy',
+        if self.CLASS_MODE == 'categorical':
+            adapt_loss = 'categorical_crossentropy'
+        elif self.CLASS_MODE == 'binary':
+            adapt_loss = 'binary_crossentropy',
+
+        model.compile(loss=adapt_loss,
                       optimizer=Adam(lr=1e-4),
                       metrics=['accuracy'])
 
@@ -46,7 +54,11 @@ class ModelHandler:
         model.add(MaxPooling2D((2,2)))
         model.add(Flatten())
         model.add(Dense(512, activation='relu'))
-        model.add(Dense(1, activation='sigmoid'))
+
+        if self.CLASS_MODE == 'categorical':
+            model.add(Dense(2, activation='softmax'))
+        elif self.CLASS_MODE == 'binary':
+            model.add(Dense(1, activation='sigmoid'))
 
         return self.modelCompile(model)
 
@@ -121,14 +133,15 @@ class ModelHandler:
         print("attempt classifer head on base model.")
 
         model.add(base_model)
-        """
-        model.add(Flatten())
-        model.add(Dense(256, activation='relu'))  # base_model に寄らない設計でいいのか??
-        model.add(Dropout(0.5))
-        model.add(Dense(1, activation='sigmoid'))
-        """
-        model.add(GlobalAveragePooling2D())
-        model.add(Dense(1, activation='sigmoid'))
+
+        if self.CLASS_MODE == 'categorical':
+            model.add(GlobalAveragePooling2D())
+            model.add(Dense(2, activation='softmax'))
+        elif self.CLASS_MODE == 'binary':
+            model.add(Flatten())
+            model.add(Dense(256, activation='relu'))  # base_model に寄らない設計でいいのか??
+            model.add(Dropout(0.5))
+            model.add(Dense(1, activation='sigmoid'))
 
         # base_model のパラメータを凍結
         if self.BASE_MODEL_FREEZE:
