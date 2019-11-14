@@ -8,6 +8,8 @@ import tensorflow as tf
 session_config = tf.ConfigProto(gpu_options=tf.GPUOptions(allow_growth=True))
 tf.Session(config=session_config)
 
+from keras.callbacks import EarlyStopping
+
 from utils.model_handler import ModelHandler
 from utils.da_handler import DaHandler
 
@@ -18,13 +20,10 @@ print("current location : ", cwd)
 cnn_dir = os.path.dirname(cwd)
 validation_dir = os.path.join(cnn_dir, "dogs_vs_cats_smaller", "validation")
 
-# make log dir -----
-log_dir = os.path.join(cwd, 'log')
-os.makedirs(log_dir, exist_ok=True)
 
 
 
-def train(aug_no, model_mode='mymodel', set_epochs=10):
+def train(aug_no, model_mode='mymodel', set_epochs=10, do_es=False):
 
     dah = DaHandler()
 
@@ -63,15 +62,30 @@ def train(aug_no, model_mode='mymodel', set_epochs=10):
 
     model.summary()
 
+    if do_es:
+        es = EarlyStopping(monitor='val_loss',
+                           patience=5,
+                           verbose=1,
+                           mode='auto')
+    else:
+        es = None
+
 
     history = model.fit_generator(train_generator,
                                   steps_per_epoch=steps_per_epoch,
                                   epochs=set_epochs,
                                   validation_data=validation_generator,
                                   validation_steps=validation_steps,
+                                  callbacks=[es],
                                   verbose=1)
-
-
+    # make log dir -----
+    if do_es:
+        log_dir = os.path.join(cwd, 'log_with_es')
+    else:
+        log_dir = os.path.join(cwd, 'log')
+    os.makedirs(log_dir, exist_ok=True)
+    
+    
     child_log_dir = os.path.join(log_dir, '{}_{}'.format(aug_no, model_mode))
     os.makedirs(child_log_dir, exist_ok=True)
 
@@ -89,6 +103,15 @@ def train(aug_no, model_mode='mymodel', set_epochs=10):
 
 if __name__ == '__main__':
 
+    import argparse
+
+    parser = argparse.ArgumentParser("DA の数を増やして DA 自体の良さを検証")
+
+    parser.add_argument("--earlystopping", "-es", action='store_true',
+                        help='学習時に EarlyStopping 機能を ON にする。')
+
+    args = parser.parse_args()
+
     picked_aug_list = ["rotation", "hflip", "gnoise", "invert", "native"]
 
     model_mode_list = ['mymodel', 'tlearn']
@@ -102,5 +125,8 @@ if __name__ == '__main__':
             set_epochs = 20
         for model_mode in model_mode_list:
             print("========== auged No: {} | model: {} ==========".format(i, model_mode))
-            train(aug_no=i, model_mode=model_mode, set_epochs=set_epochs)
+            train(aug_no=i,
+                  model_mode=model_mode,
+                  set_epochs=set_epochs,
+                  do_es=args.earlystopping)
     print("All task has done !!")
