@@ -67,6 +67,7 @@ def train(aug_no, model_mode='mymodel', set_epochs=10, do_es=False):
                            patience=5,
                            verbose=1,
                            mode='auto')
+        es = [es]
     else:
         es = None
 
@@ -76,7 +77,7 @@ def train(aug_no, model_mode='mymodel', set_epochs=10, do_es=False):
                                   epochs=set_epochs,
                                   validation_data=validation_generator,
                                   validation_steps=validation_steps,
-                                  callbacks=[es],
+                                  callbacks=es,
                                   verbose=1)
     # make log dir -----
     if do_es:
