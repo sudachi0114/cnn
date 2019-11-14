@@ -14,9 +14,6 @@ from utils.img_utils import inputDataCreator
 
 cwd = os.getcwd()
 
-log_dir = os.path.join(cwd, "log")
-os.makedirs(log_dir, exist_ok=True)
-
 
 
 def main(data_mode, model_mode, no, set_epochs=60, do_es=False):
@@ -66,7 +63,11 @@ def main(data_mode, model_mode, no, set_epochs=60, do_es=False):
     model.summary()
 
     if do_es:
-        es = EarlyStopping(monitor='val_loss', patience=5, verbose=1, mode='auto')
+        es = EarlyStopping(monitor='val_loss',
+                           patience=5,
+                           verbose=1,
+                           mode='auto')
+        es = [es]
     else:
         es = None
 
@@ -79,9 +80,12 @@ def main(data_mode, model_mode, no, set_epochs=60, do_es=False):
                         verbose=1)
 
     if do_es:
-        child_log_dir = os.path.join(log_dir, "{}_{}_{}_with_es".format(data_mode, model_mode, no))
+        log_dir = os.path.join(cwd, "log")
     else:
-        child_log_dir = os.path.join(log_dir, "{}_{}_{}".format(data_mode, model_mode, no))
+        log_dir = os.path.join(cwd, "log_with_es")
+    os.makedirs(log_dir, exist_ok=True)
+
+    child_log_dir = os.path.join(log_dir, "{}_{}_{}".format(data_mode, model_mode, no))
     os.makedirs(child_log_dir, exist_ok=True)
 
     # save model & weights
@@ -116,7 +120,7 @@ if __name__ == '__main__':
     test_loss_list = []
 
     csv_dir = os.path.join(cwd, "csv")
-    os.makedirs(csv_dir)
+    os.makedirs(csv_dir, exist_ok=True)
 
 
     for i in range(5):
