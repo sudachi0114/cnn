@@ -32,7 +32,8 @@ def train(is_aug, model_mode, set_epochs=100, do_es=False):
 
     if is_aug:
         train_dir = os.path.join(cwd, "da_concat")
-        set_epochs = int(set_epochs/4)        
+        if do_es == False:
+            set_epochs = int(set_epochs/4)        
     else:
         train_dir = os.path.join(cwd, "dogs_vs_cats_auged_native")
 
