@@ -32,15 +32,18 @@ def main(data_mode, model_mode, no, set_epochs=60, do_es=False):
 
     train_data, train_label = inputDataCreator(train_dir,
                                                224,
-                                               normalize=True)
+                                               normalize=True,
+                                               one_hot=True)
 
     validation_data, validation_label = inputDataCreator(validation_dir,
                                                          224,
-                                                         normalize=True)
+                                                         normalize=True,
+                                                         one_hot=True)
 
     test_data, test_label = inputDataCreator(test_dir,
                                              224,
-                                             normalize=True)
+                                             normalize=True,
+                                             one_hot=True)
 
     print("train data shape: ", train_data.shape)
     print("train label shape: ", train_label.shape)
@@ -99,7 +102,10 @@ def main(data_mode, model_mode, no, set_epochs=60, do_es=False):
 
     print("\nexport logs in ", child_log_dir)
 
-    score = model.evaluate(test_data, test_label, batch_size, verbose=1)
+    score = model.evaluate(test_data,
+                           test_label,
+                           batch_size,
+                           verbose=1)
 
     return score
 
