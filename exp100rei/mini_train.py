@@ -42,16 +42,13 @@ test_dir = os.path.join(cwd, "experiment_0", "test")
 print("\ncreate train data")
 train_data, train_label = inputDataCreator(train_dir,
                                            224,
-                                           normalize=True)
-
-train_one_hot_label = np.identity(2)[train_label.astype(np.int8)]
+                                           normalize=True,
+                                           one_hot=True)
 
 
 if debug_lv > 0:
     print("train_data: ", train_data.shape)
     print("train_label: ", train_label.shape)
-
-    print("\ntrain_one_hot_label: ", train_one_hot_label)
 
     if debug_lv > 1:
         print(train_data[0])
@@ -60,9 +57,9 @@ if debug_lv > 0:
 print("\ncreate validation data")
 validation_data, validation_label = inputDataCreator(validation_dir,
                                                      224,
-                                                     normalize=True)
+                                                     normalize=True,
+                                                     one_hot=True)
 
-validation_one_hot_label = np.identity(2)[validation_label.astype(np.int8)]
 
 if debug_lv > 0:
     print("validation_data: ", validation_data.shape)
@@ -76,9 +73,9 @@ if debug_lv > 0:
 print("\ncreate test data")
 test_data, test_label = inputDataCreator(test_dir,
                                          224,
-                                         normalize=True)
+                                         normalize=True,
+                                         one_hot=True)
 
-test_one_hot_label = np.identity(2)[test_label.astype(np.int8)]
 
 if debug_lv > 0:
     print("test_data: ", test_data.shape)
@@ -97,10 +94,10 @@ model.summary()
 
 
 history = model.fit(train_data,
-                    train_one_hot_label,
+                    train_label,
                     batch_size=10,
                     epochs=30,
-                    validation_data=(validation_data, validation_one_hot_label),
+                    validation_data=(validation_data, validation_label),
                     verbose=1)
 
 val_accs = history.history['val_accuracy']
@@ -110,7 +107,7 @@ print(val_accs[len(val_accs)-1])
 print("\npredict sequence...")
 
 pred = model.predict(test_data,
-                     #test_one_hot_label,
+                     #test_label,
                      batch_size=10,
                      verbose=1)
 
@@ -119,7 +116,7 @@ print("result: ", pred)
 print("\nevaluate sequence...")
 
 eval_res = model.evaluate(test_data,
-                          test_one_hot_label,
+                          test_label,
                           batch_size=10,
                           verbose=1)
 
