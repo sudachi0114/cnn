@@ -110,8 +110,8 @@ class DataSeparator:
         test_size = 100  # / each_class
         
         begin = idx_end-test_size
-        pic_name_list = []
         for class_name in self.class_label:
+            pic_name_list = []
             # train/cats or dogs
             print("make directry : global_test/{}..".format(class_name))
             target_class_dir = os.path.join(self.dirs['save_dir'], class_name)
