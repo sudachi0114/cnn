@@ -25,7 +25,10 @@ def main(log_dir):
     test_dir = os.path.join(data_dir, "test")
     print("test dir is in ... ", test_dir)
 
-    test_data, test_label = inputDataCreator(test_dir, 224, normalize=True)
+    test_data, test_label = inputDataCreator(test_dir,
+                                             224,
+                                             normalize=True,
+                                             one_hot=True)
 
     print("test data's shape: ", test_data.shape)
     print("test label's shape: ", test_label.shape)
@@ -72,14 +75,13 @@ def main(log_dir):
     # class 0 -> cat / class -> dog 変換
     labels_class = []
     for i in range(len(test_label)):
-        if test_label[i] == 0:
+        if test_label[i][0] == 1:
             labels_class.append('cat')
-        elif test_label[i] == 1:
+        elif test_label[i][1] == 1:
             labels_class.append('dog')
 
     # 予測結果を表に起こす
-    pred = pd.DataFrame(pred_result, columns=['dog'])
-    pred['cat'] = 1.0 - pred['dog']
+    pred = pd.DataFrame(pred_result, columns=['cat', 'dog'])
     pred['class'] = pred.idxmax(axis=1)
     pred['label'] = labels_class
     pred['collect'] = (pred['class'] == pred['label'])
