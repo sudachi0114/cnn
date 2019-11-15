@@ -11,7 +11,7 @@ tf.Session(config=session_config)
 from keras.callbacks import EarlyStopping
 
 from utils.model_handler import ModelHandler
-from utils.da_handler import DaHandler
+from utils.img_utils import inputDataCreator
 
 
 cwd = os.getcwd()
@@ -25,33 +25,32 @@ validation_dir = os.path.join(cnn_dir, "dogs_vs_cats_smaller", "validation")
 
 def train(aug_no, model_mode='mymodel', set_epochs=10, do_es=False):
 
-    dah = DaHandler()
 
     train_dir = os.path.join(cwd, "da_concat_{}".format(aug_no))
-    train_generator = dah.dataGeneratorFromDir(target_dir=train_dir)
 
-    validation_generator = dah.dataGeneratorFromDir(target_dir=validation_dir)
+    train_data, train_label = inputDataCreator(train_dir,
+                                               224,
+                                               normalize=True,
+                                               one_hot=True)
 
-    data_checker, label_checker = next(train_generator)
+    validation_data, validation_label = inputDataCreator(validation_dir,
+                                                         224,
+                                                         normalize=True,
+                                                         one_hot=True)
 
-    print("data_checker shape : ", data_checker.shape)
-    print("label_checker shape : ", label_checker.shape)
+    print("train data shape : ", train_data.shape)
+    print("train label shape : ", train_label.shape)
 
 
-    INPUT_SIZE = data_checker.shape[1]
+    INPUT_SIZE = train_data.shape[1]
     print("INPUT_SIZE: ", INPUT_SIZE)
 
-    CHANNEL = data_checker.shape[3]
+    CHANNEL = train_data.shape[3]
     print("set channel : ", CHANNEL)
 
-    batch_size = data_checker.shape[0]
-    print("batch_size : ", batch_size)
+    batch_size = 10
+    print("set batch_size : ", batch_size)
 
-
-    steps_per_epoch = train_generator.n // batch_size
-    validation_steps = validation_generator.n // batch_size
-    print(steps_per_epoch, " [steps / epoch]")
-    print(validation_steps, " (validation steps)")
 
     mh = ModelHandler(INPUT_SIZE, CHANNEL)
 
@@ -72,13 +71,13 @@ def train(aug_no, model_mode='mymodel', set_epochs=10, do_es=False):
         es = None
 
 
-    history = model.fit_generator(train_generator,
-                                  steps_per_epoch=steps_per_epoch,
-                                  epochs=set_epochs,
-                                  validation_data=validation_generator,
-                                  validation_steps=validation_steps,
-                                  callbacks=es,
-                                  verbose=1)
+    history = model.fit(train_data,
+                        train_label,
+                        batch_size=batch_size,
+                        epochs=set_epochs,
+                        validation_data=(validation_data, validation_label),
+                        callbacks=es,
+                        verbose=1)
     # make log dir -----
     if do_es:
         log_dir = os.path.join(cwd, 'log_with_es')
