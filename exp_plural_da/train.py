@@ -20,7 +20,8 @@ cnn_dir = os.path.dirname(cwd)
 validation_dir = os.path.join(cnn_dir, "dogs_vs_cats_smaller", "validation")
 validation_data, validation_label = inputDataCreator(validation_dir,
                                                      224,
-                                                     normalize=True)
+                                                     normalize=True,
+                                                     one_hot=True)
 
 print("validation_data shape: ", validation_data.shape)
 print("validation_label shape: ", validation_label.shape)
@@ -38,8 +39,9 @@ def train(is_aug, model_mode, set_epochs=100, do_es=False):
         train_dir = os.path.join(cwd, "dogs_vs_cats_auged_native")
 
     train_data, train_label = inputDataCreator(train_dir,
-                                   224,
-                                   normalize=True)
+                                               224,
+                                               normalize=True,
+                                               one_hot=True)
 
     print("train_data shape : ", train_data.shape)
     print("train_label shape : ", train_label.shape)
