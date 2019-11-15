@@ -62,7 +62,7 @@ def loadImageFromDir(target_dir, input_size):
     return img_arrays
 
 
-def inputDataCreator(target_dir, input_size, normalize=False):
+def inputDataCreator(target_dir, input_size, normalize=False, one_hot=False):
     """CNN などに入力する配列を作成する
         keras ImageDataGenerator の Iterator じゃない版
 
@@ -73,6 +73,9 @@ def inputDataCreator(target_dir, input_size, normalize=False):
         normalize (bool): 画像を読み込む際に [0, 1] に変換するか
             False => [0, 255] (default)
             True => [0, 1]
+        one_hot (bool): label を one-hot 表現に変換する
+            False => 0 or 1 (default)
+            True => [1, 0] or [0, 1]
 
     # Returns
         img_arrays (np.ndarray): 読み込んだ画像データの配列
@@ -116,6 +119,11 @@ def inputDataCreator(target_dir, input_size, normalize=False):
 
     img_arrays = np.array(img_arrays)
     labels = np.array(labels)
+
+    print("debug: ", labels[1])
+
+    if one_hot:
+        labels = np.identity(2)[labels.astype(np.int8)]
 
     assert img_arrays.shape[0] == labels.shape[0]
 
@@ -169,6 +177,16 @@ if __name__ == '__main__':
 
         print("\ntesting inputDataCreator(train_data_dir, 224, normalize=False:")
         data, label = inputDataCreator(train_data_dir, 224, normalize=False)
+        print("  result (data shape) : ", data.shape)
+        print("    data: \n", data[0])
+        print("  result (label shape): ", label.shape)
+        print("    label: \n", label)
+
+        print("\ntesting inputDataCreator(train_data_dir, 224, normalize=False, one_hot=True:")
+        data, label = inputDataCreator(train_data_dir,
+                                       224,
+                                       normalize=False,
+                                       one_hot=True)
         print("  result (data shape) : ", data.shape)
         print("    data: \n", data[0])
         print("  result (label shape): ", label.shape)
