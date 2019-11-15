@@ -15,12 +15,14 @@ __pycache__
 *old*
 *.csv
 
-# data dir
+# data
 *.zip
 *.jpg
 *.jpeg
-dogs_vs_cats_*
-da_concat_*
+*.npz
+
+# display utils
+checker/
 
 # old codes
 zzz_history/
