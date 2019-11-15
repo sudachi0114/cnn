@@ -19,10 +19,15 @@ if debug_lv == None:
 import numpy as np
 
 import tensorflow as tf
-from keras.backend import tensorflow_backend
+#from keras.backend import tensorflow_backend
+from keras import backend as K
+config = tf.ConfigProto()
+config.gpu_options.per_process_gpu_memory_fraction=0.4
+sess = tf.Session(config=config)
 config = tf.ConfigProto(gpu_options=tf.GPUOptions(allow_growth=True))
-session = tf.Session(config=config)
-tensorflow_backend.set_session(session)
+K.set_session(sess)
+
+#tensorflow_backend.set_session(session)
 
 from utils.model_handler import ModelHandler
 from utils.img_utils import inputDataCreator
