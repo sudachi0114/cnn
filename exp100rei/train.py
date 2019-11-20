@@ -1,10 +1,17 @@
 
-import os, sys, argparse, pickle, csv
+import os, sys, argparse, pickle, csv, time
 sys.path.append(os.pardir)
 
+import pandas as pd
+
 import tensorflow as tf
-session_config = tf.ConfigProto(gpu_options=tf.GPUOptions(allow_growth=True))
-tf.Session(config=session_config)
+import keras
+from keras import backend as K
+config = tf.ConfigProto()
+config.gpu_options.per_process_gpu_memory_fraction=0.1
+sess = tf.Session(config=config)
+K.set_session(sess)
+
 from keras.callbacks import EarlyStopping
 
 from utils.model_handler import ModelHandler
@@ -45,9 +52,9 @@ def main(data_mode, model_mode, no, set_epochs=60, do_es=False):
                                              normalize=True,
                                              one_hot=True)
 
-    print("train data shape: ", train_data.shape)
+    print("\ntrain data shape: ", train_data.shape)
     print("train label shape: ", train_label.shape)
-    print("validation data shape: ", validation_data.shape)
+    print("\nvalidation data shape: ", validation_data.shape)
     print("validation label shape: ", validation_label.shape)
 
     input_size = train_data.shape[1]
@@ -74,6 +81,8 @@ def main(data_mode, model_mode, no, set_epochs=60, do_es=False):
     else:
         es = None
 
+    print("\ntraining sequence start .....")
+    start = time.time()
     history = model.fit(train_data,
                         train_label,
                         batch_size,
@@ -81,6 +90,14 @@ def main(data_mode, model_mode, no, set_epochs=60, do_es=False):
                         validation_data=(validation_data, validation_label),
                         callbacks=es,
                         verbose=1)
+
+    elapsed_time = time.time() - start
+
+    accs = history.history['accuracy']
+    losses = history.history['loss']
+    val_accs = history.history['val_accuracy']
+    val_losses = history.history['val_loss']
+
 
     if do_es:
         log_dir = os.path.join(cwd, "log_with_es")
@@ -102,12 +119,61 @@ def main(data_mode, model_mode, no, set_epochs=60, do_es=False):
 
     print("\nexport logs in ", child_log_dir)
 
-    score = model.evaluate(test_data,
-                           test_label,
-                           batch_size,
-                           verbose=1)
 
-    return score
+
+    print("\npredict sequence...")
+    pred = model.predict(test_data,
+                         batch_size=10,
+                         verbose=1)
+
+    label_name_list = []
+    for i in range(len(test_label)):
+        if test_label[i][0] == 1:
+            label_name_list.append('cat')
+        elif test_label[i][1] == 1:
+            label_name_list.append('dog')
+
+    df_pred = pd.DataFrame(pred, columns=['cat', 'dog'])
+    df_pred['class'] = df_pred.idxmax(axis=1)
+    df_pred['label'] = pd.DataFrame(label_name_list, columns=['label'])
+    df_pred['collect'] = (df_pred['class'] == df_pred['label'])
+
+    confuse = df_pred[df_pred['collect'] == False].index.tolist()
+    collect = df_pred[df_pred['collect'] == True].index.tolist()
+
+    print(df_pred)
+    print("\nwrong recognized indeices are ", confuse)
+    print("  wrong recognized amount is ", len(confuse))
+    print("\ncollect recognized indeices are ", collect)
+    print("  collect recognized amount is ", len(collect))
+    print("\nwrong rate: ", 100*len(confuse)/len(test_label), " %")
+
+
+    print("\nevaluate sequence...")
+
+    eval_res = model.evaluate(test_data,
+                              test_label,
+                              batch_size=10,
+                              verbose=1)
+
+    print("result loss: ", eval_res[0])
+    print("result score: ", eval_res[1])
+
+    # ----------
+    save_dict = {}
+    save_dict['last_loss'] = losses[len(losses)-1]
+    save_dict['last_acc'] = accs[len(accs)-1]
+    save_dict['last_val_loss'] = val_losses[len(val_losses)-1]
+    save_dict['last_val_acc'] = val_accs[len(val_accs)-1]
+    save_dict['n_confuse'] = len(confuse)
+    save_dict['eval_loss'] = eval_res[0]
+    save_dict['eval_acc'] = eval_res[1]
+    save_dict['elapsed_time'] = elapsed_time
+
+    print(save_dict)
+
+
+    return save_dict
 
 
 if __name__ == '__main__':
@@ -122,31 +188,36 @@ if __name__ == '__main__':
     data_mode_list = ['native', 'auged']
     model_mode_list = ['mymodel', 'tlearn']
 
-    test_acc_list = []
-    test_loss_list = []
-
-    csv_dir = os.path.join(cwd, "csv")
-    os.makedirs(csv_dir, exist_ok=True)
 
 
-    for i in range(5):
-        for data_mode in data_mode_list:
-            for model_mode in model_mode_list:
-                print("========== No:{} | data:{} | model:{} ==========".format(i, data_mode, model_mode))
-                score = main(data_mode,
-                             model_mode,
-                             no=i,
-                             #set_epochs=5,
-                             do_es=args.earlystopping)
 
-                test_loss_list.append(score[0])
-                test_acc_list.append(score[1])
+    select_data = 'native'
+    select_model = 'mymodel'
+    for i in range(60):
+        result_dict = main(data_mode=select_data,
+                           model_mode=select_model,
+                           no=i,
+                           do_es=args.earlystopping)
+        if i == 0:
+            df_result = pd.DataFrame(result_dict.values(), index=result_dict.keys())
+            """
+                ['last_loss',
+                 'last_acc',
+                 'last_val_loss',
+                 'last_val_acc',
+                 'n_confuse',
+                 'eval_loss',
+                 'eval_acc',
+                 'elapsed_time']
+            """
 
-                to_csv = [test_loss_list, test_acc_list]
-                with open(os.path.join(csv_dir, "{}_{}_{}_test_score.csv".format(i, data_mode, model_mode)), "w") as f:
-                    writer = csv.writer(f, lineterminator="\n")
-                    writer.writerows(to_csv)
+        else:
+            series = pd.Series(result_dict)
+            df_result[i] = series
+        print(df_result)
 
-                    print("\nexport {} {} {} test score as CSV.".format(data_mode, model_mode, i))
+    csv_file = "./{}_{}_result.csv".format(select_data, select_model)
+    df_result.to_csv(csv_file)
 
+    print("\nexport {}  as CSV.".format(csv_file))
 
