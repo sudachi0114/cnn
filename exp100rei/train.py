@@ -6,16 +6,24 @@ import pandas as pd
 
 import tensorflow as tf
 import keras
+import gc  # gabage collection
 from keras import backend as K
 config = tf.ConfigProto()
 config.gpu_options.per_process_gpu_memory_fraction=0.1
 sess = tf.Session(config=config)
 K.set_session(sess)
 
+"""
+config = tf.ConfigProto()
+config.gpu_options.allow_growth=True
+sess = tf.Session(config=config)
+"""
+
 from keras.callbacks import EarlyStopping
 
 from utils.model_handler import ModelHandler
 from utils.img_utils import inputDataCreator
+
 
 
 
@@ -105,6 +113,7 @@ def main(data_mode, model_mode, no, set_epochs=60, do_es=False):
         log_dir = os.path.join(cwd, "log")
     os.makedirs(log_dir, exist_ok=True)
 
+    """
     child_log_dir = os.path.join(log_dir, "{}_{}_{}".format(data_mode, model_mode, no))
     os.makedirs(child_log_dir, exist_ok=True)
 
@@ -118,6 +127,7 @@ def main(data_mode, model_mode, no, set_epochs=60, do_es=False):
         pickle.dump(history.history, p)
 
     print("\nexport logs in ", child_log_dir)
+    """
 
 
 
@@ -172,6 +182,14 @@ def main(data_mode, model_mode, no, set_epochs=60, do_es=False):
 
     print(save_dict)
 
+    # 重そうなものは undefine してみる
+    #del train_data, train_label, validation_data, validation_label, test_data, test_label
+    del model
+    del history
+    #del pred
+
+    keras.backend.clear_session()
+    gc.collect()
 
     return save_dict
 
@@ -193,7 +211,9 @@ if __name__ == '__main__':
 
     select_data = 'native'
     select_model = 'mymodel'
+    print("\nuse data:{} | model:{}".format(select_data, select_model))
     for i in range(60):
+        print("\ndata no. {} -------------------------------".format(i))
         result_dict = main(data_mode=select_data,
                            model_mode=select_model,
                            no=i,
