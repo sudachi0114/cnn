@@ -7,17 +7,17 @@ import pandas as pd
 import tensorflow as tf
 import keras
 import gc  # gabage collection
+"""
 from keras import backend as K
 config = tf.ConfigProto()
 config.gpu_options.per_process_gpu_memory_fraction=0.1
 sess = tf.Session(config=config)
 K.set_session(sess)
-
 """
+
 config = tf.ConfigProto()
 config.gpu_options.allow_growth=True
 sess = tf.Session(config=config)
-"""
 
 from keras.callbacks import EarlyStopping
 
