@@ -137,27 +137,27 @@ def augment(target_dir):
 
 
 
-def concat(nomal_data_dir, auged_data_dir):
+def concat(normal_data_dir, auged_data_dir):
 
-    separete_location = os.path.basename(nomal_data_dir)
+    separete_location = os.path.basename(normal_data_dir)
     concat_data_save_location = os.path.join(cwd, "concat_{}".format(separete_location))
     os.makedirs(concat_data_save_location, exist_ok=True)
 
-    train_location = os.path.join(nomal_data_dir, "train")
+    train_location = os.path.join(normal_data_dir, "train")
 
     for class_name in class_list:
         each_class_save_location = os.path.join(concat_data_save_location, class_name)
         os.makedirs(each_class_save_location, exist_ok=True)
         print("\nmake directory: ", each_class_save_location)
 
-        each_class_nomal_data = os.path.join(train_location, class_name)
+        each_class_normal_data = os.path.join(train_location, class_name)
         each_class_auged_data = os.path.join(auged_data_dir, class_name)
 
 
         copy_list = []
 
-        for moto_img in os.listdir(each_class_nomal_data):
-            copy_list.append( os.path.join(each_class_nomal_data, moto_img) )
+        for moto_img in os.listdir(each_class_normal_data):
+            copy_list.append( os.path.join(each_class_normal_data, moto_img) )
         for auged_img in os.listdir(each_class_auged_data):
             copy_list.append( os.path.join(each_class_auged_data, auged_img) )
 
