@@ -279,6 +279,8 @@ def dataSplit(data, label, train_rate=0.6, validation_rate=0.3, test_rate=0.1):
     assert cls0_cnt == cls1_cnt
     print("  -> test cleared.\n")
 
+    return train_data, train_label, validation_data, validation_label, test_data, test_label
+
 
 
 def display(img_array, label):
