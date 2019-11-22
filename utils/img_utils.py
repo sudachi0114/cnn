@@ -129,14 +129,28 @@ def inputDataCreator(target_dir, input_size, normalize=False, one_hot=False):
 
     return img_arrays, labels
 
+def equaryDevide2class(data, label, first_rate=None, second_rate=None):
+    """順番に積み重なっているデータに対して 2class の場合に等分割する関数
+    !! 注意: 未完成 !!
+    
+     # Args:
+        data (np.ndarray): 画像データの配列
+        label (np.ndarray): 画像データの正解ラベルの配列
+
+    # Return:
+        first_data
+        second_data
+        first_label
+        second_label
+    """
+
+
 
 def display(img_array, label):
 
     plt.imshow(img_array)
     plt.title("label: {}".format(label))
     plt.show()
-
-
 
 
 
