@@ -1,0 +1,23 @@
+
+[experiment 1]
+	Data Augmentation の効果検証
+		「DA の効果」が知りたい。
+			適当に 4種類変換を選んでデータを 5倍にして学習を行う。
+			 	選んだ変換は
+				picked_aug_list = ["rotation", "hflip", "gnoise", "invert", "native"]
+			5つの変換に			  		16	   	 8			4	  	 2			1
+				という風に番号をふって
+				それぞれの変換したデータを含む管理番号の足し算で
+				全体の管理番号を決めている。
+					0 : どれも含まない (意味ない..)
+					31: 全部含む
+
+[設計]
+	origin data dir (dogs_vs_cats_origin) から
+		train_data		: 50枚 * 2class
+		validation_data	: 25枚 * 2class
+		test_data		: 25枚 * 2class
+			validation_data と test_data に関しては
+			dogs_vs_cats_smaller から読み込んだものを使用。
+
+
