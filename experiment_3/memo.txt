@@ -1,25 +1,23 @@
 
-[experiment 0]
+[experiment 3]
 	Data Augmentation の効果検証
 		「ある変換単体が、学習に良い影響をもたらすのか」が知りたい。
-		# 複数の変換で効果を持っても良いのだけど
-		#	問題が複雑になるので
-		#		複数で効果を持つなら, 単体のいずれかが効果を持っているだろう
-		#		という考えに基づき
-		#		単体に分解して行おうという狙い。
-
-	とりあえず、rotation を例に取り実装してみた。
+		exp100rei で思ったよりうまく行かなかったので
+		画像の枚数を増やして行なってみる
 
 [設計]
 	origin data dir (dogs_vs_cats_origin) から
-		train_data		: 50枚 * 2class
-		validation_data	: 50枚 * 2class
-		test_data		: 100枚* 2class
-			このうち train_data に rotation をかけて 100枚
-				rotation する / しない => *2 => 100 *2 = 200枚にして学習を行う。
-				この DA したデータも中間出力し (auged_..)
-				さらに元データと、DA したデータを結合したデータ (concat_..) も出しておく
-
+		train_data		: 300枚 * 2class
+		validation_data	: 150枚 * 2class
+		test_data		:  50枚 * 2class
+		計				: 1000枚
+			このうち train_data に rotation をかけて 600枚
+				rotation する / しない => *2 => 300 *2 = 1200枚にして学習を行う。
+				この DA したデータも中間出力する (auged_..)
+				小分けにして、読み込んでから
+					train / validation / test に split を行うので
+					とりあえず、全部 DA しておく
+					train と同じものを append する
 	epoch は
 		DA する		: 30
 		DA しない	: 60
