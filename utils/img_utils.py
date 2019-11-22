@@ -129,20 +129,155 @@ def inputDataCreator(target_dir, input_size, normalize=False, one_hot=False):
 
     return img_arrays, labels
 
-def equaryDevide2class(data, label, first_rate=None, second_rate=None):
+def dataSplit(data, label, train_rate=0.6, validation_rate=0.3, test_rate=0.1):
     """順番に積み重なっているデータに対して 2class の場合に等分割する関数
     !! 注意: 未完成 !!
     
      # Args:
         data (np.ndarray): 画像データの配列
         label (np.ndarray): 画像データの正解ラベルの配列
-
+        train_rate (float): 全データにおける train data の割合 (0 ~ 1) で選択
+                            (default: 0.6 == 60%)
+        valiation_rate (float): 全データにおける validation data の割合 (0 ~ 1) で選択
+                            (default: 0.2 == 20%)
+        test_rate (float): 全データにおける test data の割合 (0 ~ 1) で選択
+                            (default: 0.1 == 10%)
     # Return:
-        first_data
-        second_data
-        first_label
-        second_label
+        train_data, train_label
+        validation_data, validation_label
+        test data, test_label
     """
+    class_num = len(label[0])
+    print("\nData set contain {} class data.".format(class_num))
+
+    amount = data.shape[0]
+    print("Data amount: ", amount)
+    each_class_amount = int(amount / class_num)
+    print("Data each class data amount: ", each_class_amount)
+    
+    train_data, train_label = [], []
+    validation_data, validation_label = [], []
+    test_data, test_label = [], []
+
+
+    # calucurate each data size
+    train_size = int( each_class_amount*train_rate )  # 300
+    validation_size = int( each_class_amount*validation_rate )  # 150
+    test_size = int( each_class_amount*test_rate )  # 50
+
+    print("train_size: ", train_size)
+    print("validation_size: ", validation_size)
+    print("test_size: ", test_size)
+
+
+    # devide data -----
+    for i in range(class_num):
+        each_class_data = []
+        each_class_label = []
+        for j in range(len(label)):
+            if label[j][i] == 1:
+                if len(each_class_data) == 0:
+                    each_class_data = np.expand_dims(data[j], axis=0)
+                if len(each_class_label) == 0:
+                    each_class_label = np.expand_dims(label[j], axis=0)
+                else:
+                    each_class_data = np.vstack((each_class_data, np.expand_dims(data[j], axis=0) ))
+                    each_class_label = np.vstack((each_class_label, np.expand_dims(label[j], axis=0) ))
+        print("\nfound class {} data as shape: {}".format(i, each_class_data.shape))
+        print("found class {} label as shape: {}".format(i, each_class_label.shape))
+
+
+        # split data ----------
+        each_train_data, each_validation_data, each_test_data = np.split(each_class_data,
+                                                                         [train_size, train_size+validation_size])
+        print("\ntrain_data at class{}: {}".format(i, each_train_data.shape))
+        print("validation_data at class{}: {}".format(i, each_validation_data.shape))
+        print("test_data at class{}: {}".format(i, each_test_data.shape))
+
+        # 初回は代入, 2回目以降は (v)stack
+        if len(train_data) == 0:
+            train_data = each_train_data
+        else:
+            train_data = np.vstack((train_data, each_train_data))
+
+        if len(validation_data) == 0:
+            validation_data = each_validation_data
+        else:
+            validation_data = np.vstack((validation_data, each_validation_data))
+
+        if len(test_data) == 0:
+            test_data = each_test_data
+        else:
+            test_data = np.vstack((test_data, each_test_data))
+
+
+        # split label ----------
+        each_train_label, each_validation_label, each_test_label = np.split(each_class_label,
+                                                                         [train_size, train_size+validation_size])
+        print("\ntrain_label at class{}: {}".format(i, each_train_label.shape))
+        print("validation_label at class{}: {}".format(i, each_validation_label.shape))
+        print("test_label at class{}: {}".format(i, each_test_label.shape))
+    
+        # 初回は代入, 2回目以降は (v)stack
+        if len(train_label) == 0:
+            train_label = each_train_label
+        else:
+            train_label = np.vstack((train_label, each_train_label))
+
+        if len(validation_label) == 0:
+            validation_label = each_validation_label
+        else:
+            validation_label = np.vstack((validation_label, each_validation_label))
+
+        if len(test_label) == 0:
+            test_label = each_test_label
+        else:
+            test_label = np.vstack((test_label, each_test_label))
+
+        print("୨୧┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈୨୧")
+    
+    print("\n    ... end.\n")
+    
+    print("train_data.shape: ", train_data.shape)
+    print("validation_data.shape: ", validation_data.shape)
+    print("test_data.shape: ", test_data.shape)
+    # print(test_label)
+
+    # program test -----
+    print("\ntest sequence... ")
+    
+    # train -----
+    cls0_cnt = 0
+    cls1_cnt = 0
+    for i in range(len(train_label)):
+        if train_label[i][0] == 1:
+            cls0_cnt += 1
+        elif train_label[i][1] == 1:
+            cls1_cnt += 1
+    assert cls0_cnt == cls1_cnt
+    print("  -> train cleared.")
+
+    # validation -----
+    cls0_cnt = 0
+    cls1_cnt = 0
+    for i in range(len(validation_label)):
+        if validation_label[i][0] == 1:
+            cls0_cnt += 1
+        elif validation_label[i][1] == 1:
+            cls1_cnt += 1
+    assert cls0_cnt == cls1_cnt
+    print("  -> validation cleared.")
+    
+    # test -----
+    cls0_cnt = 0
+    cls1_cnt = 0
+    for i in range(len(test_label)):
+        if test_label[i][0] == 1:
+            cls0_cnt += 1
+        elif test_label[i][1] == 1:
+            cls1_cnt += 1
+    assert cls0_cnt == cls1_cnt
+    print("  -> test cleared.\n")
 
 
 
@@ -169,6 +304,7 @@ if __name__ == '__main__':
     parser = argparse.ArgumentParser(description="画像読み込みに関する自家製ミニマルライブラリ (速度はあまりコミットしてないです..)")
     parser.add_argument("--test", action="store_true")
     parser.add_argument("--time", action="store_true")
+    parser.add_argument("--split", action="store_true")
     parser.add_argument("--display", type=int, default=99999)
 
     args = parser.parse_args()
@@ -222,6 +358,12 @@ if __name__ == '__main__':
         data, label = inputDataCreator(train_data_dir, 224)
 
         display(data[args.display], label[args.display])
+
+    if args.split:
+        data, label = inputDataCreator(train_data_dir, 224, normalize=True, one_hot=True)
+        print(data.shape)
+        print(label.shape)
+        dataSplit(data, label)
 
     print("Done.")
 
