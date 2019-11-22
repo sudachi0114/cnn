@@ -6,15 +6,7 @@ import pandas as pd
 
 import tensorflow as tf
 import keras
-import gc  # gabage collection
-"""
-from keras import backend as K
-config = tf.ConfigProto()
-config.gpu_options.per_process_gpu_memory_fraction=0.1
-sess = tf.Session(config=config)
-K.set_session(sess)
-"""
-
+import gc
 config = tf.ConfigProto()
 config.gpu_options.allow_growth=True
 sess = tf.Session(config=config)
@@ -22,43 +14,38 @@ sess = tf.Session(config=config)
 from keras.callbacks import EarlyStopping
 
 from utils.model_handler import ModelHandler
-from utils.img_utils import inputDataCreator
-
-
+from utils.img_utils import inputDataCreator, dataSplit
 
 
 cwd = os.getcwd()
 
 
-
 def main(data_mode, model_mode, no, set_epochs=60, do_es=False):
 
-    base_dir = os.path.join(cwd, "experiment_{}".format(no))
-
-    if data_mode == 'native':
-        train_dir = os.path.join(cwd, "experiment_{}".format(no), "train")
-    elif data_mode == 'auged':
-        train_dir = os.path.join(cwd, "concat_experiment_{}".format(no))
-        set_epochs = int( set_epochs/2 )
-
-    validation_dir = os.path.join(base_dir, "validation")
-    test_dir = os.path.join(base_dir, "test")
+    data_dir = os.path.join(cwd, "experiment_{}".format(no))
 
 
-    train_data, train_label = inputDataCreator(train_dir,
+    total_data, total_label = inputDataCreator(data_dir,
                                                224,
                                                normalize=True,
                                                one_hot=True)
 
-    validation_data, validation_label = inputDataCreator(validation_dir,
-                                                         224,
-                                                         normalize=True,
-                                                         one_hot=True)
+    train_data, train_label, validation_data, validation_label, test_data, test_label = dataSplit(total_data, total_label)
 
-    test_data, test_label = inputDataCreator(test_dir,
-                                             224,
-                                             normalize=True,
-                                             one_hot=True)
+    if data_mode == 'auged':
+        base_dir, data_dir_name = os.path.split(data_dir)
+        data_dir_name = "auged_" + data_dir_name
+        auged_dir = os.path.join(base_dir, data_dir_name)
+        set_epochs = int( set_epochs/2 )
+
+        total_auged_data, total_auged_label = inputDataCreator(auged_dir,
+                                                               224,
+                                                               normalize=True,
+                                                               one_hot=True)
+
+        auged_train_data, auged_train_label, _, _, _, _ = dataSplit(total_auged_data, total_auged_label)
+        train_data = np.vstack((train_data, auged_train_data))
+
 
     print("\ntrain data shape: ", train_data.shape)
     print("train label shape: ", train_label.shape)
@@ -212,7 +199,7 @@ if __name__ == '__main__':
     select_data = 'native'
     select_model = 'mymodel'
     print("\nuse data:{} | model:{}".format(select_data, select_model))
-    for i in range(60):
+    for i in range(1):
         print("\ndata no. {} -------------------------------".format(i))
         result_dict = main(data_mode=select_data,
                            model_mode=select_model,
