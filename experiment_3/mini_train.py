@@ -3,7 +3,6 @@ import os, sys
 sys.path.append(os.pardir)
 
 import argparse
-
 parser = argparse.ArgumentParser(description="ミニマル学習プログラム")
 
 parser.add_argument("--debug", type=int, choices=[1, 2, 3],
@@ -20,76 +19,166 @@ import numpy as np
 import pandas as pd
 
 import tensorflow as tf
-#from keras.backend import tensorflow_backend
 from keras import backend as K
 config = tf.ConfigProto()
-config.gpu_options.per_process_gpu_memory_fraction=0.4
-sess = tf.Session(config=config)
 config = tf.ConfigProto(gpu_options=tf.GPUOptions(allow_growth=True))
+sess = tf.Session(config=config)
 K.set_session(sess)
 
-#tensorflow_backend.set_session(session)
 
 from utils.model_handler import ModelHandler
 from utils.img_utils import inputDataCreator
 
-#from keras.callbacks import EarlyStopping
-#from keras.preprocessing.image import ImageDataGenerator
 
 cwd = os.getcwd()
 
 log_dir = os.path.join(cwd, "mini_log")
 #os.makedirs(log_dir, exist_ok=True)
 
-train_dir = os.path.join(cwd, "experiment_0", "train")
-validation_dir = os.path.join(cwd, "experiment_0", "validation")
-test_dir = os.path.join(cwd, "experiment_0", "test")
+data_dir = os.path.join(cwd, "experiment_0")
+
 
 print("\ncreate train data")
-train_data, train_label = inputDataCreator(train_dir,
+total_data, total_label = inputDataCreator(data_dir,
                                            224,
                                            normalize=True,
                                            one_hot=True)
 
+class_num = len(total_label[0])
+print(class_num)
 
-if debug_lv > 0:
-    print("train_data: ", train_data.shape)
-    print("train_label: ", train_label.shape)
+amount = total_data.shape[0]    # 1000
+each_class_amount = int(amount / class_num)
 
-    if debug_lv > 1:
-        print(train_data[0])
-        print(train_label)
+# devide data -----
+total_cat_data = total_data[:each_class_amount]
+total_dog_data = total_data[each_class_amount:]
 
-print("\ncreate validation data")
-validation_data, validation_label = inputDataCreator(validation_dir,
-                                                     224,
-                                                     normalize=True,
-                                                     one_hot=True)
+# devide label -----
+total_cat_label = total_label[:each_class_amount]
+total_dog_label = total_label[each_class_amount:]
 
-
-if debug_lv > 0:
-    print("validation_data: ", validation_data.shape)
-    print("validation_label: ", validation_label.shape)
-
-    if debug_lv > 1:
-        print(validation_data[0])
-        print(validation_label)
+print("total_cat_data.shape: ", total_cat_data.shape)
+print("total_cat_label.shape: ", total_cat_label.shape)
 
 
 print("\ncreate test data")
-test_data, test_label = inputDataCreator(test_dir,
-                                         224,
-                                         normalize=True,
-                                         one_hot=True)
+
+train_rate=0.6
+validation_rate=0.3
+test_rate = 0.1
+
+train_data, train_label = [], []
+validation_data, validation_label = [], []
+test_data, test_label = [], []
+
+# amount == 1000 => e_c_amount == 500
+train_size = int( each_class_amount*train_rate )  # 300
+validation_size = int( each_class_amount*validation_rate )  # 150
+test_size = int( each_class_amount*test_rate )  # 50
+
+print("train_size: ", train_size)
+print("validation_size: ", validation_size)
+print("test_size: ", test_size)
 
 
-if debug_lv > 0:
-    print("test_data: ", test_data.shape)
-    print("test_label: ", test_label.shape)
+# split cat data ----------
+train_cat_data, rest_cat_data = np.split(total_cat_data, [train_size])
+print("train_cat_data: ", train_cat_data.shape)
+print("rest: ", rest_cat_data.shape)
 
-    if debug_lv > 1:
-        print(test_data[0])
-        print(test_label)
+validation_cat_data, test_cat_data = np.split(rest_cat_data, [validation_size])
+print("validation_cat_data: ", validation_cat_data.shape)
+print("test_cat_data: ", test_cat_data.shape)
+
+# 初回は代入, 2回目以降は (v)stack
+train_data = train_cat_data
+validation_data = validation_cat_data
+test_data = test_cat_data
+
+# split cat label ----------
+train_cat_label, rest_cat_label = np.split(total_cat_label, [train_size])
+# print("train_cat_label: ", train_cat_label.shape)
+# print("rest: ", rest_cat_label.shape)
+
+validation_cat_label, test_cat_label = np.split(rest_cat_label, [validation_size])
+# print("validation_cat_label: ", validation_cat_label.shape)
+# print("test_cat_label: ", test_cat_label.shape)
+
+# 初回は代入, 2回目以降は (v)stack
+train_label = train_cat_label
+validation_label = validation_cat_label
+test_label = test_cat_label
+
+
+# split dog data ----------
+train_dog_data, rest_dog_data = np.split(total_dog_data, [train_size])
+# print("train_dog_data: ", train_dog_data.shape)
+# print("rest: ", rest_dog_data.shape)
+
+validation_dog_data, test_dog_data = np.split(rest_dog_data, [validation_size])
+# print("validation_dog_data: ", validation_dog_data.shape)
+# print("test_dog_data: ", test_dog_data.shape)
+
+train_data = np.vstack((train_data, train_dog_data))
+validation_data = np.vstack((validation_data, validation_dog_data))
+test_data = np.vstack((test_data, test_dog_data))
+
+# split dog label ----------
+train_dog_label, rest_dog_label = np.split(total_dog_label, [train_size])
+# print("train_dog_label: ", train_dog_label.shape)
+# print("rest: ", rest_dog_label.shape)
+
+validation_dog_label, test_dog_label = np.split(rest_dog_label, [validation_size])
+# print("validation_dog_label: ", validation_dog_label.shape)
+# print("test_dog_label: ", test_dog_label.shape)
+
+train_label = np.vstack((train_label, train_dog_label))
+validation_label = np.vstack((validation_label, validation_dog_label))
+test_label = np.vstack((test_label, test_dog_label))
+
+"""
+print(train_data.shape)
+print(validation_data.shape)
+print(test_data.shape)
+print(test_label)
+"""
+
+# program test -----
+print("\ntest sequence... ")
+
+# train -----
+cls0_cnt = 0
+cls1_cnt = 0
+for i in range(len(train_label)):
+    if train_label[i][0] == 1:
+        cls0_cnt += 1
+    elif train_label[i][1] == 1:
+        cls1_cnt += 1
+assert cls0_cnt == cls1_cnt
+print("  -> train cleared.")
+
+# validation -----
+cls0_cnt = 0
+cls1_cnt = 0
+for i in range(len(validation_label)):
+    if validation_label[i][0] == 1:
+        cls0_cnt += 1
+    elif validation_label[i][1] == 1:
+        cls1_cnt += 1
+assert cls0_cnt == cls1_cnt
+print("  -> validation cleared.")
+
+# test -----
+cls0_cnt = 0
+cls1_cnt = 0
+for i in range(len(test_label)):
+    if test_label[i][0] == 1:
+        cls0_cnt += 1
+    elif test_label[i][1] == 1:
+        cls1_cnt += 1
+assert cls0_cnt == cls1_cnt
+print("  -> test cleared.\n")
 
 
 mh = ModelHandler(224, 3)
