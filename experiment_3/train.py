@@ -199,7 +199,7 @@ if __name__ == '__main__':
     select_data = 'native'
     select_model = 'mymodel'
     print("\nuse data:{} | model:{}".format(select_data, select_model))
-    for i in range(1):
+    for i in range(25):
         print("\ndata no. {} -------------------------------".format(i))
         result_dict = main(data_mode=select_data,
                            model_mode=select_model,
