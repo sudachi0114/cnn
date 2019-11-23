@@ -39,27 +39,28 @@ def main():
     print("\ntotal_data shape: ", total_data.shape)
     print("total_label shape: ", total_label.shape)
 
-    mh = ModelHandler(224, 3)
+    input_size = total_data.shape[1]
+    channel = total_data.shape[3]
+    mh = ModelHandler(input_size, channel)
+
     skf = StratifiedKFold(n_splits=10)
 
     k = 0
     for traval_idx, test_idx in skf.split(total_data, total_label):
-        print("K-Fold Cross-Validation k:{} ==========".format(k))
+        print("\nK-Fold Cross-Validation k:{} ==========".format(k))
 
         print("\ntrain indices: \n", traval_idx)
         print("\ntest indices: \n", test_idx)
 
         test_data = total_data[test_idx]
         test_label = total_label[test_idx]
-        print(test_data.shape)
-        print(test_label)
 
         print("-----*-----*-----")
 
         traval_data = total_data[traval_idx]
         traval_label = total_label[traval_idx]
-        print(traval_data.shape)
-        print(traval_label.shape)
+        # print(traval_data.shape)
+        # print(traval_label.shape)
 
         traval_label = np.identity(2)[traval_label.astype(np.int8)]
         test_label = np.identity(2)[test_label.astype(np.int8)]
