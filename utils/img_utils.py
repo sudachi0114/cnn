@@ -129,10 +129,9 @@ def inputDataCreator(target_dir, input_size, normalize=False, one_hot=False):
 
     return img_arrays, labels
 
-def dataSplit(data, label, train_rate=0.6, validation_rate=0.3, test_rate=0.1):
-    """順番に積み重なっているデータに対して 2class の場合に等分割する関数
-    !! 注意: 未完成 !!
-    
+
+def dataSplit(data, label, train_rate=0.6, validation_rate=0.3, test_rate=0.1, one_hot=True):
+    """順番に積み重なっているデータに対して 2class の場合に等分割する関数    
      # Args:
         data (np.ndarray): 画像データの配列
         label (np.ndarray): 画像データの正解ラベルの配列
@@ -142,12 +141,17 @@ def dataSplit(data, label, train_rate=0.6, validation_rate=0.3, test_rate=0.1):
                             (default: 0.2 == 20%)
         test_rate (float): 全データにおける test data の割合 (0 ~ 1) で選択
                             (default: 0.1 == 10%)
+        one_hot (bool): 引数の label が one_hot 表現か否か
+                            (default: True)
     # Return:
         train_data, train_label
         validation_data, validation_label
         test data, test_label
     """
-    class_num = len(label[0])
+    if one_hot:
+        class_num = len(label[0])
+    else:
+        class_num = len(set(label))
     print("\nData set contain {} class data.".format(class_num))
 
     amount = data.shape[0]
@@ -174,15 +178,17 @@ def dataSplit(data, label, train_rate=0.6, validation_rate=0.3, test_rate=0.1):
     for i in range(class_num):
         each_class_data = []
         each_class_label = []
-        for j in range(len(label)):
-            if label[j][i] == 1:
-                if len(each_class_data) == 0:
-                    each_class_data = np.expand_dims(data[j], axis=0)
-                if len(each_class_label) == 0:
-                    each_class_label = np.expand_dims(label[j], axis=0)
-                else:
-                    each_class_data = np.vstack((each_class_data, np.expand_dims(data[j], axis=0) ))
-                    each_class_label = np.vstack((each_class_label, np.expand_dims(label[j], axis=0) ))
+
+        if one_hot:
+            # label の i番目が i である index を取得
+            idx = np.where(label[:, i] == 1)
+            # print("condition: ", condition)
+        else:
+            # i である label の index を取得
+            idx = np.where(label == i)
+            # print("idx: ", idx)
+        each_class_label = label[idx]
+        each_class_data = data[idx]        
         print("\nfound class {} data as shape: {}".format(i, each_class_data.shape))
         print("found class {} label as shape: {}".format(i, each_class_label.shape))
 
@@ -249,33 +255,45 @@ def dataSplit(data, label, train_rate=0.6, validation_rate=0.3, test_rate=0.1):
     # train -----
     cls0_cnt = 0
     cls1_cnt = 0
-    for i in range(len(train_label)):
-        if train_label[i][0] == 1:
-            cls0_cnt += 1
-        elif train_label[i][1] == 1:
-            cls1_cnt += 1
+    if one_hot:
+        for i in range(len(train_label)):
+            if train_label[i][0] == 1:
+                cls0_cnt += 1
+            elif train_label[i][1] == 1:
+                cls1_cnt += 1
+    else:
+        cls0_cnt = len(train_label[train_label==0])
+        cls1_cnt = len(train_label[train_label==1])
     assert cls0_cnt == cls1_cnt
     print("  -> train cleared.")
 
     # validation -----
     cls0_cnt = 0
     cls1_cnt = 0
-    for i in range(len(validation_label)):
-        if validation_label[i][0] == 1:
-            cls0_cnt += 1
-        elif validation_label[i][1] == 1:
-            cls1_cnt += 1
+    if one_hot:
+        for i in range(len(validation_label)):
+            if validation_label[i][0] == 1:
+                cls0_cnt += 1
+            elif validation_label[i][1] == 1:
+                cls1_cnt += 1
+    else:
+        cls0_cnt = len(validation_label[validation_label==0])
+        cls1_cnt = len(validation_label[validation_label==1])
     assert cls0_cnt == cls1_cnt
     print("  -> validation cleared.")
     
     # test -----
     cls0_cnt = 0
     cls1_cnt = 0
-    for i in range(len(test_label)):
-        if test_label[i][0] == 1:
-            cls0_cnt += 1
-        elif test_label[i][1] == 1:
-            cls1_cnt += 1
+    if one_hot:
+        for i in range(len(test_label)):
+            if test_label[i][0] == 1:
+                cls0_cnt += 1
+            elif test_label[i][1] == 1:
+                cls1_cnt += 1
+    else:
+        cls0_cnt = len(test_label[test_label==0])
+        cls1_cnt = len(test_label[test_label==1])
     assert cls0_cnt == cls1_cnt
     print("  -> test cleared.\n")
 
@@ -365,7 +383,7 @@ if __name__ == '__main__':
         data, label = inputDataCreator(train_data_dir, 224, normalize=True, one_hot=True)
         print(data.shape)
         print(label.shape)
-        dataSplit(data, label)
+        dataSplit(data, label, one_hot=True)
 
     print("Done.")
 
