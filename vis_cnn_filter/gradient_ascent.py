@@ -25,12 +25,15 @@ import matplotlib.pyplot as plt
 def model_hander(input_size=150, ch=3, iter_num=40):
 
     model = VGG16(weights='imagenet',
-              include_top=False)
+                  include_top=False)
+
+    model.summary()
 
     # ここで "特定のレイヤ" を選択 (今回は block3_conv1)
-    layer_name = 'block3_conv1'
+    #layer_name = 'block3_conv1'
+    layer_name = 'block5_conv3'
     # "特定のフィルタ" を選択 (今回は 0番目)
-    filter_index = 0
+    filter_index = 12
 
     # target層の n番目のフィルタの活性化を最大化する損失関数を定義
     layer_output = model.get_layer(layer_name).output
