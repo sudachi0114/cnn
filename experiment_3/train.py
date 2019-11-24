@@ -2,6 +2,7 @@
 import os, sys, argparse, pickle, csv, time
 sys.path.append(os.pardir)
 
+import numpy as np
 import pandas as pd
 
 import tensorflow as tf
@@ -45,12 +46,15 @@ def main(data_mode, model_mode, no, set_epochs=60, do_es=False):
 
         auged_train_data, auged_train_label, _, _, _, _ = dataSplit(total_auged_data, total_auged_label)
         train_data = np.vstack((train_data, auged_train_data))
+        train_label = np.vstack((train_label, auged_train_label))
 
 
     print("\ntrain data shape: ", train_data.shape)
     print("train label shape: ", train_label.shape)
     print("\nvalidation data shape: ", validation_data.shape)
     print("validation label shape: ", validation_label.shape)
+    print("\ntest data shape: ", test_data.shape)
+    print("test label shape: ", test_label.shape)
 
     input_size = train_data.shape[1]
     channel = train_data.shape[3]
@@ -196,8 +200,8 @@ if __name__ == '__main__':
 
 
 
-    select_data = 'native'
-    select_model = 'mymodel'
+    select_data = 'auged'
+    select_model = 'tlearn'
     print("\nuse data:{} | model:{}".format(select_data, select_model))
     for i in range(25):
         print("\ndata no. {} -------------------------------".format(i))
