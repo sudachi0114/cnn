@@ -1,0 +1,26 @@
+
+[experiment 4]
+	Data Augmentation の効果検証
+		「ある変換単体が、学習に良い影響をもたらすのか」が知りたい。
+		exp100rei で思ったよりうまく行かなかったので
+		画像の枚数を増やして行なってみる
+
+[設計]
+	origin data dir (dogs_vs_cats_origin) から
+		train_data		: 600枚 * 2class
+		validation_data	: 300枚 * 2class
+		test_data		: 100枚 * 2class
+		計				: 2000枚
+			このうち train_data に rotation をかけて 1200枚
+				rotation する / しない => *2 => 600 *2 = 2400枚にして学習を行う。
+				この DA したデータも中間出力する (auged_..)
+				小分けにして、読み込んでから
+					train / validation / test に split を行うので
+					とりあえず、全部 DA しておく
+					train と同じものを append する
+	epoch は
+		DA する		: 30
+		DA しない	: 60
+		   	という設計にしている。
+
+
