@@ -33,6 +33,10 @@ def main(data_mode, model_mode, no, set_epochs=60, do_es=False):
 
     train_data, train_label, validation_data, validation_label, test_data, test_label = dataSplit(total_data, total_label)
 
+    # undefine non-used validable ----------
+    del total_data, total_label
+
+
     if data_mode == 'auged':
         base_dir, data_dir_name = os.path.split(data_dir)
         data_dir_name = "auged_" + data_dir_name
@@ -47,6 +51,11 @@ def main(data_mode, model_mode, no, set_epochs=60, do_es=False):
         auged_train_data, auged_train_label, _, _, _, _ = dataSplit(total_auged_data, total_auged_label)
         train_data = np.vstack((train_data, auged_train_data))
         train_label = np.vstack((train_label, auged_train_label))
+
+        # undefine non-used validable ----------
+        del total_auged_data, total_auged_label
+        del auged_train_data, auged_train_label
+
 
 
     print("\ntrain data shape: ", train_data.shape)
@@ -173,11 +182,23 @@ def main(data_mode, model_mode, no, set_epochs=60, do_es=False):
 
     print(save_dict)
 
-    # 重そうなものは undefine してみる
-    #del train_data, train_label, validation_data, validation_label, test_data, test_label
+    # undefine validable ----------
+    #   due to CPU memory ---------
+    del train_data, train_label
+    del validation_data, validation_label
+    del test_data, test_label
+    del data_dir, base_dir, data_dir_name, auged_dir
+    del set_epochs
+
+
+    #   due to GPU memory ---------
     del model
     del history
-    #del pred
+    del accs, losses, val_accs, val_losses
+    del pred, df_pred, label_name_list
+    del confuse, collect
+    del eval_res
+    
 
     keras.backend.clear_session()
     gc.collect()
@@ -198,12 +219,10 @@ if __name__ == '__main__':
     model_mode_list = ['mymodel', 'tlearn']
 
 
-
-
     select_data = 'auged'
-    select_model = 'tlearn'
+    select_model = 'mymodel'
     print("\nuse data:{} | model:{}".format(select_data, select_model))
-    for i in range(25):
+    for i in range(12):
         print("\ndata no. {} -------------------------------".format(i))
         result_dict = main(data_mode=select_data,
                            model_mode=select_model,
