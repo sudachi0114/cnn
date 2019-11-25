@@ -228,17 +228,26 @@ def dataSplit(data, label, train_rate=0.6, validation_rate=0.3, test_rate=0.1, o
         if len(train_label) == 0:
             train_label = each_train_label
         else:
-            train_label = np.vstack((train_label, each_train_label))
+            if one_hot:
+                train_label = np.vstack((train_label, each_train_label))
+            else:
+                train_label = np.hstack((train_label, each_train_label))
 
         if len(validation_label) == 0:
             validation_label = each_validation_label
         else:
-            validation_label = np.vstack((validation_label, each_validation_label))
+            if one_hot:
+                validation_label = np.vstack((validation_label, each_validation_label))
+            else:
+                validation_label = np.hstack((validation_label, each_validation_label))
 
         if len(test_label) == 0:
             test_label = each_test_label
         else:
-            test_label = np.vstack((test_label, each_test_label))
+            if one_hot:
+                test_label = np.vstack((test_label, each_test_label))
+            else:
+                test_label = np.hstack((test_label, each_test_label))
 
         print("୨୧┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈┈୨୧")
     
@@ -380,10 +389,16 @@ if __name__ == '__main__':
         display(data[args.display], label[args.display])
 
     if args.split:
-        data, label = inputDataCreator(train_data_dir, 224, normalize=True, one_hot=True)
+        flg = False
+        data, label = inputDataCreator(train_data_dir, 224, normalize=True, one_hot=flg)
         print(data.shape)
         print(label.shape)
-        dataSplit(data, label, one_hot=True)
+
+        train_data, train_label, validation_data, validation_label, test_data, test_label = dataSplit(data,
+                                                                                                      label,
+                                                                                                      one_hot=flg)
+        print(train_label.shape)
+        print(train_label[0])
 
     print("Done.")
 
