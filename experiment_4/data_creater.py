@@ -119,8 +119,8 @@ def augment(target_dir):
 def concat(normal_data_dir):
 
     base_dir, data_dir_name = os.path.split(normal_data_dir)
-    data_dir_name = "auged_" + data_dir_name
-    auged_dir = os.path.join(base_dir, data_dir_name)
+    auged_dir_name = "auged_" + data_dir_name
+    auged_dir = os.path.join(base_dir, auged_dir_name)
 
     concat_data_save_location = os.path.join( cwd, ("concat_" + data_dir_name) )
     os.makedirs(concat_data_save_location, exist_ok=True)
@@ -212,21 +212,8 @@ def doWhole():
         augment(exp_data_dir)
 
     for i, base_dir in enumerate(found):
-        #auged_dir = "auged_{}".format(os.path.basename(base_dir))
         concat(base_dir)
 
-
-    """ このデータの持ち方だと concat があまり意味を為さない
-    auged_cwd_list = os.listdir(cwd)
-
-    auged_found = []
-    for elem in auged_cwd_list:
-        if "auged_" in elem:
-            auged_found.append(elem)
-    print(auged_found)
-
-
-    """
 
 
 def clean():
@@ -237,6 +224,7 @@ def clean():
     for elem in cwd_list:
         if "experiment_" in elem:
             found.append(elem)
+    found = sorted(found)
 
     if len(found) == 0:
         print("削除対象のファイルはみつかりませんでした。")
@@ -245,7 +233,7 @@ def clean():
         for item in found:
             print("-> ", item)
 
-        exec_rm = input("\nこれらのフォルダを消去しますか? (yes: y / no: n) >>> ")
+        exec_rm = input("\nこれら {} 個のフォルダを消去しますか? (yes: y / no: n) >>> ".format(len(found)))
         if exec_rm == 'y':
             for item in found:
                 shutil.rmtree(item)
