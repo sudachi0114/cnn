@@ -1,5 +1,4 @@
-
-import os, sys, argparse, pickle, csv, time
+import os, sys, pickle, csv, time
 sys.path.append(os.pardir)
 
 import numpy as np
@@ -17,8 +16,20 @@ from keras.callbacks import EarlyStopping
 from utils.model_handler import ModelHandler
 from utils.img_utils import inputDataCreator, dataSplit
 
-
 cwd = os.getcwd()
+
+
+def print_varsize():
+    import types
+    print("{}{: >15}{}{: >10}{}".format('|','Variable Name','|','  Size','|'))
+    print(" -------------------------- ")
+    #for k, v in globals().items():
+    for k, v in locals().items():
+        if hasattr(v, 'size') and not k.startswith('_') and not isinstance(v,types.ModuleType):
+            print("{}{: >15}{}{: >10}{}".format('|',k,'|',str(v.size),'|'))
+        elif hasattr(v, '__len__') and not k.startswith('_') and not isinstance(v,types.ModuleType):
+            print("{}{: >15}{}{: >10}{}".format('|',k,'|',str(len(v)),'|'))
+
 
 
 def main(data_mode, model_mode, no, set_epochs=60, do_es=False):
@@ -53,9 +64,11 @@ def main(data_mode, model_mode, no, set_epochs=60, do_es=False):
         train_label = np.vstack((train_label, auged_train_label))
 
         # undefine non-used validable ----------
+        del base_dir, data_dir_name, auged_dir
         del total_auged_data, total_auged_label
         del auged_train_data, auged_train_label
 
+    del data_dir
 
 
     print("\ntrain data shape: ", train_data.shape)
@@ -65,12 +78,13 @@ def main(data_mode, model_mode, no, set_epochs=60, do_es=False):
     print("\ntest data shape: ", test_data.shape)
     print("test label shape: ", test_label.shape)
 
+
     input_size = train_data.shape[1]
     channel = train_data.shape[3]
     batch_size = 10
     print("set epochs: ", set_epochs)
 
-
+    
     mh = ModelHandler(input_size, channel)
 
     if model_mode == 'mymodel':
@@ -97,7 +111,7 @@ def main(data_mode, model_mode, no, set_epochs=60, do_es=False):
                         epochs=set_epochs,
                         validation_data=(validation_data, validation_label),
                         callbacks=es,
-                        verbose=1)
+                        verbose=1)                                  
 
     elapsed_time = time.time() - start
 
@@ -132,9 +146,11 @@ def main(data_mode, model_mode, no, set_epochs=60, do_es=False):
 
 
     print("\npredict sequence...")
+
     pred = model.predict(test_data,
                          batch_size=10,
                          verbose=1)
+
 
     label_name_list = []
     for i in range(len(test_label)):
@@ -166,6 +182,7 @@ def main(data_mode, model_mode, no, set_epochs=60, do_es=False):
                               batch_size=10,
                               verbose=1)
 
+
     print("result loss: ", eval_res[0])
     print("result score: ", eval_res[1])
 
@@ -187,17 +204,27 @@ def main(data_mode, model_mode, no, set_epochs=60, do_es=False):
     del train_data, train_label
     del validation_data, validation_label
     del test_data, test_label
-    del data_dir, base_dir, data_dir_name, auged_dir
     del set_epochs
 
 
     #   due to GPU memory ---------
-    del model
+    del mh, model
     del history
     del accs, losses, val_accs, val_losses
     del pred, df_pred, label_name_list
     del confuse, collect
     del eval_res
+
+
+    # print("dir(): ", dir())
+    # print("globals(): ", globals())
+    # print("locals(): ", locals())
+
+    # print("\nprint valirable:")
+    # print_varsize()
+    
+    # 全ての (組み込み変数や import したものを含む) 変数を削除
+    # sys.modules[__name__].__dict__.clear()
     
 
     keras.backend.clear_session()
@@ -208,6 +235,7 @@ def main(data_mode, model_mode, no, set_epochs=60, do_es=False):
 
 if __name__ == '__main__':
 
+    import argparse
     parser = argparse.ArgumentParser(description="DA 実験 100例 学習プログラム")
 
     parser.add_argument("--earlystopping", "-es", action="store_true",
@@ -215,14 +243,14 @@ if __name__ == '__main__':
 
     args = parser.parse_args()
 
-    data_mode_list = ['native', 'auged']
-    model_mode_list = ['mymodel', 'tlearn']
+    # data_mode_list = ['native', 'auged']
+    # model_mode_list = ['mymodel', 'tlearn']
 
 
     select_data = 'auged'
     select_model = 'mymodel'
     print("\nuse data:{} | model:{}".format(select_data, select_model))
-    for i in range(12):
+    for i in range(3):
         print("\ndata no. {} -------------------------------".format(i))
         result_dict = main(data_mode=select_data,
                            model_mode=select_model,
