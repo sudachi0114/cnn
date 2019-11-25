@@ -165,27 +165,27 @@ def concat(normal_data_dir):
                 for j in range(len(train_label)):
                     # native -----
                     if i == train_label[j]:
-                        pil_obj = Image.fromarray(train_data[i])
-                        save_file = os.path.join(each_class_save_loc, "cat.{}.jpg".format(j))
+                        pil_obj = Image.fromarray(train_data[j])
+                        save_file = os.path.join(each_class_save_loc, "{}.{}.jpg".format(class_name, j))
                         pil_obj.save(save_file)
                     # auged -----
                     if i == auged_train_label[j]:
-                        pil_obj = Image.fromarray(auged_train_data[i])
-                        save_file = os.path.join(each_class_save_loc, "cat.{}.{}.jpg".format(selected_mode, j))
+                        pil_obj = Image.fromarray(auged_train_data[j])
+                        save_file = os.path.join(each_class_save_loc, "{}.{}.{}.jpg".format(class_name, selected_mode, j))
                         pil_obj.save(save_file)
             if purpose == 'validation':
                 for j in range(len(validation_label)):
                     # native -----
                     if i == validation_label[j]:
-                        pil_obj = Image.fromarray(validation_data[i])
-                        save_file = os.path.join(each_class_save_loc, "cat.{}.jpg".format(j))
+                        pil_obj = Image.fromarray(validation_data[j])
+                        save_file = os.path.join(each_class_save_loc, "{}.{}.jpg".format(class_name, j))
                         pil_obj.save(save_file)
             if purpose == 'test':
                 for j in range(len(test_label)):
                     # native -----
                     if i == test_label[j]:
-                        pil_obj = Image.fromarray(test_data[i])
-                        save_file = os.path.join(each_class_save_loc, "cat.{}.jpg".format(j))
+                        pil_obj = Image.fromarray(test_data[j])
+                        save_file = os.path.join(each_class_save_loc, "{}.{}.jpg".format(class_name, j))
                         pil_obj.save(save_file)
 
     print("Collectly Concated.")
