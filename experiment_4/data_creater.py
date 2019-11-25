@@ -2,7 +2,7 @@ import os, sys, shutil
 sys.path.append(os.pardir)
 
 from PIL import Image
-#from utils.da_handler import DaHandler
+from utils.img_utils import inputDataCreator, dataSplit
 from utils.aug_with_imgaug import AugWithImgaug
 
 cwd = os.getcwd()
@@ -13,6 +13,8 @@ origin_data_location = os.path.join(prj_root, "dogs_vs_cats_origin")
 class_list = ['cat', 'dog']
 
 amount = len(os.listdir(origin_data_location))
+
+selected_mode = "rotation"
 
 
 def separete():
@@ -75,7 +77,6 @@ def augment(target_dir):
     print("Augment {} datas...".format(target_dir))
 
 
-    selected_mode = "rotation"
     print("Augment mode: ", selected_mode)
 
     #train_data_location = os.path.join(target_dir, "train")
@@ -115,39 +116,81 @@ def augment(target_dir):
 
 
 
-def concat(normal_data_dir, auged_data_dir):
+def concat(normal_data_dir):
 
-    separete_location = os.path.basename(normal_data_dir)
-    concat_data_save_location = os.path.join(cwd, "concat_{}".format(separete_location))
+    base_dir, data_dir_name = os.path.split(normal_data_dir)
+    data_dir_name = "auged_" + data_dir_name
+    auged_dir = os.path.join(base_dir, data_dir_name)
+
+    concat_data_save_location = os.path.join( cwd, ("concat_" + data_dir_name) )
     os.makedirs(concat_data_save_location, exist_ok=True)
+
+    purpose_list = ['train', 'validation', 'test']
 
     #train_location = os.path.join(normal_data_dir, "train")
 
-    for class_name in class_list:
-        each_class_save_location = os.path.join(concat_data_save_location, class_name)
-        os.makedirs(each_class_save_location, exist_ok=True)
-        print("\nmake directory: ", each_class_save_location)
 
-        each_class_normal_data = os.path.join(normal_data_dir, class_name)
-        each_class_auged_data = os.path.join(auged_data_dir, class_name)
+    total_data, total_label = inputDataCreator(normal_data_dir,
+                                               224,
+                                               normalize=False,
+                                               one_hot=False)
+
+    train_data, train_label, validation_data, validation_label, test_data, test_label = dataSplit(total_data,
+                                                                                                  total_label,
+                                                                                                  one_hot=False)
 
 
-        copy_list = []
+    total_auged_data, total_auged_label = inputDataCreator(auged_dir,
+                                                           224,
+                                                           normalize=False,
+                                                           one_hot=False)
 
-        for moto_img in os.listdir(each_class_normal_data):
-            copy_list.append( os.path.join(each_class_normal_data, moto_img) )
-        for auged_img in os.listdir(each_class_auged_data):
-            copy_list.append( os.path.join(each_class_auged_data, auged_img) )
+    auged_train_data, auged_train_label, _, _, _, _ = dataSplit(total_auged_data,
+                                                                total_auged_label,
+                                                                one_hot=False)
 
-        print(copy_list)
+    #train_data = np.vstack((train_data, auged_train_data))
+    #train_label = np.vstack((train_label, auged_train_label))
 
-        for pic_location in copy_list:
-            copy_src = pic_location
-            copy_dst = os.path.join(each_class_save_location)
-            shutil.copy(copy_src, copy_dst)
-        print("Collectly Concated.")
+    for purpose in purpose_list:
+        purpose_save_dir = os.path.join(concat_data_save_location, purpose)
+        os.makedirs(purpose_save_dir, exist_ok=True)
 
-        print("\n----------\n")
+        # cat, dog を作りたい。
+        for i, class_name in enumerate(class_list):
+            each_class_save_loc = os.path.join(purpose_save_dir, class_name)
+            os.makedirs(each_class_save_loc, exist_ok=True)
+
+            if purpose == 'train':
+                for j in range(len(train_label)):
+                    # native -----
+                    if i == train_label[j]:
+                        pil_obj = Image.fromarray(train_data[i])
+                        save_file = os.path.join(each_class_save_loc, "cat.{}.jpg".format(j))
+                        pil_obj.save(save_file)
+                    # auged -----
+                    if i == auged_train_label[j]:
+                        pil_obj = Image.fromarray(auged_train_data[i])
+                        save_file = os.path.join(each_class_save_loc, "cat.{}.{}.jpg".format(selected_mode, j))
+                        pil_obj.save(save_file)
+            if purpose == 'validation':
+                for j in range(len(validation_label)):
+                    # native -----
+                    if i == validation_label[j]:
+                        pil_obj = Image.fromarray(validation_data[i])
+                        save_file = os.path.join(each_class_save_loc, "cat.{}.jpg".format(j))
+                        pil_obj.save(save_file)
+            if purpose == 'test':
+                for j in range(len(test_label)):
+                    # native -----
+                    if i == test_label[j]:
+                        pil_obj = Image.fromarray(test_data[i])
+                        save_file = os.path.join(each_class_save_loc, "cat.{}.jpg".format(j))
+                        pil_obj.save(save_file)
+
+    print("Collectly Concated.")
+
+    print("\n----------\n")
 
 
 
@@ -162,10 +205,16 @@ def doWhole():
     for elem in cwd_list:
         if "experiment_" in elem:
             found.append(elem)
+    found = sorted(found)
     print(found)
 
     for exp_data_dir in found:
         augment(exp_data_dir)
+
+    for i, base_dir in enumerate(found):
+        #auged_dir = "auged_{}".format(os.path.basename(base_dir))
+        concat(base_dir)
+
 
     """ このデータの持ち方だと concat があまり意味を為さない
     auged_cwd_list = os.listdir(cwd)
@@ -177,9 +226,6 @@ def doWhole():
     print(auged_found)
 
 
-    for i, base_dir in enumerate(found):
-        auged_dir = "auged_{}".format(os.path.basename(base_dir))
-        concat(base_dir, auged_dir)
     """
 
 
