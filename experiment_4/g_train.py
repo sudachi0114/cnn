@@ -274,7 +274,7 @@ if __name__ == '__main__':
     select_data = 'auged'
     select_model = 'mymodel'
     print("\nuse data:{} | model:{}".format(select_data, select_model))
-    for i in range(3):
+    for i in range(12):
         print("\ndata no. {} -------------------------------".format(i))
         result_dict = main(data_mode=select_data,
                            model_mode=select_model,
