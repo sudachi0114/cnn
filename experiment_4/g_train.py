@@ -47,21 +47,21 @@ def main(data_mode, model_mode, no, set_epochs=60, do_es=False):
 
         datagen = ImageDataGenerator()
 
-        train_generator = datagen.flow_from_directory(train_dir,
-                                                      target_size=(224, 224),
-                                                      batch_size=batch_size,
-                                                      shuffle=True,
-                                                      class_mode='categorical')
-        validation_generator = datagen.flow_from_directory(validation_dir,
-                                                           target_size=(224, 224),
-                                                           batch_size=batch_size,
-                                                           shuffle=True,
-                                                           class_mode='categorical')
-        test_generator = datagen.flow_from_directory(test_dir,
-                                                     target_size=(224, 224),
-                                                     batch_size=batch_size,
-                                                     shuffle=True,
-                                                     class_mode='categorical')
+        train_generator = datagen.flow(train_data,
+                                       train_label,
+                                       # target_size=(224, 224),
+                                       batch_size=batch_size,
+                                       shuffle=True)
+        validation_generator = datagen.flow(validation_data,
+                                            validation_label,
+                                            # target_size=(224, 224),
+                                            batch_size=batch_size,
+                                            shuffle=True)
+        test_generator = datagen.flow(test_data,
+                                      test_label,
+                                      # target_size=(224, 224),
+                                      batch_size=batch_size,
+                                      shuffle=True)
 
 
     elif data_mode == 'auged':
@@ -79,6 +79,7 @@ def main(data_mode, model_mode, no, set_epochs=60, do_es=False):
                                                       batch_size=batch_size,
                                                       shuffle=True,
                                                       class_mode='categorical')
+
         validation_generator = datagen.flow_from_directory(validation_dir,
                                                            target_size=(224, 224),
                                                            batch_size=batch_size,
@@ -271,7 +272,7 @@ if __name__ == '__main__':
     # model_mode_list = ['mymodel', 'tlearn']
 
 
-    select_data = 'auged'
+    select_data = 'native'
     select_model = 'mymodel'
     print("\nuse data:{} | model:{}".format(select_data, select_model))
     for i in range(12):
