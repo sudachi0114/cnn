@@ -33,7 +33,7 @@ class ModelHandler:
                       optimizer=Adam(lr=1e-4),
                       metrics=['accuracy'])
 
-        print( "\nyour model has compiled." )
+        print( "\nyour model has compiled.\n" )
 
         return model
 
@@ -116,7 +116,8 @@ class ModelHandler:
 
     # 転移 base に + 分類 head する (base model の重みはすべて凍結)
     def buildTlearnModel(self, base='vgg16'):
-        
+
+        print("building Transifer-learn model...")
         model = Sequential()
         
         print("base model is {}".format(base))
@@ -155,6 +156,8 @@ class ModelHandler:
 
     def addChead(self, base_model):
 
+        print("attempt classifer head on base model.")
+
         model = Sequential()
         model.add(base_model)
 
@@ -168,6 +171,35 @@ class ModelHandler:
             model.add(Dense(1, activation='sigmoid'))
 
         return self.modelCompile(model)
+
+
+    def setFineTune(self, base_model, model, at):
+
+        print("execute prepare of fine-tuning")
+
+        # Fine tuning
+        # Un-freeze the top layers of the model
+        base_model.trainable = True
+
+        # The nums of layers are in the base model
+        print("\nNumber of layers in the base model: ", len(base_model.layers))
+
+        # Fine tune from this layer onwards
+        fine_tune_at = at
+        print("un-freeze weights at ", fine_tune_at)
+
+        # print("(base_model) trainable weights before freeze: ", len(base_model.trainable_weights))
+        print("trainable weights before freeze: ", len(model.trainable_weights))
+
+        # Freeze all the layers before the `fine_tune_at` layer
+        for layer in base_model.layers[:fine_tune_at]:
+            layer.trainable = False
+
+        # print("(base_model) trainable weights after freeze: ", len(base_model.trainable_weights))
+        print("trainable weights after freeze: ", len(model.trainable_weights))
+        
+        return self.modelCompile(model)
+
 
 
 if __name__ == '__main__':
@@ -185,4 +217,8 @@ if __name__ == '__main__':
 
     model = mh.addChead(base_model)
     
+    model.summary()
+
+    mh.setFineTune(base_model, model, 60)
+
     model.summary()
