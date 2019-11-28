@@ -272,7 +272,7 @@ if __name__ == '__main__':
 
 
 
-    select_data = 'auged'
+    select_data = 'native'
     select_model = 'mymodel'
     print("\nuse data:{} | model:{}".format(select_data, select_model))
     # for i in range(1):
