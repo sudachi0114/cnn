@@ -10,7 +10,7 @@ class ModelHandler:
 
     def __init__(self, input_size=224, channel=3):
 
-        print("Model Handler has instanced.")
+        print( "\nModel Handler has instanced." )
 
         self.INPUT_SIZE = input_size
         self.CHANNEL = channel
@@ -33,7 +33,7 @@ class ModelHandler:
                       optimizer=Adam(lr=1e-4),
                       metrics=['accuracy'])
 
-        print( "your model has compiled.")
+        print( "\nyour model has compiled." )
 
         return model
 
@@ -114,7 +114,7 @@ class ModelHandler:
         return base_model
 
 
-    # 転移 base に + 分類 head する
+    # 転移 base に + 分類 head する (base model の重みはすべて凍結)
     def buildTlearnModel(self, base='vgg16'):
         
         model = Sequential()
@@ -153,12 +153,36 @@ class ModelHandler:
         return self.modelCompile(model)
 
 
+    def addChead(self, base_model):
+
+        model = Sequential()
+        model.add(base_model)
+
+        if self.CLASS_MODE == 'categorical':
+            model.add(GlobalAveragePooling2D())
+            model.add(Dense(2, activation='softmax'))
+        elif self.CLASS_MODE == 'binary':
+            model.add(Flatten())
+            model.add(Dense(256, activation='relu'))  # base_model に寄らない設計でいいのか??
+            model.add(Dropout(0.5))
+            model.add(Dense(1, activation='sigmoid'))
+
+        return self.modelCompile(model)
+
+
 if __name__ == '__main__':
 
     mh = ModelHandler()
 
     #model = mh.buildMyModel()
     #model = mh.buildVgg16Base()
-    model = mh.buildTlearnModel(base='mnv1')
+    #model = mh.buildTlearnModel(base='mnv1')
 
+    #model.summary()
+
+    base_model = mh.buildMnv1Base()
+    base_model.summary()
+
+    model = mh.addChead(base_model)
+    
     model.summary()
