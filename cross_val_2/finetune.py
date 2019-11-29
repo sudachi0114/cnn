@@ -52,7 +52,7 @@ def main(data_mode, model_mode, no, set_epochs=60, do_es=False):
     channel = total_data.shape[3]
     mh = ModelHandler(input_size, channel)
 
-    skf = StratifiedKFold(n_splits=10)
+    skf = StratifiedKFold(n_splits=5)
 
     k = 0
     for traval_idx, test_idx in skf.split(total_data, total_label):
