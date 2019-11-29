@@ -195,6 +195,10 @@ class ModelHandler:
         for layer in base_model.layers[:fine_tune_at]:
             layer.trainable = False
 
+        for i, layer in enumerate(base_model.layers):
+            if layer.trainable:
+                print("  trainable: {} | {}".format(i, layer.name))
+
         # print("(base_model) trainable weights after freeze: ", len(base_model.trainable_weights))
         print("trainable weights after freeze: ", len(model.trainable_weights))
         
@@ -219,6 +223,6 @@ if __name__ == '__main__':
     
     model.summary()
 
-    mh.setFineTune(base_model, model, 62)
+    mh.setFineTune(base_model, model, 81)
 
     model.summary()
