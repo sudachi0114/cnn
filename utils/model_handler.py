@@ -186,7 +186,7 @@ class ModelHandler:
 
         # Fine tune from this layer onwards
         fine_tune_at = at
-        print("un-freeze weights at ", fine_tune_at)
+        print( "un-freeze weights at {}: [{}]".format(fine_tune_at, base_model.layers[fine_tune_at].name) )
 
         # print("(base_model) trainable weights before freeze: ", len(base_model.trainable_weights))
         print("trainable weights before freeze: ", len(model.trainable_weights))
@@ -219,6 +219,6 @@ if __name__ == '__main__':
     
     model.summary()
 
-    mh.setFineTune(base_model, model, 60)
+    mh.setFineTune(base_model, model, 62)
 
     model.summary()
