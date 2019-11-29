@@ -76,8 +76,8 @@ def main(data_mode, model_mode, no, set_epochs=60, do_es=False):
 
         train_data, train_label, validation_data, validation_label, _, _ = dataSplit(traval_data,
                                                                                      traval_label,
-                                                                                     train_rate=2/3,
-                                                                                     validation_rate=1/3,
+                                                                                     train_rate=3/4,
+                                                                                     validation_rate=1/4,
                                                                                      test_rate=0)
 
         if data_mode == 'auged':
@@ -88,9 +88,10 @@ def main(data_mode, model_mode, no, set_epochs=60, do_es=False):
 
             auged_train_data, auged_train_label, _, _, _, _ = dataSplit(auged_traval_data,
                                                                         auged_traval_label,
-                                                                        train_rate=2/3,
-                                                                        validation_rate=1/3,
+                                                                        train_rate=3/4,
+                                                                        validation_rate=1/4,
                                                                         test_rate=0)
+
             print("  append auged data: ", auged_train_data.shape)
             print("\n  concatnate auged data with native data...")
             train_data = np.vstack((train_data, auged_train_data))
@@ -307,7 +308,7 @@ if __name__ == '__main__':
 
 
 
-    select_data = 'native'
+    select_data = 'auged'
     select_model = 'tlearn'
     print("\nuse data:{} | model:{}".format(select_data, select_model))
     # for i in range(1):
