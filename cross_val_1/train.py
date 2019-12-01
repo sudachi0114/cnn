@@ -250,7 +250,7 @@ def main(data_mode, model_mode, no, set_epochs=60, do_es=False):
 
         k+=1
 
-    csv_file = "./{}_{}_result.csv".format(data_mode, model_mode)
+    csv_file = os.path.join( log_dir, "{}_{}_result.csv".format(data_mode, model_mode) )
     df_result.to_csv(csv_file)
 
     print("\nexport {}  as CSV.".format(csv_file))
