@@ -16,7 +16,7 @@ import numpy as np
 import matplotlib.pyplot as plt
 
 
-def model_hander(input_size=224, ch=3, iter_num=40):
+def model_hander(idx, input_size=224, ch=3, iter_num=40):
     # [memo]
     #   描画された filter がノイズっぽい場合は
     #       iteration の回数が足りない可能性..
@@ -29,7 +29,7 @@ def model_hander(input_size=224, ch=3, iter_num=40):
 
     # select layer & filter number ----------
     layer_name = 'block5_conv3'
-    filter_index = 511
+    filter_index = idx
     print("\nget filter: {} in layer: {}".format(filter_index, layer_name))
 
     # target層の n番目のフィルタの活性化を最大化する損失関数を定義
@@ -69,9 +69,11 @@ def model_hander(input_size=224, ch=3, iter_num=40):
     # input として ノイズが入ったグレースケール画像を使用
     input_img = np.random.random((1, input_size, input_size, ch))*20 + 128.
 
+    """
     print("\nshowing input image...")
     plt.imshow(input_img[0]/255)
     plt.show()
+    """
 
     # 勾配上昇法を 40 step 実行
     print("started gradient accendant...")
@@ -125,8 +127,39 @@ def display(img):
     else:
         plt.show()
 
+
+def displayRecursive():
+
+    filters = []
+    for i in range(10):
+        print("processing {} filters =====".format(i))
+        img = model_hander(i)
+        dep_img = deprocess_img(img)
+
+        filters.append(dep_img)
+
+    filters = np.array(filters)
+    print(filters.shape)
+
+    for i, img in enumerate(filters):
+        plt.subplot(2, 5, i+1)
+        plt.imshow(img)
+        plt.axis(False)
+        plt.title("filter: {}".format(i))
+
+    if platform.system() == 'Linux':
+        cwd = os.getcwd()
+        pics_dir = os.path.join(cwd, "pictures")
+        os.makedirs(pics_dir, exist_ok=True)
+        plt.savefig(os.path.join(pics_dir, "gradient_ascent_pic.png"))
+        print("Save figure in ", pics_dir)
+    else:
+        plt.show()
+
     
 if __name__ == '__main__':
-    img = model_hander()
-    dep_img = deprocess_img(img)
-    display(dep_img)
+    #img = model_hander(3)
+    #dep_img = deprocess_img(img)
+    #display(dep_img)
+
+    displayRecursive()
