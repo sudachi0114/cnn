@@ -185,9 +185,9 @@ def main(data_mode, model_mode, no, set_epochs=60, do_es=False):
 
 
         if do_es:
-            log_dir = os.path.join(cwd, "log_with_es")
+            log_dir = os.path.join(cwd, "flog_with_es")
         else:
-            log_dir = os.path.join(cwd, "log")
+            log_dir = os.path.join(cwd, "flog")
         os.makedirs(log_dir, exist_ok=True)
 
         """
@@ -287,7 +287,7 @@ def main(data_mode, model_mode, no, set_epochs=60, do_es=False):
 
         k+=1
 
-    csv_file = "./{}_{}_result.csv".format(data_mode, model_mode)
+    csv_file = os.path.join( log_dir, "{}_{}_result.csv".format(data_mode, model_mode) )
     df_result.to_csv(csv_file)
 
     print("\nexport {}  as CSV.".format(csv_file))
@@ -313,8 +313,8 @@ if __name__ == '__main__':
     print("\nuse data:{} | model:{}".format(select_data, select_model))
     # for i in range(1):
     #    print("\ndata no. {} -------------------------------".format(i))
-    result_dict = main(data_mode=select_data,
-                       model_mode=select_model,
-                       no=0,
-                       do_es=args.earlystopping)
+    main(data_mode=select_data,
+         model_mode=select_model,
+         no=0,
+         do_es=args.earlystopping)
 
