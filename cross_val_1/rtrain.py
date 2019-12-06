@@ -244,6 +244,10 @@ def main(data_mode, model_mode, no, set_epochs=60, do_es=False):
         
         del model
         del history
+        del pred
+        del df_pred, label_name_list, confuse, collect
+        del eval_res
+        del accs, losses, val_accs, val_losses
 
         # clear session against OOM Error
         keras.backend.clear_session()
@@ -255,6 +259,17 @@ def main(data_mode, model_mode, no, set_epochs=60, do_es=False):
     df_result.to_csv(csv_file)
 
     print("\nexport {}  as CSV.".format(csv_file))
+
+    # delete valables at all in end of this program -----
+    del cwd, data_dir
+    del total_data, total_label
+    del save_dict, df_result
+
+    if data_mode == 'auged':
+        del total_auged_data, total_auged_label
+        del base_dir, data_dir_name, auged_dir
+
+    gc.collect()
 
 
 
@@ -271,9 +286,7 @@ if __name__ == '__main__':
     model_mode_list = ['mymodel', 'tlearn']
 
 
-
-
-    select_data = 'native'
+    select_data = 'auged'
     select_model = 'mymodel'
     print("\nuse data:{} | model:{}".format(select_data, select_model))
     for i in range(25):
