@@ -3,9 +3,10 @@
 
 import os, sys
 sys.path.append(os.pardir)
+
 import time
 import numpy as np
-np.random.seed(114)
+np.random.seed(seed=114)
 
 import tensorflow as tf
 import keras
@@ -15,17 +16,20 @@ config = tf.ConfigProto()
 config.gpu_options.per_process_gpu_memory_fraction=0.5
 sess = tf.Session(config=config)
 K.set_session(sess)
+
 print("TensorFlow version is ", tf.__version__)
 print("Keras version is ", keras.__version__)
 
 from keras.preprocessing.image import ImageDataGenerator
 from keras.callbacks import EarlyStopping
+
 from sklearn.metrics import confusion_matrix
+
 from utils.model_handler import ModelHandler
 
 
 # define -----
-batch_size = 16
+batch_size = 50
 input_size = 224
 channel = 3
 target_size = (input_size, input_size)
@@ -33,13 +37,21 @@ input_shpe = (input_size, input_size, channel)
 set_epochs = 40
 
 
+
 def main():
 
     cwd = os.getcwd()
-    prj_root = os.path.dirname(cwd)
+    sub_prj = os.path.dirname(cwd)
+    sub_prj_root = os.path.dirname(sub_prj)
+    prj_root = os.path.dirname(sub_prj_root)
+
 
     data_dir = os.path.join(prj_root, "datasets")
 
+    data_src = os.path.join(data_dir, "small_721")
+    print("\ndata source: ", data_src)
+
+    """
     use_da_data = False
     increase_val = False
     print( "\nmode: Use Augmented data: {} | increase validation data: {}".format(use_da_data, increase_val) )
@@ -57,11 +69,15 @@ def main():
         if (use_da_data == True):
             train_dir = os.path.join(data_dir, "red_train_with_aug")
         validation_dir = os.path.join(data_dir, "validation")
+    """
+    
+    train_dir = os.path.join(data_src, "train")
+    validation_dir = os.path.join(data_src, "validation")
+    test_dir = os.path.join(data_src, "test")
 
-    test_dir = os.path.join(data_dir, "test")
-
-    print("\ntrain_dir: ", train_dir)
+    print("train_dir: ", train_dir)
     print("validation_dir: ", validation_dir)
+    print("test_dir: ", test_dir)
 
 
     # data load ----------
@@ -190,12 +206,19 @@ def main():
     print("P | {} | {}".format(tp, fp))
 
     # 適合率 (precision):
-    precision = tp/(tp+fp)
-    print("Precision of the model is {}".format(precision))
+    # precision = tp/(tp+fp)
+    # print("Precision of the model is {}".format(precision))
 
     # 再現率 (recall):
-    recall = tp/(tp+fn)
-    print("Recall of the model is {}".format(recall))
+    # recall = tp/(tp+fn)
+    # print("Recall of the model is {}".format(recall))
+
+
+    # save model -----
+    save_location = os.path.join(sub_prj, "outputs", "models")
+    save_file = os.path.join(save_location, "model.h5")
+    model.save(save_file)
+    print("\nmodel has saved in", save_file)
 
 
 
