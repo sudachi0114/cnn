@@ -1,22 +1,25 @@
 
 import os, shutil
 
-# train or red_train
-mode = "train"  # "red_train"
-
 # define
 cwd = os.getcwd()
-cwd += "/small_721"
+
+data_name = "medium_721"
+data_src = os.path.join(cwd, data_name)
+
+mode = "train"  # "test"
 if mode == "train":
-    train_dir = os.path.join(cwd, "train")
-    save_loc = os.path.join(cwd, "train_with_aug")
-elif mode == "red_train":
-    train_dir = os.path.join(cwd, "red_train")
-    save_loc = os.path.join(cwd, "red_train_with_aug")
+    target_dir = os.path.join(data_src, "train")
+    save_data_name = "train_with_aug"
+elif mode == "test":
+    target_dir = os.path.join(data_src, "test")
+    save_data_name = "test_with_aug"
+    
+save_loc = os.path.join(data_src, save_data_name)
 os.makedirs(save_loc, exist_ok=True)
 
 
-class_list = os.listdir(train_dir)
+class_list = os.listdir(target_dir)
 ignore_files = ['.DS_Store']
 for fname in ignore_files:
     if fname in class_list:
@@ -41,19 +44,19 @@ def copy(src_dir, file_list, dist_dir, param=None):
 
 def main():
 
-    # copy natural train data into concat directory -----
+    # copy natural target data into concat directory -----
     for i, cname in enumerate(class_list):
-        sub_train_dir = os.path.join(train_dir, cname)
-        sub_train_list = os.listdir(sub_train_dir)
-        print(sub_train_dir)
-        print("get {} data".format(len(sub_train_list)))
+        sub_target_dir = os.path.join(target_dir, cname)
+        sub_target_list = os.listdir(sub_target_dir)
+        print(sub_target_dir)
+        print("get {} data".format(len(sub_target_list)))
 
         # make save concated data directory -----
         sub_save_loc = os.path.join(save_loc, cname)
         os.makedirs(sub_save_loc, exist_ok=True)
 
         print("copy.....")
-        copy(sub_train_dir, sub_train_list, sub_save_loc)
+        copy(sub_target_dir, sub_target_list, sub_save_loc)
         print("    Done.")
 
 
@@ -62,9 +65,10 @@ def main():
         for i in range(2):
             print("process aug_{} ----------".format(i))
             if mode == "train":
-                auged_dir = os.path.join(cwd, "auged_{}".format(i))
-            elif mode == "red_train":
-                auged_dir = os.path.join(cwd, "red_auged_{}".format(i))
+                auged_data_dir = "auged_train_{}".format(i)
+            elif mode == "test":
+                auged_data_dir = "auged_test_{}".format(i)
+            auged_dir = os.path.join(data_src, auged_data_dir)
 
             sub_auged_dir = os.path.join(auged_dir, cname)
             sub_auged_list = os.listdir(sub_auged_dir)
@@ -79,10 +83,8 @@ def main():
 
 def check():
 
-    save_loc = "./auged_small_721_0"
     print("\ncheck function has executed ...")
     print(save_loc)
-
     
     for cname in class_list:
         sub_auged_dir = os.path.join(save_loc, cname)
