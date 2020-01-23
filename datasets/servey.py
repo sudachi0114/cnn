@@ -4,9 +4,11 @@ import os
 
 # define
 cwd = os.getcwd()
+origin_dir = os.path.join(cwd, "origin")
 
-"""
-train_dir = os.path.join(cwd, "train")
+separeted_dir = os.path.join(cwd, "small_721")
+
+train_dir = os.path.join(separeted_dir, "train")
 class_list = os.listdir(train_dir)
 ignore_files = ['.DS_Store']
 for fname in ignore_files:
@@ -14,20 +16,20 @@ for fname in ignore_files:
         class_list.remove(fname)
 class_list = sorted(class_list)
 
-red_train_dir = os.path.join(cwd, "red_train")
-validation_dir = os.path.join(cwd, "validation")
-test_dir = os.path.join(cwd, "test")
-"""
+# red_train_dir = os.path.join(separeted_dir, "red_train")
+# validation_dir = os.path.join(separeted_dir, "validation")
+# test_dir = os.path.join(separeted_dir, "test")
 
-origin_dir = os.path.join(cwd, "origin")
 
 
 def countAmount(dir_name):
 
-    for i in range(len(class_list)):
-        sub_dir = os.path.join(dir_name, class_list[i])
-        print(sub_dir)
-        print("  └─ ", len(os.listdir(sub_dir)))
+    for porpuse in ["train", "validation", "test"]:
+        pdir_name = os.path.join(dir_name, porpuse)
+        for i in range(len(class_list)):
+            sub_dir = os.path.join(pdir_name, class_list[i])
+            print(sub_dir)
+            print("  └─ ", len(os.listdir(sub_dir)))
 
 # countAmount in `s`ingle class
 def scountAmount(dir_name):
@@ -59,3 +61,6 @@ def count_from_name(dir_name):
 
 scountAmount(origin_dir)
 count_from_name(origin_dir)
+
+print("-+-"*10)
+countAmount(separeted_dir)
