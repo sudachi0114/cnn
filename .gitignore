@@ -29,4 +29,5 @@ search.sh
 zzz_history/
 
 # temporary
-subprojects/
+subprojects/*/datasets/
+subprojects/*/outputs/
