@@ -41,7 +41,8 @@ class AugWithImgaug:
                                 'invert',
                                 'emboss',  # 14
                                 'someof',
-                                #'plural'
+                                'plural',
+                                'fortest'
         ]
 
         # attributes -----
@@ -87,6 +88,37 @@ class AugWithImgaug:
                 iaa.Emboss(alpha=(0, 1.0), strength=(0, 2.0))
             ]),
             iaa.Invert(1.0)
+        ], random_order=True)
+
+        return seq
+
+
+    def randomTestAugument(self, num_trans):
+        # 以下で定義する変換処理の内ランダムに幾つかの処理を選択
+        seq = iaa.SomeOf(num_trans, [
+            iaa.Affine(rotate=(-90, 90), order=1, mode="edge"),
+            iaa.Fliplr(1.0),
+            iaa.OneOf([
+                # 同じ系統の変換はどれか1つが起きるように 1つにまとめる
+                iaa.Affine(translate_percent={"x": (-0.125, 0.125)}, order=1, mode="edge"),
+                iaa.Affine(translate_percent={"y": (-0.125, 0.125)}, order=1, mode="edge")
+            ]),
+            iaa.Affine(scale={"x": (0.8, 1.2), "y": (0.8, 1.2)}, order=1, mode="edge"),
+            iaa.OneOf([
+                iaa.AdditiveGaussianNoise(scale=[0.05 * 255, 0.2 * 255]),
+                iaa.AdditiveLaplaceNoise(scale=[0.05 * 255, 0.2 * 255]),
+                iaa.AdditivePoissonNoise(lam=(16.0, 48.0), per_channel=True)
+            ]),
+            iaa.OneOf([
+                iaa.LogContrast((0.5, 1.5)),
+                iaa.LinearContrast((0.5, 2.0))
+            ]),
+            iaa.OneOf([
+                iaa.GaussianBlur(sigma=(0.5, 1.0)),
+                iaa.Sharpen(alpha=(0, 1.0), lightness=(0.75, 1.5)),
+                iaa.Emboss(alpha=(0, 1.0), strength=(0, 2.0))
+            ]),
+            # iaa.Invert(1.0)
         ], random_order=True)
 
         return seq
@@ -147,6 +179,8 @@ class AugWithImgaug:
             ])
         elif aug == 'plural':  # 異なる系統の変換を複数(1つの変換あとに画素値がマイナスになるとError..)
             imgaug_aug = self.randomDataAugument(2)
+        elif aug == 'fortest':  # plural - invert (色反転) (test 用)
+            imgaug_aug = self.randomTestAugument(2)
         else:
             print("現在 imgaug で選択できる DA のモードは以下の通りです。")
             print(self.imgaug_aug_list, "\n")
@@ -213,11 +247,11 @@ if __name__ == '__main__':
     cwd = os.getcwd()
     prj_root = os.path.dirname(cwd)
     data_dir = os.path.join(prj_root, "datasets")
-    data_src = os.path.join(data_dir, "small_721")
+    data_src = os.path.join(data_dir, "medium_721")
     
     train_dir = os.path.join(data_src, "train")
-    # validation_dir = os.path.join(data_dir, "validation")
-    # test_dir = os.path.join(data_dir, "test")
+    validation_dir = os.path.join(data_src, "validation")
+    test_dir = os.path.join(data_src, "test")
 
     auger = AugWithImgaug()
 
@@ -229,19 +263,27 @@ if __name__ == '__main__':
     auged_data, label = auger.imgaug_augment(train_dir, 224, normalize=False, aug="invert")
     print(auged_data.shape)
     print(label.shape)
+
+    auger.display_imgaug(train_dir, 224, normalize=False, aug="plural")
     """
 
-    # auger.display_imgaug(train_dir, 224, normalize=False, aug="plural")
 
-    mode = "train"
-    for i in range(2):
-        if mode == "train":
-            dname = "auged_" + os.path.basename(data_src) + "_{}".format(i)
-            save_loc = os.path.join(data_dir, dname)
-            target_dir = train_dir
+    for mode in ["train", "test"]:
+        for i in range(2):
+            if mode == "train":
+                dname = "auged_train_{}".format(i)
+                target_dir = train_dir
+                saug = 'plural'
+            elif mode == "test":
+                dname = "auged_test_{}".format(i)
+                target_dir = test_dir
+                saug = 'fortest'
+
+            save_loc = os.path.join(data_src, dname)
             print(save_loc)
 
-        auger.save_imgauged_img(target_dir,
-                                input_size=224,
-                                save_dir=save_loc,
-                                aug='plural')
+            auger.save_imgauged_img(target_dir,
+                                    input_size=224,
+                                    save_dir=save_loc,
+                                    aug=saug)
+
