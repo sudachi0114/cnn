@@ -26,21 +26,47 @@ from utils.img_utils import inputDataCreator, dataSplit
 
 from sklearn.metrics import confusion_matrix
 
+
 # define -----
 
 def main():
 
     cwd = os.getcwd()
+    sub_prj = os.path.dirname(cwd)
+    sub_prj_root = os.path.dirname(sub_prj)
+    prj_root = os.path.dirname(sub_prj_root)
 
-    log_dir = os.path.join(cwd, "outputs", "logs")
-    os.makedirs(log_dir, exist_ok=True)
 
-    prj_root = os.path.dirname(cwd)
-    data_dir = os.path.join(base_dir, "small_721", "train")
+    data_dir = os.path.join(prj_root, "datasets")
+
+    # data_src = os.path.join(data_dir, "small_721")
+    data_src = os.path.join(data_dir, "cdev_origin")
+    print("\ndata source: ", data_src)
+
+    """
+    use_da_data = False
+    increase_val = False
+    print( "\nmode: Use Augmented data: {} | increase validation data: {}".format(use_da_data, increase_val) )
+
+    # First define original train_data only as train_dir
+    train_dir = os.path.join(data_dir, "train")
+    if (use_da_data == True) and (increase_val == False):
+        # with_augmented data (no validation increase)
+        train_dir = os.path.join(data_dir, "train_with_aug")
+    validation_dir = os.path.join(data_dir, "val")  # original validation data
+
+    # pair of decreaced train_data and increased validation data
+    if (increase_val == True):
+        train_dir = os.path.join(data_dir, "red_train")
+        if (use_da_data == True):
+            train_dir = os.path.join(data_dir, "red_train_with_aug")
+        validation_dir = os.path.join(data_dir, "validation")
+    """
+    
 
 
     print("\ncreate train data")
-    total_data, total_label = inputDataCreator(data_dir,
+    total_data, total_label = inputDataCreator(data_src,
                                                224,
                                                normalize=True,
                                                one_hot=True)
@@ -76,15 +102,48 @@ def main():
     val_losses = history.history['val_loss']
     print("last val_acc: ", val_accs[len(val_accs)-1])
 
-    # make log_dirctory ----------
-    now = datetime.datetime.now()
-    child_log_dir = os.path.join(log_dir, "{0:%Y%m%d}".format(now))
-    os.makedirs(child_log_dir, exist_ok=True)
 
-    # save model & weights
-    model_file = os.path.join(child_log_dir, "model.h5")
-    model.save(model_file)
-    print("\nexport model in ", child_log_dir)
+    # confusion matrix -----
+    #           Predict
+    #           0  | 1
+    #       --+----+-----
+    #       0 | TN | FP
+    # label -------+-----
+    #       1 | FN | TP
+
+    idx_label = np.argmax(test_label, axis=-1)  # one_hot => normal
+    idx_pred = np.argmax(pred, axis=-1)  # 各 class の確率 => 最も高い値を持つ class
+    cm = confusion_matrix(idx_label, idx_pred)
+
+    # Calculate Precision and Recall
+    tn, fp, fn, tp = cm.ravel()
+
+    print("  | T  | F ")
+    print("--+----+---")
+    print("N | {} | {}".format(tn, fn))
+    print("--+----+---")
+    print("P | {} | {}".format(tp, fp))
+
+    # 適合率 (precision):
+    # precision = tp/(tp+fp)
+    # print("Precision of the model is {}".format(precision))
+    
+    # 再現率 (recall):
+    # recall = tp/(tp+fn)
+    # print("Recall of the model is {}".format(recall))
+
+
+
+    # save some result score, model & weights ----------
+    now = datetime.datetime.now()
+    log_dir = os.path.join(sub_prj, "outputs")
+    child_log_dir = os.path.join(log_dir, "{0:%Y%m%d}".format(now))
+    # os.makedirs(child_log_dir, exist_ok=True)
+
+    save_location = os.path.join(log_dir, "models")
+    save_file = os.path.join(save_location, "model.h5")
+    model.save(save_file)
+    print("\nmodel has saved in", save_file)
 
 
     print("\npredict sequence...")
@@ -146,52 +205,6 @@ def main():
     csv_file = os.path.join( child_log_dir, "result.csv" )
     df_result.to_csv(csv_file)
     print("\nexport history in ", csv_file)
-
-
-    # confusion matrix -----
-    #           Predict
-    #           0  | 1
-    #       --+----+-----
-    #       0 | TN | FP
-    # label -------+-----
-    #       1 | FN | TP
-
-    idx_label = np.argmax(test_label, axis=-1)  # one_hot => normal
-    idx_pred = np.argmax(pred, axis=-1)  # 各 class の確率 => 最も高い値を持つ class
-    cm = confusion_matrix(idx_label, idx_pred)
-
-    # Calculate Precision and Recall
-    tn, fp, fn, tp = cm.ravel()
-
-    # 適合率 (precision):
-    #   sklearn.metrics => precision_score() にも libaray がある。
-    #       # 入力は (idx_label, idx_pred)
-    #       「陽性と予測されたサンプルのうち, 正解したサンプルの割合」
-    #       PPV (positive predictive value) とも呼ばれる。
-    precision = tp/(tp+fp)
-    print("Precision of the model is {}".format(precision))
-    
-    # 再現率 (recall:
-    #    sklearn.metrics => recall_score() にも library がある
-    #       # 入力は (idx_label, idx_pred)
-    #    「実際に陽性のサンプルのうち, 正解したサンプルの割合」。
-    #        sensitivity や hit rate,
-    #        TPR (true positive rate, 真陽性率) などとも呼ばれる。
-    #         # すごく大雑把にいえば
-    #         #    class 1 だけに対して考えた正解率の様な指標だと言える
-    #         #    (Negative 側がどれだけ正解/不正解かは don't care)
-    #         # 逆に TN / (TN + FP) とすると
-    #         #    class 0 だけに対する正解率となる。
-    recall = tp/(tp+fn)
-    print("Recall of the model is {}".format(recall))
-
-
-    # 正解率 (accuracy) も confusion_matrix から計算できるが
-    #    既に keras の method を用いて出力することができているので
-    #    ここでは扱わない。
-    # 実は他にも F1-score (F1-measure)
-    #    マクロ平均, マイクロ平均, 加重平均
-    #    と呼ばれる指標もある..
 
 
 
