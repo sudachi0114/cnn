@@ -61,7 +61,7 @@ class DataSeparator:
 
         for purpose in self.data_purpose_list:
             print("make directry : {}..".format(purpose))
-            target_dir = os.path.join(self.dirs['save_dir'], purpose)
+            target_dir = os.path.join(save_dir, purpose)
             print("target_dir : ", target_dir)
             os.makedirs(target_dir, exist_ok=True)
 
@@ -91,9 +91,9 @@ class DataSeparator:
                 print("Amount of {}/{} pictures is : {}".format(purpose, cname, size))
                 print("{} range is {} ~ {}".format(purpose, begin, end))
                 for i in range(begin, end):
-                    pic_name_list.append("{}.{}.jpg".format(class_name, i))
+                    pic_name_list.append("{}.{}.jpg".format(cname, i))
 
-                print("Copy name : {}/{} | pic_name_list : {}".format(purpose, class_name, pic_name_list))
+                print("Copy name : {}/{} | pic_name_list : {}".format(purpose, cname, pic_name_list))
 
                 assert len(pic_name_list) == size
 
@@ -155,18 +155,24 @@ if __name__ == '__main__':
 
     import argparse
 
-    parser = argparse.ArgumentParser(description="origin data から トレーニング用のデータを切り分けるプログラム")
+    parser = argparse.ArgumentParser(description="origin data から" \
+                                     "トレーニング用のデータを切り分けるプログラム")
 
-    parser.add_argument("--make_dataset", action="store_true", default=False, help="任意の大きさのデータセットを作成")
-    parser.add_argument("--make_gtest", action="store_true", default=False, help="global test を作成")
+    parser.add_argument("--make_dataset",
+                        action="store_true",
+                        default=False,
+                        help="任意の大きさのデータセットを作成")
+    parser.add_argument("--make_gtest",
+                        action="store_true",
+                        default=False,
+                        help="global test を作成")
 
     args = parser.parse_args()
 
     ds = DataSeparator()
 
     if args.make_dataset:
-        ds.separate(split_size='small')
-        #ds.separate(split_size='large_test')
+        ds.separate(split_size='small_721')
 
     if args.make_gtest:
         ds.makeGlobalTest()
