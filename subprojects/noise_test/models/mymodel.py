@@ -41,13 +41,14 @@ def main():
 
     cwd = os.getcwd()
     sub_prj = os.path.dirname(cwd)
+    """
     sub_prj_root = os.path.dirname(sub_prj)
     prj_root = os.path.dirname(sub_prj_root)
 
+    """
+    data_dir = os.path.join(sub_prj, "datasets")
 
-    data_dir = os.path.join(prj_root, "datasets")
-
-    data_src = os.path.join(data_dir, "small_721")
+    data_src = os.path.join(data_dir, "medium_721")
     print("\ndata source: ", data_src)
 
     """
@@ -69,14 +70,18 @@ def main():
             train_dir = os.path.join(data_dir, "red_train_with_aug")
         validation_dir = os.path.join(data_dir, "validation")
     """
-    
-    train_dir = os.path.join(data_src, "train")
+
+    use_da_data = True
+    if use_da_data:
+        train_dir = os.path.join(data_src, "train_with_aug")
+    else:
+        train_dir = os.path.join(data_src, "train")
     validation_dir = os.path.join(data_src, "validation")
     test_dir = os.path.join(data_src, "test")
 
     print("train_dir: ", train_dir)
     print("validation_dir: ", validation_dir)
-    print("test_dir: ", test_dir)
+    # print("test_dir: ", test_dir)
 
 
     # data load ----------
@@ -93,7 +98,7 @@ def main():
                                                         batch_size=batch_size,
                                                         shuffle=True,
                                                         class_mode='categorical')
-                                                           
+
     test_generator = data_gen.flow_from_directory(test_dir,
                                                   target_size=target_size,
                                                   batch_size=batch_size,
@@ -196,7 +201,11 @@ def main():
 
     # save model -----
     save_location = os.path.join(sub_prj, "outputs", "models")
-    save_file = os.path.join(save_location, "model.h5")
+
+    if use_da_data:
+        save_file = os.path.join(save_location, "mymodel_auged.h5")
+    else:
+        save_file = os.path.join(save_location, "mymodel.h5")
     model.save(save_file)
     print("\nmodel has saved in", save_file)
 
