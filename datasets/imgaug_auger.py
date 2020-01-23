@@ -1,5 +1,6 @@
 
-import os
+import os, sys
+sys.path.append(os.pardir)
 from random import randint
 import numpy as np
 import matplotlib.pyplot as plt
@@ -19,8 +20,9 @@ class AugWithImgaug:
         # 最低限の dir 構成を保持
         self.dirs = {}
         self.dirs['cwd'] = os.getcwd()
-        self.dirs['cnn_dir'] = os.path.dirname(self.dirs['cwd'])
-
+        self.dirs['prj_root'] = os.path.dirname(self.dirs['cwd'])
+        # self.dirs['data_dir'] = os.path.join(self.dirs['prj_root'], "datasets")
+        self.dirs['data_dir'] = self.dirs['prj_root']
 
         # list of imgaug DA modes -----
         self.imgaug_aug_list = ['native',
@@ -164,9 +166,9 @@ class AugWithImgaug:
                                                 normalize=normalize,
                                                 aug=aug)
         if save_dir == "prj_root":
-            self.dirs["save_dir"] = os.path.join(self.dirs['cnn_dir'], "dogs_vs_cats_auged_{}".format(aug))
+            self.dirs["save_dir"] = os.path.join(self.dirs['data_dir'], "auged_{}".format(aug))
         else:
-            self.dirs["save_dir"] = os.path.join(save_dir, "dogs_vs_cats_auged_{}".format(aug))
+            self.dirs["save_dir"] = save_dir
         os.makedirs(self.dirs["save_dir"], exist_ok=True)
 
         for j, class_name in enumerate(self.CLASS_LIST):
@@ -209,16 +211,17 @@ class AugWithImgaug:
 if __name__ == '__main__':
 
     cwd = os.getcwd()
-    cnn_dir = os.path.dirname(cwd)
-    data_dir = os.path.join(cnn_dir, "dogs_vs_cats_smaller")
+    prj_root = os.path.dirname(cwd)
+    data_dir = os.path.join(prj_root, "datasets")
+    data_src = os.path.join(data_dir, "small_721")
     
-    train_dir = os.path.join(data_dir, "train")
-    validation_dir = os.path.join(data_dir, "validation")
-    test_dir = os.path.join(data_dir, "test")
-
+    train_dir = os.path.join(data_src, "train")
+    # validation_dir = os.path.join(data_dir, "validation")
+    # test_dir = os.path.join(data_dir, "test")
 
     auger = AugWithImgaug()
 
+    """
     train_data, train_label = auger.img2array(train_dir, 224, normalize=False)
     print(train_data.shape)
     print(train_label.shape)
@@ -226,7 +229,19 @@ if __name__ == '__main__':
     auged_data, label = auger.imgaug_augment(train_dir, 224, normalize=False, aug="invert")
     print(auged_data.shape)
     print(label.shape)
+    """
 
-    auger.display_imgaug(train_dir, 224, normalize=False, aug="plural")
+    # auger.display_imgaug(train_dir, 224, normalize=False, aug="plural")
 
-    #dh.save_imgauged_img(mode='image', aug='rotation')
+    mode = "train"
+    for i in range(2):
+        if mode == "train":
+            dname = "auged_" + os.path.basename(data_src) + "_{}".format(i)
+            save_loc = os.path.join(data_dir, dname)
+            target_dir = train_dir
+            print(save_loc)
+
+        auger.save_imgauged_img(target_dir,
+                                input_size=224,
+                                save_dir=save_loc,
+                                aug='plural')
