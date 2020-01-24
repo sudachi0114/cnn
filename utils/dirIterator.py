@@ -1,6 +1,7 @@
 
 import os, sys
 sys.path.append(os.pardir)
+import time
 import argparse
 import numpy as np
 import matplotlib.pyplot as plt
@@ -15,6 +16,12 @@ class MyImageDataHandler:
         self.target_dir = target_dir
         self.batch_size = batch_size
         self.ignore_files = ['.DS_Store', '__pycache__']
+
+        if target_dir is not None:
+            clist = os.listdir(target_dir)
+            self.class_list = self.dirsieve(clist)
+        else:
+            self.class_list = []
 
 
     def display(self, img_array, label):
@@ -84,7 +91,7 @@ class MyImageDataHandler:
         target_list = []
         for picture in pic_list:
             target_list.append( os.path.join(target_dir, picture) )
-            
+
         img_arrays = self.loadImageFromList(target_list, input_size)
 
         return img_arrays
@@ -114,9 +121,10 @@ class MyImageDataHandler:
             labels (np.ndarray): 読み込んだ画像に対する正解ラベル
         """
 
-        class_list = os.listdir(target_dir)
-        class_list = self.dirsieve(class_list)
-        print("found {} classes ...".format(len(class_list)))
+        if len(self.class_list) == 0:
+            class_list = os.listdir(target_dir)
+            class_list = self.dirsieve(class_list)
+        print("found {} classes ...".format(len(self.class_list)))
 
         img_arrays = []
         labels = []
@@ -347,88 +355,142 @@ class MyImageDataHandler:
 
 
     # directory iterator utilities below ----------
-    def dirsieve(self, dir_list, do_sort=True):
+    def dirsieve(self, dir_list):
 
         for fname in self.ignore_files:
             if fname in dir_list:
                 dir_list.remove(fname)
-                if do_sort:
-                    dir_list = sorted(dir_list)
+            dir_list = sorted(dir_list)
 
         return dir_list
 
 
-    def get_target_list(self, target_dir):
+    def glob_dir(self, target_dir, return_label=False):
 
         # print("target: ", target_dir)
-        raw_class_list = os.listdir(target_dir)
-        class_list = self.dirsieve(raw_class_list)
+        if len(self.class_list) == 0:
+            raw_class_list = os.listdir(target_dir)
+            self.class_list = self.dirsieve(raw_class_list)
+            # print("class : ", self.class_list)
 
-        # print("class : ", class_list)
-        for cname in class_list:
+        abs_path_list = []
+        labels = []
+        self.amount = 0
+        for i, cname in enumerate(self.class_list):
             sub_target_dir = os.path.join(target_dir, cname)
-            print(sub_target_dir)
-
-            # sub_target_list = os.listdir(sub_target_dir)
-
-            ## sub_target_list = []
-            ## sub_target_list += os.listdir(sub_target_dir) 
-
-            # sub_target_list = dirsieve(sub_target_list)
-            # return sub_target_list
+            # print(i, "|", sub_target_dir)
 
             sub_target_list = os.listdir(sub_target_dir)
             sub_target_list = self.dirsieve(sub_target_list)
-            full_path_list = []
+            self.amount += len(sub_target_list)
+
+            # create labels
+            label = np.full(len(sub_target_list), i)
+            labels = np.hstack((labels, label))
+
+            # trainsform to abs_path list
             for i in range(len(sub_target_list)):
-                fpath = os.path.join(sub_target_dir, sub_target_list[i])
-                full_path_list.append(fpath)
+                abs_path = os.path.join(sub_target_dir, sub_target_list[i])
+                abs_path_list.append(abs_path)
 
-        ## sub_target_list = dirsieve(sub_target_list)
-        ## return sub_target_list
-        return full_path_list
-
-
-
-
-    def diterator(self, target_dir, batch_size):
-
-        target_list = self.get_target_list(target_dir)
-        # ここに shuffle 処理を条件付きで入れる
-
-        for i in range(steps):
-            begin = i * batch_size  # 0, 10, 20, 30 ...
-            end = begin + batch_size
-            # print(target_list[begin:end])
-
-            dbatch = target_list[begin:end]
-
-            yield dbatch
+        if return_label:
+            return sorted(abs_path_list), labels
+        else:
+            ## sub_target_list = dirsieve(sub_target_list)
+            ## return sub_target_list
+            return sorted(abs_path_list)
 
 
-    def recalliterator(self,
-                       target_dir, batch_size, epochs
-                       # total_call,
-                       # iterator=diterator):
-                       ):
 
-        target_list = self.get_target_list(target_dir)
-        amount = len(target_list)
-        steps = amount // batch_size
+    def diriterator(self, target_dir, batch_size, return_label=False):
 
-        total_call = steps*epochs
+        if return_label:
+            target_list, labels = self.glob_dir(target_dir, return_label=True)
+            self.steps = self.amount // batch_size
+            for i in range(self.steps):
+                begin = i * batch_size  # 0, 10, 20, 30 ...
+                end = begin + batch_size
+                # print(target_list[begin:end])
 
-        for i in range(total_call):
-            # if iteration counts over iterable num
-            #   re-instance iterator and generator start again
-            if (i % steps == 0):
-                dit = self.diterator(target_dir, batch_size)
+                batch_flist = target_list[begin:end]
+                batch_label = labels[begin:end]
 
-            batch = next(dit)
-            # print(batch)
-            # print(i, "(from recalliterator)")
+                yield batch_flist, batch_label
+        else:
+            target_list = self.glob_dir(target_dir)
+            self.steps = self.amount // batch_size
+            # ここに shuffle 処理を条件付きで入れる
 
-            yield batch
+            for i in range(self.steps):
+                begin = i * batch_size  # 0, 10, 20, 30 ...
+                end = begin + batch_size
+                # print(target_list[begin:end])
+
+                batch_flist = target_list[begin:end]
+
+                yield batch_flist
+
+
+    # wrap diriterator due to convert recallable
+    def recalliterator(self, target_dir, batch_size, epochs,
+                       return_label=False):
+
+        target_list = self.glob_dir(target_dir)  # amount 計算用
+        steps = self.amount // batch_size
+
+        self.total_call = steps*epochs
+
+        if return_label:
+            for i in range(self.total_call):
+                # if iteration counts over iterable num
+                #   re-instance iterator and generator start again
+                if (i % steps == 0):
+                    dit = self.diriterator(target_dir, batch_size, return_label=True)
+
+                batch_flist, batch_label = next(dit)
+                # print(batch)
+                # print(i, "(from recalliterator)")
+
+                yield batch_flist, batch_label
+
+        else:
+            for i in range(self.total_call):
+                # if iteration counts over iterable num
+                #   re-instance iterator and generator start again
+                if (i % steps == 0):
+                    dit = self.diriterator(target_dir, batch_size)
+
+                batch_flist = next(dit)
+                # print(batch)
+                # print(i, "(from recalliterator)")
+
+                yield batch_flist
+
+
+    def flowfromdir(self, target_dir, batch_size, epochs):
+        it = self.recalliterator(target_dir,
+                                 batch_size=batch_size,
+                                 epochs=epochs,  # 1400//10 = 140, 140*3 = 420 total call
+                                 return_label=True)
+
+        target_list = self.glob_dir(target_dir)  # amount 計算用
+        steps = self.amount // batch_size
+
+
+        for i in range(self.total_call):
+            batch_flist, batch_label = next(it)
+            # print(i, "|", over_batch)
+            # print("  batch num: ", len(over_batch) )
+
+            batch_data = self.loadImageFromList(batch_flist, 224)
+            # print("  batch data: ", batch_data.shape)
+
+            # convert to np.ndarray
+            batch_data = np.array(batch_data)
+            batch_label = np.array(batch_label)
+
+            yield batch_data, batch_label
+
 
 
 if __name__ == "__main__":
@@ -451,25 +513,81 @@ if __name__ == "__main__":
 
     train_dir = os.path.join(data_src, "train")
 
-    target_list = myimgh.get_target_list(train_dir)  # amount 計算用
+    target_list = myimgh.glob_dir(train_dir)  # amount 計算用
     amount = len(target_list)
-    print(target_list)
-    print(amount)
+    # print(target_list)
+    # print(amount)
 
     set_epochs = 3
     batch_size = 10
     steps = amount // batch_size
 
-    # it = diterator(train_dir, batch_size)
+    print("\ntest glob_dir():")
+    target_list, labels = myimgh.glob_dir(train_dir, return_label=True)  # amount 計算用
+    amount = len(target_list)
+    label_amount = len(labels)
+    # print(target_list)
+    print(amount)
+    print(labels.shape)
+
+    # ここから iterator 関数の check
+    print("\ntest diriterator():")
+    list_it = myimgh.diriterator(train_dir,
+                                 batch_size=batch_size,
+                                 return_label=True)
+    for i in range(80):
+       print(next(list_it))
+    # batch_list, labels = myimgh.diriterator(train_dir,
+
+    print("\ntest recalliterator():")
+    list_it = myimgh.recalliterator(train_dir,
+                                       batch_size=batch_size,
+                                       epochs=set_epochs,
+                                       return_label=True)
+    for i in range(steps*set_epochs):
+       print(next(list_it))
+    # batch_list, labels = myimgh.diriterator(train_dir,
+
+    print("\ntest flowfromdir():")
+    ffd_it = myimgh.flowfromdir(train_dir,
+                                batch_size=batch_size,
+                                epochs=set_epochs)
+    for i in range(steps*set_epochs):
+       print(next(ffd_it))
+    # batch_list, labels = myimgh.diriterator(train_dir,
+
+
+    """
+    # it = diriterator(train_dir, batch_size)
     reit = myimgh.recalliterator(train_dir,
                                  batch_size=batch_size,
-                                 epochs=set_epochs)  # 700//10 = 70, 70*3 = 210 total call
+                                 # epochs=set_epochs)  # 700//10 = 70, 70*3 = 210 total call
+                                 epochs=set_epochs)  # 1400//10 = 140, 140*3 = 420 total call
+    start = time.time()
     for i in range(steps*set_epochs):
         over_batch = next(reit)
         print(i, "|", over_batch)
         print("  batch num: ", len(over_batch) )
 
+        batch_data = myimgh.loadImageFromList(over_batch, 224)
+        print("  batch data: ", batch_data.shape)
+    print("elapsed time: ", time.time() - start, " [sec]")
+    """
 
+
+    """
+    myimg_gen = myimgh.flowfromlist(train_dir, batch_size=batch_size, epochs=set_epochs)
+    print(myimg_gen)
+    for i in range(steps*set_epochs):
+        # it = next(myimg_gen)
+        dbatch, lbatch = next(myimg_gen)
+
+        print("  batch data: ", dbatch.shape)
+        print("  batch label: ", lbatch.shape)
+    """
+
+
+    """
     # test origin img_utils utility -----
     print("\ntesting load_img():")
     sample_cat = os.path.join(train_dir, target_list[0])
@@ -511,7 +629,9 @@ if __name__ == "__main__":
     test_data, test_label = splited_data[4], splited_data[5]
     print(train_label.shape)
     print(train_label[0])
+    """
 
+    # ----------
 
     """
     parser = argparse.ArgumentParser(description="画像読み込みに関する自家製ミニマルライブラリ (速度はあまりコミットしてないです..)")
