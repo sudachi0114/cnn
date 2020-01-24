@@ -27,6 +27,7 @@ search.sh
 
 # old codes
 zzz_history/
+checker/
 
 # temporary
 subprojects/*/datasets/
