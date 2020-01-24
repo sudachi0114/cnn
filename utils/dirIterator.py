@@ -158,7 +158,7 @@ class MyImageDataHandler:
         # print("debug: ", labels[1])
 
         if one_hot:
-            labels = np.identity(2)[labels.astype(np.int8)]
+            labels = np.identity(len(self.class_list))[labels.astype(np.int8)]
 
         assert img_arrays.shape[0] == labels.shape[0]
 
@@ -467,7 +467,7 @@ class MyImageDataHandler:
                 yield batch_flist
 
 
-    def flowfromdir(self, target_dir, batch_size, epochs):
+    def flowfromdir(self, target_dir, batch_size, epochs,one_hot=True):
         it = self.recalliterator(target_dir,
                                  batch_size=batch_size,
                                  epochs=epochs,  # 1400//10 = 140, 140*3 = 420 total call
@@ -488,6 +488,9 @@ class MyImageDataHandler:
             # convert to np.ndarray
             batch_data = np.array(batch_data)
             batch_label = np.array(batch_label)
+
+            if one_hot:
+                batch_label = np.identity(len(self.class_list))[batch_label.astype(np.int8)]
 
             yield batch_data, batch_label
 
@@ -551,9 +554,21 @@ if __name__ == "__main__":
     print("\ntest flowfromdir():")
     ffd_it = myimgh.flowfromdir(train_dir,
                                 batch_size=batch_size,
-                                epochs=set_epochs)
-    for i in range(steps*set_epochs):
-       print(next(ffd_it))
+                                epochs=set_epochs,
+                                one_hot=True)
+    for i in range(75):  # (steps*set_epochs):
+        batch_data, batch_label = next(ffd_it)
+        print("  batch data: ", batch_data.shape)
+        print("  batch label: ", batch_label)
+
+        for i in range(len(batch_data)):
+            plt.subplot(2, 5, i+1)
+            plt.imshow(batch_data[i])
+            plt.axis(False)
+            plt.title(batch_label[i])
+        plt.show()
+
+
     # batch_list, labels = myimgh.diriterator(train_dir,
 
 
@@ -572,18 +587,6 @@ if __name__ == "__main__":
         batch_data = myimgh.loadImageFromList(over_batch, 224)
         print("  batch data: ", batch_data.shape)
     print("elapsed time: ", time.time() - start, " [sec]")
-    """
-
-
-    """
-    myimg_gen = myimgh.flowfromlist(train_dir, batch_size=batch_size, epochs=set_epochs)
-    print(myimg_gen)
-    for i in range(steps*set_epochs):
-        # it = next(myimg_gen)
-        dbatch, lbatch = next(myimg_gen)
-
-        print("  batch data: ", dbatch.shape)
-        print("  batch label: ", lbatch.shape)
     """
 
 
