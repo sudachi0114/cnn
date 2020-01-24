@@ -216,7 +216,7 @@ def main():
 
     # save model -----
     save_location = os.path.join(sub_prj, "outputs", "models")
-    save_file = os.path.join(save_location, "model.h5")
+    save_file = os.path.join(save_location, "finetune_model.h5")
     model.save(save_file)
     print("\nmodel has saved in", save_file)
 
