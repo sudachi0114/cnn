@@ -14,6 +14,14 @@ class MyImageDataHandler:
 
         self.target_dir = target_dir
         self.batch_size = batch_size
+        self.ignore_files = ['.DS_Store', '__pycache__']
+
+
+    def display(self, img_array, label):
+
+        plt.imshow(img_array)
+        plt.title("label: {}".format(label))
+        plt.show()
 
 
     def load_img(self, fpath, array_size):
@@ -28,11 +36,34 @@ class MyImageDataHandler:
         """
 
         img_obj = Image.open(fpath)
-
         resized_img = img_obj.resize((array_size, array_size))
         img_array = np.asarray(resized_img)
 
         return img_array
+
+
+    def loadImageFromList(self, target_list, input_size):
+        """list で指定した画像たちを読み込む
+
+        # Args:
+            target_list (list): 読み込みたい画像の list
+                画像が格納されている location までの絶対 path
+            input_size (int): 各画像を読み込みたい配列のサイズ (正方形を想定)
+                => これを load_img() の array_size に渡す
+
+        # Returns: img_arrays (np.ndarray): ディレクトリの中にあった画像をそれぞれ配列に変換して積み上げたもの
+        """
+
+        img_arrays = []
+        for picture in target_list:
+            img_arr = self.load_img(picture, input_size)
+            img_arrays.append(img_arr)
+
+        img_arrays = np.array(img_arrays)
+
+        assert img_arrays.shape[0] == len(target_list)
+
+        return img_arrays
 
 
     def loadImageFromDir(self, target_dir, input_size):
@@ -50,22 +81,22 @@ class MyImageDataHandler:
         pic_list = self.dirsieve(pic_list)
         print("found {} images ...".format(len(pic_list)))
 
-        img_arrays = []
+        target_list = []
         for picture in pic_list:
-            target = os.path.join(target_dir, picture)
-            img_arr = load_img(target, input_size)
-            img_arrays.append(img_arr)
-
-        img_arrays = np.array(img_arrays)
-
-        assert img_arrays.shape[0] == len(pic_list)
+            target_list.append( os.path.join(target_dir, picture) )
+            
+        img_arrays = self.loadImageFromList(target_list, input_size)
 
         return img_arrays
 
 
-    def inputDataCreator(target_dir, input_size, normalize=False, one_hot=False):
+
+
+    def inputDataCreator(self, target_dir, input_size, normalize=False, one_hot=False):
         """CNN などに入力する配列を作成する
             keras ImageDataGenerator の Iterator じゃない版
+            読み込んだ画像データが一気に memory 上に乗るので
+            Out Of Memory Error に注意
 
         # Args:
             target_dir (str): 画像データのディレクトリ
@@ -84,11 +115,7 @@ class MyImageDataHandler:
         """
 
         class_list = os.listdir(target_dir)
-
-        for canditate in ignore_list:
-            if canditate in class_list:
-                class_list.remove(canditate)
-
+        class_list = self.dirsieve(class_list)
         print("found {} classes ...".format(len(class_list)))
 
         img_arrays = []
@@ -97,20 +124,19 @@ class MyImageDataHandler:
         each_class_img_arrays = []
         label = []
 
-        sorted_class_list = sorted(class_list)
-        for class_num, class_name in enumerate(sorted_class_list):
+        for class_num, class_name in enumerate(class_list):
             each_class_data_dir = os.path.join(target_dir, class_name)
-            print("processing class {} as {} ".format(class_num, class_name), end="")
+            print("processing class {} as {} ".format(class_name, class_num), end="")
 
-            each_class_img_arrays = loadImageFromDir(each_class_data_dir, input_size)
+            each_class_img_arrays = self.loadImageFromDir(each_class_data_dir, input_size)
             label = np.full(each_class_img_arrays.shape[0], class_num)
 
-            if img_arrays == []:
+            if len(img_arrays) == 0:
                 img_arrays = each_class_img_arrays
             else:
                 img_arrays = np.vstack((img_arrays, each_class_img_arrays))
 
-            if label == []:
+            if len(label) == 0:
                 labels = label
             else:
                 labels = np.hstack((labels, label))
@@ -121,7 +147,7 @@ class MyImageDataHandler:
         img_arrays = np.array(img_arrays)
         labels = np.array(labels)
 
-        print("debug: ", labels[1])
+        # print("debug: ", labels[1])
 
         if one_hot:
             labels = np.identity(2)[labels.astype(np.int8)]
@@ -134,8 +160,7 @@ class MyImageDataHandler:
     def dataSplit(self, data, label,
                   train_rate=0.6,
                   validation_rate=0.3,
-                  test_rate=0.1,
-                  one_hot=True):
+                  test_rate=0.1):
         """順番に積み重なっているデータに対して 2class の場合に等分割する関数    
          # Args:
             data (np.ndarray): 画像データの配列
@@ -153,10 +178,13 @@ class MyImageDataHandler:
             validation_data, validation_label
             test data, test_label
         """
-        if one_hot:
-            class_num = len(label[0])
-        else:
+
+        if len(label.shape) == 1:  # when label is not one_hot
             class_num = len(set(label))
+            one_hot = False
+        else:
+            class_num = len(label[0])
+            one_hot = True
         print("\nData set contain {} class data.".format(class_num))
 
         amount = data.shape[0]
@@ -170,13 +198,13 @@ class MyImageDataHandler:
 
 
         # calucurate each data size
-        train_size = int( each_class_amount*train_rate )  # 700
-        validation_size = int( each_class_amount*validation_rate )  # 200
-        test_size = int( each_class_amount*test_rate )  # 100
+        train_size = int( each_class_amount*train_rate )  # 7
+        validation_size = int( each_class_amount*validation_rate )  # 2
+        test_size = int( each_class_amount*test_rate )  # 1
 
-        print("train_size: ", train_size)
+        print("train_size     : ", train_size)
         print("validation_size: ", validation_size)
-        print("test_size: ", test_size)
+        print("test_size      : ", test_size)
 
 
         # devide data -----
@@ -193,7 +221,7 @@ class MyImageDataHandler:
                 idx = np.where(label == i)
                 # print("idx: ", idx)
             each_class_label = label[idx]
-            each_class_data = data[idx]        
+            each_class_data = data[idx]
             print("\nfound class {} data as shape: {}".format(i, each_class_data.shape))
             print("found class {} label as shape: {}".format(i, each_class_label.shape))
 
@@ -258,9 +286,9 @@ class MyImageDataHandler:
 
         print("\n    ... end.\n")
 
-        print("train_data.shape: ", train_data.shape)
+        print("train_data.shape     : ", train_data.shape)
         print("validation_data.shape: ", validation_data.shape)
-        print("test_data.shape: ", test_data.shape)
+        print("test_data.shape      : ", test_data.shape)
         # print(test_label)
 
         # program test -----
@@ -319,14 +347,13 @@ class MyImageDataHandler:
 
 
     # directory iterator utilities below ----------
-    def dirsieve(self, dir_list):
+    def dirsieve(self, dir_list, do_sort=True):
 
-        ignore_files = ['.DS_Store', '__pycache__']
-
-        for fname in ignore_files:
+        for fname in self.ignore_files:
             if fname in dir_list:
                 dir_list.remove(fname)
-                dir_list = sorted(dir_list)
+                if do_sort:
+                    dir_list = sorted(dir_list)
 
         return dir_list
 
@@ -361,16 +388,6 @@ class MyImageDataHandler:
         ## return sub_target_list
         return full_path_list
 
-
-
-
-
-
-    def display(self, img_array, label):
-
-        plt.imshow(img_array)
-        plt.title("label: {}".format(label))
-        plt.show()
 
 
 
@@ -459,6 +476,42 @@ if __name__ == "__main__":
     single_img_array = myimgh.load_img(sample_cat, 224)
     print("  result: ", single_img_array.shape)
 
+    print("\ntesting loadImageFrom`List`():")
+    data = myimgh.loadImageFromList(target_list, 224)
+    print("  result: ", data.shape)
+
+    
+    print("\ntesting loadImageFromDir():")
+    train_cat_dir = os.path.join(train_dir, "cat")
+    train_cat_datas = myimgh.loadImageFromDir(train_cat_dir, 224)
+    print("  result: ", train_cat_datas.shape)
+
+
+    print("\ntesting inputDataCreator(train_dir, 224, normalize=False, one_hot=True):")
+    data, label = myimgh.inputDataCreator(train_dir,
+                                          224,
+                                          normalize=False,
+                                          one_hot=True)
+    print("  result (data shape) : ", data.shape)
+    # print("    data: \n", data[0])
+    print("  result (label shape): ", label.shape)
+    # print("    label: \n", label)
+
+    print("\ntesting datasplit() <split rate => 7:2:1> :")
+    data, label = myimgh.inputDataCreator(train_dir,
+                                          224,
+                                          normalize=True,
+                                          one_hot=True)
+    print(data.shape)
+    print(label.shape)
+
+    splited_data = myimgh.dataSplit(data, label)
+    train_data, train_label = splited_data[0], splited_data[1]
+    validation_data, validation_label  = splited_data[2], splited_data[3]
+    test_data, test_label = splited_data[4], splited_data[5]
+    print(train_label.shape)
+    print(train_label[0])
+
 
     """
     parser = argparse.ArgumentParser(description="画像読み込みに関する自家製ミニマルライブラリ (速度はあまりコミットしてないです..)")
@@ -470,34 +523,6 @@ if __name__ == "__main__":
     args = parser.parse_args()
 
     if args.test:
-
-        print("\ntesting loadImageFromDir():")
-        train_cat_datas = loadImageFromDir(cat_train_data_dir, 224)
-        print("  result: ", train_cat_datas.shape)
-
-        print("\ntesting inputDataCreator(train_data_dir, 224, normalize=True):")
-        data, label = inputDataCreator(train_data_dir, 224, normalize=True)
-        print("  result (data shape) : ", data.shape)
-        print("    data: \n", data[0])
-        print("  result (label shape):", label.shape)
-        print("    label: \n", label)
-
-        print("\ntesting inputDataCreator(train_data_dir, 224, normalize=False:")
-        data, label = inputDataCreator(train_data_dir, 224, normalize=False)
-        print("  result (data shape) : ", data.shape)
-        print("    data: \n", data[0])
-        print("  result (label shape): ", label.shape)
-        print("    label: \n", label)
-
-        print("\ntesting inputDataCreator(train_data_dir, 224, normalize=False, one_hot=True:")
-        data, label = inputDataCreator(train_data_dir,
-                                       224,
-                                       normalize=False,
-                                       one_hot=True)
-        print("  result (data shape) : ", data.shape)
-        print("    data: \n", data[0])
-        print("  result (label shape): ", label.shape)
-        print("    label: \n", label)
 
 
     if args.time:
@@ -517,18 +542,6 @@ if __name__ == "__main__":
         display(data[args.display], label[args.display])
 
     if args.split:
-        flg = False
-        data, label = inputDataCreator(train_data_dir, 224, normalize=True, one_hot=flg)
-        print(data.shape)
-        print(label.shape)
-
-        train_data, train_label, validation_data, validation_label, test_data, test_label = dataSplit(data,
-                                                                                                      label,
-                                                                                                      one_hot=flg)
-        print(train_label.shape)
-        print(train_label[0])
 
     print("Done.")
-
-
     """
