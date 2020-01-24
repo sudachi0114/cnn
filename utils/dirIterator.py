@@ -556,87 +556,66 @@ if __name__ == "__main__":
                                 batch_size=batch_size,
                                 epochs=set_epochs,
                                 one_hot=True)
-    for i in range(75):  # (steps*set_epochs):
+    for i in range(steps*set_epochs):
         batch_data, batch_label = next(ffd_it)
         print("  batch data: ", batch_data.shape)
         print("  batch label: ", batch_label)
 
+        """
         for i in range(len(batch_data)):
             plt.subplot(2, 5, i+1)
             plt.imshow(batch_data[i])
             plt.axis(False)
             plt.title(batch_label[i])
         plt.show()
+        """
 
 
-    # batch_list, labels = myimgh.diriterator(train_dir,
-
-
-    """
-    # it = diriterator(train_dir, batch_size)
-    reit = myimgh.recalliterator(train_dir,
-                                 batch_size=batch_size,
-                                 # epochs=set_epochs)  # 700//10 = 70, 70*3 = 210 total call
-                                 epochs=set_epochs)  # 1400//10 = 140, 140*3 = 420 total call
-    start = time.time()
-    for i in range(steps*set_epochs):
-        over_batch = next(reit)
-        print(i, "|", over_batch)
-        print("  batch num: ", len(over_batch) )
-
-        batch_data = myimgh.loadImageFromList(over_batch, 224)
-        print("  batch data: ", batch_data.shape)
-    print("elapsed time: ", time.time() - start, " [sec]")
-    """
-
-
-    """
     # test origin img_utils utility -----
-    print("\ntesting load_img():")
-    sample_cat = os.path.join(train_dir, target_list[0])
-    single_img_array = myimgh.load_img(sample_cat, 224)
-    print("  result: ", single_img_array.shape)
+    if False:  # when you want test, write True here.
+        print("\ntesting load_img():")
+        sample_cat = os.path.join(train_dir, target_list[0])
+        single_img_array = myimgh.load_img(sample_cat, 224)
+        print("  result: ", single_img_array.shape)
 
-    print("\ntesting loadImageFrom`List`():")
-    data = myimgh.loadImageFromList(target_list, 224)
-    print("  result: ", data.shape)
+        print("\ntesting loadImageFrom`List`():")
+        data = myimgh.loadImageFromList(target_list, 224)
+        print("  result: ", data.shape)
 
-    
-    print("\ntesting loadImageFromDir():")
-    train_cat_dir = os.path.join(train_dir, "cat")
-    train_cat_datas = myimgh.loadImageFromDir(train_cat_dir, 224)
-    print("  result: ", train_cat_datas.shape)
+        
+        print("\ntesting loadImageFromDir():")
+        train_cat_dir = os.path.join(train_dir, "cat")
+        train_cat_datas = myimgh.loadImageFromDir(train_cat_dir, 224)
+        print("  result: ", train_cat_datas.shape)
 
 
-    print("\ntesting inputDataCreator(train_dir, 224, normalize=False, one_hot=True):")
-    data, label = myimgh.inputDataCreator(train_dir,
-                                          224,
-                                          normalize=False,
-                                          one_hot=True)
-    print("  result (data shape) : ", data.shape)
-    # print("    data: \n", data[0])
-    print("  result (label shape): ", label.shape)
-    # print("    label: \n", label)
+        print("\ntesting inputDataCreator(train_dir, 224, normalize=False, one_hot=True):")
+        data, label = myimgh.inputDataCreator(train_dir,
+                                            224,
+                                            normalize=False,
+                                            one_hot=True)
+        print("  result (data shape) : ", data.shape)
+        # print("    data: \n", data[0])
+        print("  result (label shape): ", label.shape)
+        # print("    label: \n", label)
 
-    print("\ntesting datasplit() <split rate => 7:2:1> :")
-    data, label = myimgh.inputDataCreator(train_dir,
-                                          224,
-                                          normalize=True,
-                                          one_hot=True)
-    print(data.shape)
-    print(label.shape)
+        print("\ntesting datasplit() <split rate => 7:2:1> :")
+        data, label = myimgh.inputDataCreator(train_dir,
+                                            224,
+                                            normalize=True,
+                                            one_hot=True)
+        print(data.shape)
+        print(label.shape)
 
-    splited_data = myimgh.dataSplit(data, label)
-    train_data, train_label = splited_data[0], splited_data[1]
-    validation_data, validation_label  = splited_data[2], splited_data[3]
-    test_data, test_label = splited_data[4], splited_data[5]
-    print(train_label.shape)
-    print(train_label[0])
-    """
+        splited_data = myimgh.dataSplit(data, label)
+        train_data, train_label = splited_data[0], splited_data[1]
+        validation_data, validation_label  = splited_data[2], splited_data[3]
+        test_data, test_label = splited_data[4], splited_data[5]
+        print(train_label.shape)
+        print(train_label[0])
 
-    # ----------
 
-    """
+    """ 元ファイル (img_utils) にあったテスト条件
     parser = argparse.ArgumentParser(description="画像読み込みに関する自家製ミニマルライブラリ (速度はあまりコミットしてないです..)")
     parser.add_argument("--test", action="store_true")
     parser.add_argument("--time", action="store_true")
@@ -646,7 +625,6 @@ if __name__ == "__main__":
     args = parser.parse_args()
 
     if args.test:
-
 
     if args.time:
         print("\ntesting loadImageFromDir() in large data:")
