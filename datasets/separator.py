@@ -33,24 +33,42 @@ class DataSeparator:
 
 
 
-    def separate(self, split_size='small_721'):
+    def separate(self, split_size='small_721', save_dir=None, begin_idx=0):
 
         # separate したデータの保存先を作成
-        save_dir = os.path.join(self.dirs['data_dir'],
-                                "{}".format(split_size))
-        print("save_dir : ", save_dir)
-        os.makedirs(save_dir, exist_ok=True)
+        if save_dir is None:
+            save_dir = os.path.join(self.dirs['data_dir'],
+                                    "{}".format(split_size))
+            print("save_dir : ", save_dir)
+            os.makedirs(save_dir, exist_ok=True)
+        elif type(save_dir) == str :
+            save_dir = save_dir
 
 
-        train_size = self.split_dict[split_size][0]
-        validation_size = self.split_dict[split_size][1]
-        test_size = self.split_dict[split_size][2]
+        if type(split_size) == str:
+            train_size = self.split_dict[split_size][0]
+            validation_size = self.split_dict[split_size][1]
+            test_size = self.split_dict[split_size][2]
+        elif type(split_size) == list:
+            assert len(split_size) == 3
+            train_size = split_size[0]
+            validation_size = split_size[1]
+            test_size = split_size[2]
+
+            
 
         # index ----------------------------------------
-        # train     : 0 ~ train_size-1
-        # validation: train_size ~ train_size + validation_size
+        # train     : 0 (or bagin_idx) ~ train_size
+        # validation: train_end + validation_size
         # test      : valdaiton_end ~ validation_end + test_size
-        validation_begin = train_size
+        if begin_idx == 0:
+            train_begin = 0
+            train_end = train_size
+        elif type(begin_idx) == int:
+            train_begin = begin_idx
+            train_end = begin_idx + train_size
+
+        validation_begin = train_end
         validation_end = validation_begin + validation_size
         test_begin = validation_end
         test_end = validation_end + test_size
@@ -74,8 +92,9 @@ class DataSeparator:
 
                 pic_name_list = []
                 if purpose == "train":
-                    begin = 0
-                    size = end = train_size   
+                    begin = train_begin
+                    end = train_end
+                    size = train_size
 
                 elif purpose == "validation":
                     begin = validation_begin
