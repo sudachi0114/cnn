@@ -1,12 +1,14 @@
 
 import os, sys
 sys.path.append(os.pardir)
-from random import randint
+
 import numpy as np
 import matplotlib.pyplot as plt
 from PIL import Image
+
 import imgaug as ia
 import imgaug.augmenters as iaa
+
 try:
     from img_utils import inputDataCreator
 except:
@@ -19,10 +21,12 @@ class AugWithImgaug:
 
         # 最低限の dir 構成を保持
         self.dirs = {}
+        """
         self.dirs['cwd'] = os.getcwd()
         self.dirs['prj_root'] = os.path.dirname(self.dirs['cwd'])
-        # self.dirs['data_dir'] = os.path.join(self.dirs['prj_root'], "datasets")
-        self.dirs['data_dir'] = self.dirs['prj_root']
+        self.dirs['data_dir'] = os.path.join(self.dirs['prj_root'], "datasets")
+        """
+        self.dirs['data_dir'] = os.getcwd()
 
         # list of imgaug DA modes -----
         self.imgaug_aug_list = ['native',
@@ -58,7 +62,7 @@ class AugWithImgaug:
 
         data, label = inputDataCreator(target_dir,
                                        input_size,
-                                       normalize)
+                                       normalize=normalize)
         return data, label
 
     
@@ -94,7 +98,7 @@ class AugWithImgaug:
 
 
     def randomTestAugument(self, num_trans):
-        # 以下で定義する変換処理の内ランダムに幾つかの処理を選択
+        # 本番環境の危機から取得したデータにノイズが乗っていた状態を想定して変換
         seq = iaa.SomeOf(num_trans, [
             iaa.Affine(rotate=(-90, 90), order=1, mode="edge"),
             iaa.Fliplr(1.0),
@@ -118,7 +122,7 @@ class AugWithImgaug:
                 iaa.Sharpen(alpha=(0, 1.0), lightness=(0.75, 1.5)),
                 iaa.Emboss(alpha=(0, 1.0), strength=(0, 2.0))
             ]),
-            # iaa.Invert(1.0)
+            # iaa.Invert(1.0)  # 色反転は故障しすぎでしょう..
         ], random_order=True)
 
         return seq
@@ -193,14 +197,21 @@ class AugWithImgaug:
 
 
 
-    def save_imgauged_img(self, targrt_dir, input_size, normalize=False, save_dir="prj_root", aug='rotation'):
+    def save_imgauged_img(self, target_dir, input_size, normalize=False,
+                          save_dir=None, aug='rotation'):
 
-        auged_data, label = self.imgaug_augment(target_dir=targrt_dir,
+        auged_data, label = self.imgaug_augment(target_dir=target_dir,
                                                 input_size=input_size,
                                                 normalize=normalize,
                                                 aug=aug)
-        if save_dir == "prj_root":
-            self.dirs["save_dir"] = os.path.join(self.dirs['data_dir'], "auged_{}".format(aug))
+        if save_dir is None:
+            # origin_dir = os.path.basename(target_dir)
+            # /home/user/cnn/datasets/some_721/train => [cat, dog]
+            #   pparent   : /home/user/cnn/datasets/some_721/
+            #   origin_dir: auged_train
+            pparent, origin_dir = os.path.split(target_dir)
+            self.dirs["save_dir"] = os.path.join(pparent,
+                                                 "{}_{}".format(aug, origin_dir))
         else:
             self.dirs["save_dir"] = save_dir
         os.makedirs(self.dirs["save_dir"], exist_ok=True)
@@ -211,10 +222,10 @@ class AugWithImgaug:
                 if label[i] == j:
                     save_dir_each =  os.path.join(self.dirs["save_dir"], '{}'.format(class_name))
                     os.makedirs(save_dir_each, exist_ok=True)
-                    save_file_cats = os.path.join(save_dir_each, "{}.{}.{}.jpg".format(class_name, aug, idx))
+                    save_file = os.path.join(save_dir_each, "{}.{}.{}.jpg".format(class_name, aug, idx))
 
                     pil_auged_img = Image.fromarray(data.astype('uint8'))  # float の場合は [0,1]/uintの場合は[0,255]で保存
-                    pil_auged_img.save(save_file_cats)
+                    pil_auged_img.save(save_file)
                     idx += 1
 
 
@@ -286,4 +297,5 @@ if __name__ == '__main__':
                                     input_size=224,
                                     save_dir=save_loc,
                                     aug=saug)
+
 
