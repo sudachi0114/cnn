@@ -73,22 +73,6 @@ def main():
                                                   shuffle=False,
                                                   class_mode='categorical')
 
-    data_checker, label_checker = next(test_generator)
-
-    print("test data shape:", data_checker.shape)
-    print("test label shape:", label_checker.shape)
-
-    plt.figure(figsize=(12, 6))
-    for i in range(20):
-        plt.subplot(4, 5, i+1)
-        plt.imshow(data_checker[i])
-        plt.title("{}".format(label_checker[i]))
-        plt.axis(False)
-
-    plt.show()
-    # sys.exit(1)
-
-
     # load model ----------
     models_dir = os.path.join(sub_prj, "outputs", "models")
     model_file = "finetune_model.h5"  # "mymodel_auged.h5"
@@ -115,15 +99,26 @@ def main():
 
     test_label = []
     for i in range(test_steps):
-        _, tmp_tl = next(test_generator)
+        tmp_data, tmp_tl = next(test_generator)
         if i == 0:
             test_label = tmp_tl
         else:
             test_label = np.vstack((test_label, tmp_tl))
 
+        if False:  # display
+            plt.figure(figsize=(12, 6))
+            for j in range(batch_size):
+                plt.subplot(5, 10, j+1)
+                plt.imshow(tmp_data[j])
+                plt.title("{}".format(tmp_tl[j]))
+                plt.axis(False)
+
+            plt.show()
+
+
     idx_label = np.argmax(test_label, axis=-1)  # one_hot => normal
     idx_pred = np.argmax(pred, axis=-1)  # 各 class の確率 => 最も高い値を持つ class
-    
+
     cm = confusion_matrix(idx_label, idx_pred)
 
     # Calculate Precision and Recall
@@ -135,7 +130,6 @@ def main():
     print("N | {} | {}".format(tn, fn))
     print("--+----+---")
     print("P | {} | {}".format(tp, fp))
-
 
 
 
