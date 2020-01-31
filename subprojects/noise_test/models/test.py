@@ -7,6 +7,7 @@ sys.path.append(os.pardir)
 import time
 import numpy as np
 np.random.seed(seed=114)
+import matplotlib.pyplot as plt
 
 import tensorflow as tf
 import keras
@@ -53,28 +54,7 @@ def main():
     data_src = os.path.join(data_dir, "medium_721")
     print("\ndata source: ", data_src)
 
-
-    """
     use_da_data = False
-    increase_val = False
-    print( "\nmode: Use Augmented data: {} | increase validation data: {}".format(use_da_data, increase_val) )
-
-    # First define original train_data only as train_dir
-    train_dir = os.path.join(data_dir, "train")
-    if (use_da_data == True) and (increase_val == False):
-        # with_augmented data (no validation increase)
-        train_dir = os.path.join(data_dir, "train_with_aug")
-    validation_dir = os.path.join(data_dir, "val")  # original validation data
-
-    # pair of decreaced train_data and increased validation data
-    if (increase_val == True):
-        train_dir = os.path.join(data_dir, "red_train")
-        if (use_da_data == True):
-            train_dir = os.path.join(data_dir, "red_train_with_aug")
-        validation_dir = os.path.join(data_dir, "validation")
-    """
-    
-    use_da_data = True
     if use_da_data:
         test_dir = os.path.join(data_src, "test_with_aug")
     else:
@@ -96,11 +76,21 @@ def main():
 
     print("test data shape:", data_checker.shape)
     print("test label shape:", label_checker.shape)
-    
+
+    plt.figure(figsize=(12, 6))
+    for i in range(20):
+        plt.subplot(4, 5, i+1)
+        plt.imshow(data_checker[i])
+        plt.title("{}".format(label_checker[i]))
+        plt.axis(False)
+
+    plt.show()
+    # sys.exit(1)
+
 
     # load model ----------
     models_dir = os.path.join(sub_prj, "outputs", "models")
-    model_file = "mymodel_auged.h5"
+    model_file = "finetune_model.h5"  # "mymodel_auged.h5"
     model_location = os.path.join(models_dir, model_file)
     print("\nmodel location: ", model_location)
     model = load_model(model_location, compile=True)
