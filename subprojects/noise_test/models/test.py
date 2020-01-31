@@ -51,7 +51,8 @@ def main():
     """
     data_dir = os.path.join(sub_prj, "datasets")
 
-    data_src = os.path.join(data_dir, "medium_721")
+    # data_src = os.path.join(data_dir, "medium_721")
+    data_src = os.path.join(data_dir, "small_721")
     print("\ndata source: ", data_src)
 
     use_da_data = False
@@ -118,7 +119,7 @@ def main():
         if i == 0:
             test_label = tmp_tl
         else:
-            test_label = np.vstack((test_label, tmp_tl))    
+            test_label = np.vstack((test_label, tmp_tl))
 
     idx_label = np.argmax(test_label, axis=-1)  # one_hot => normal
     idx_pred = np.argmax(pred, axis=-1)  # 各 class の確率 => 最も高い値を持つ class
