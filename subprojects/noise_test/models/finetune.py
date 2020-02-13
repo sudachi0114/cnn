@@ -42,38 +42,14 @@ def main():
 
     cwd = os.getcwd()
     sub_prj = os.path.dirname(cwd)
-    """
-    sub_prj_root = os.path.dirname(sub_prj)
-    prj_root = os.path.dirname(sub_prj_root)
-    """
-
 
     data_dir = os.path.join(prj_root, "datasets")
 
     data_src = os.path.join(data_dir, "small_721")
     print("\ndata source: ", data_src)
 
-    """
+
     use_da_data = False
-    increase_val = False
-    print( "\nmode: Use Augmented data: {} | increase validation data: {}".format(use_da_data, increase_val) )
-
-    # First define original train_data only as train_dir
-    train_dir = os.path.join(data_dir, "train")
-    if (use_da_data == True) and (increase_val == False):
-        # with_augmented data (no validation increase)
-        train_dir = os.path.join(data_dir, "train_with_aug")
-    validation_dir = os.path.join(data_dir, "val")  # original validation data
-
-    # pair of decreaced train_data and increased validation data
-    if (increase_val == True):
-        train_dir = os.path.join(data_dir, "red_train")
-        if (use_da_data == True):
-            train_dir = os.path.join(data_dir, "red_train_with_aug")
-        validation_dir = os.path.join(data_dir, "validation")
-    """
-
-    use_da_data = True
     if use_da_data:
         train_dir = os.path.join(data_src, "train_with_aug")
     else:
@@ -222,7 +198,10 @@ def main():
 
     # save model -----
     save_location = os.path.join(sub_prj, "outputs", "models")
-    save_file = os.path.join(save_location, "finetune_model.h5")
+    if use_da_data == True:
+        save_file = os.path.join(save_location, "auged_finetune_model.h5")
+    else:
+        save_file = os.path.join(save_location, "finetune_model.h5")
     model.save(save_file)
     print("\nmodel has saved in", save_file)
 
