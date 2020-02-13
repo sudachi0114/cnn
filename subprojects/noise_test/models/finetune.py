@@ -43,7 +43,7 @@ def main():
     cwd = os.getcwd()
     sub_prj = os.path.dirname(cwd)
 
-    data_dir = os.path.join(prj_root, "datasets")
+    data_dir = os.path.join(sub_prj, "datasets")
 
     data_src = os.path.join(data_dir, "small_721")
     print("\ndata source: ", data_src)
