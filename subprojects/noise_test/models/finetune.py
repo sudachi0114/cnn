@@ -42,8 +42,10 @@ def main():
 
     cwd = os.getcwd()
     sub_prj = os.path.dirname(cwd)
+    """
     sub_prj_root = os.path.dirname(sub_prj)
     prj_root = os.path.dirname(sub_prj_root)
+    """
 
 
     data_dir = os.path.join(prj_root, "datasets")
@@ -70,14 +72,18 @@ def main():
             train_dir = os.path.join(data_dir, "red_train_with_aug")
         validation_dir = os.path.join(data_dir, "validation")
     """
-    
-    train_dir = os.path.join(data_src, "train")
+
+    use_da_data = True
+    if use_da_data:
+        train_dir = os.path.join(data_src, "train_with_aug")
+    else:
+        train_dir = os.path.join(data_src, "train")
     validation_dir = os.path.join(data_src, "validation")
     test_dir = os.path.join(data_src, "test")
 
     print("train_dir: ", train_dir)
     print("validation_dir: ", validation_dir)
-    print("test_dir: ", test_dir)
+    # print("test_dir: ", test_dir)
 
 
     # data load ----------
