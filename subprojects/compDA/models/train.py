@@ -33,18 +33,33 @@ cwd = os.getcwd()
 
 def main(data_mode, model_mode, no, set_epochs=60, do_es=False):
 
-    base_dir = os.path.join(cwd, "experiment_{}".format(no))
+    sub_prj = os.path.dirname(cwd)
+    data_dir = os.path.join(sub_prj, "datasets")
 
-    if data_mode == 'native':
-        train_dir = os.path.join(cwd, "experiment_{}".format(no), "train")
-    elif data_mode == 'auged':
-        train_dir = os.path.join(cwd, "concat_experiment_{}".format(no))
-        set_epochs = int( set_epochs/2 )
+    # data_src = os.path.join(data_dir, "small_721")
+    # print("\ndata source: ", data_src)
 
-    validation_dir = os.path.join(base_dir, "validation")
-    test_dir = os.path.join(base_dir, "test")
+    sample_dir = os.path.join(data_dir, "sample{}".format(no))
+    # ../datasets/sampleN/
+    # rotation_train_0  rotation_train_1  test  train  train_with_aug  validation
+
+    use_da_data = False
+    if use_da_data:
+        train_dir = os.path.join(sample_dir, "train_with_aug")
+    else:
+        train_dir = os.path.join(sample_dir, "train")
+    validation_dir = os.path.join(sample_dir, "validation")
+    test_dir = os.path.join(sample_dir, "test")
+
+    print("train_dir: ", train_dir)
+    print("validation_dir: ", validation_dir)
+    print("test_dir: ", test_dir)
 
 
+    set_epochs = 20
+
+
+    # data load ----------
     train_data, train_label = inputDataCreator(train_dir,
                                                224,
                                                normalize=True,
@@ -107,11 +122,29 @@ def main(data_mode, model_mode, no, set_epochs=60, do_es=False):
     val_losses = history.history['val_loss']
 
 
+    """
+    # logging and detail outputs -----
+    # make log_dirctory
+    log_dir = os.path.join(sub_prj, "outputs", "logs")
+    os.makedirs(log_dir, exist_ok=True)
+    model_log_dir = os.path.join(sub_prj, "outputs", "models")
+    os.makedirs(log_dir, exist_ok=True)
+
+    now = datetime.datetime.now()
+    child_log_dir = os.path.join(log_dir, "{0:%Y%m%d}".format(now))
+    os.makedirs(child_log_dir, exist_ok=True)
+    child_model_log_dir = os.path.join(model_log_dir, "{0:%Y%m%d}".format(now))
+    os.makedirs(child_model_log_dir, exist_ok=True)
+    """
+
+
+    """
     if do_es:
         log_dir = os.path.join(cwd, "log_with_es")
     else:
         log_dir = os.path.join(cwd, "log")
     os.makedirs(log_dir, exist_ok=True)
+    """
 
     """
     child_log_dir = os.path.join(log_dir, "{}_{}_{}".format(data_mode, model_mode, no))
@@ -128,7 +161,6 @@ def main(data_mode, model_mode, no, set_epochs=60, do_es=False):
 
     print("\nexport logs in ", child_log_dir)
     """
-
 
 
     print("\npredict sequence...")
@@ -207,12 +239,10 @@ if __name__ == '__main__':
     model_mode_list = ['mymodel', 'tlearn']
 
 
-
-
     select_data = 'native'
     select_model = 'mymodel'
     print("\nuse data:{} | model:{}".format(select_data, select_model))
-    for i in range(60):
+    for i in range(12):
         print("\ndata no. {} -------------------------------".format(i))
         result_dict = main(data_mode=select_data,
                            model_mode=select_model,
