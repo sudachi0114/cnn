@@ -49,7 +49,7 @@ def main():
     print("\ndata source: ", data_src)
 
 
-    use_da_data = False
+    use_da_data = True
     if use_da_data:
         train_dir = os.path.join(data_src, "train_with_aug")
     else:
