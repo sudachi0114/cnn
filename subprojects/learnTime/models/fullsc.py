@@ -152,17 +152,6 @@ def main(LEARN_PATH, IMAGE_SIZE, BATCH_SIZE, EPOCHS):
     model_val_acc = history.history['val_accuracy'][-1]
     print('val_acc: ', model_val_acc)
 
-    # save model into hdf5 file ----------
-    base_dir, dataset_name = os.path.split(LEARN_PATH)
-    base_dir, n_class = os.path.split(base_dir)
-    save_file = '{}.h5'.format(dataset_name)
-    save_location = os.path.join(os.path.dirname(os.getcwd()), "outputs",
-                                 n_class, "models", str(IMAGE_SIZE),
-                                 save_file)
-    model.save(save_location)
-    print("\nmodel has saved in", save_location)
-
-
 
     print("\nevaluate messages below ...")
     val_pred = model.evaluate_generator(validation_generator,
