@@ -25,25 +25,12 @@ from utils.model_handler import ModelHandler
 from utils.img_utils import inputDataCreator, dataSplit
 
 
-# define -----
-batch_size = 50
-input_size = 224
-channel = 3
-target_size = (input_size, input_size)
-input_shape = (input_size, input_size, channel)
-set_epochs = 40
+def main(LEARN_PATH, INPUT_SIZE, CHANNEL, BATCH_SIZE, EPOCHS):
 
+    target_size = (INPUT_SIZE, INPUT_SIZE)
+    input_shape = (INPUT_SIZE, INPUT_SIZE, CHANNEL)
 
-def main():
-
-    cwd = os.getcwd()
-    sub_prj = os.path.dirname(cwd)
-    sub_prj_root = os.path.dirname(sub_prj)
-    prj_root = os.path.dirname(sub_prj_root)
-
-    data_dir = os.path.join(prj_root, "datasets")
-
-    data_src = os.path.join(data_dir, "small_721")
+    data_src = LEARN_PATH
     print("\ndata source: ", data_src)
 
     use_da_data = False
@@ -61,15 +48,15 @@ def main():
 
     # data load ----------
     train_data, train_label = inputDataCreator(train_dir,
-                                               input_size,
+                                               INPUT_SIZE,
                                                normalize=True,
                                                one_hot=True)
     validation_data, validation_label = inputDataCreator(validation_dir,
-                                                         input_size,
+                                                         INPUT_SIZE,
                                                          normalize=True,
                                                          one_hot=True)
     test_data, test_label = inputDataCreator(test_dir,
-                                             input_size,
+                                             INPUT_SIZE,
                                              normalize=True,
                                              one_hot=True)
     """
@@ -90,7 +77,7 @@ def main():
 
 
     # build model ----------
-    mh = ModelHandler(input_size, channel)
+    mh = ModelHandler(INPUT_SIZE, CHANNEL)
     model = mh.buildMyModel()
     model.summary()
 
@@ -107,35 +94,37 @@ def main():
     start = time.time() 
     history = model.fit(train_data,
                         train_label,
-                        batch_size=batch_size,
-                        epochs=set_epochs,
+                        batch_size=BATCH_SIZE,
+                        epochs=EPOCHS,
                         validation_data=(validation_data, validation_label),
                         callbacks=[es],
-                        verbose=1)
+                        verbose=2)
     elapsed_time = time.time() - start
     print( "elapsed time (for train): {} [sec]".format(elapsed_time) )
     
-
-    # evaluate ----------
-    print("\nevaluate sequence...")
-
     accs = history.history['accuracy']
     losses = history.history['loss']
     val_accs = history.history['val_accuracy']
     val_losses = history.history['val_loss']
     print("last val_acc: ", val_accs[len(val_accs)-1])
-    
+
+
+    # evaluate ----------
+    print("\nevaluate sequence...")
     eval_res = model.evaluate(test_data,
                               test_label,
                               batch_size=10,
-                              verbose=1)
-
+                              verbose=2)
     print("result loss: ", eval_res[0])
     print("result score: ", eval_res[1])
 
 
     # logging and detail outputs -----
+
     # make log_dirctory
+    cwd = os.getcwd()
+    sub_prj = os.path.dirname(cwd)
+
     log_dir = os.path.join(sub_prj, "outputs", "logs")
     os.makedirs(log_dir, exist_ok=True)
     model_log_dir = os.path.join(sub_prj, "outputs", "models")
@@ -153,10 +142,12 @@ def main():
     print("\nexport model in ", child_model_log_dir)
 
 
+
+    # predict -> confusion matrix ----------
     print("\npredict sequence...")
     pred = model.predict(test_data,
-                         batch_size=batch_size,
-                         verbose=1)
+                         batch_size=BATCH_SIZE,
+                         verbose=2)
 
     label_name_list = []
     for i in range(len(test_label)):
@@ -194,13 +185,13 @@ def main():
     save_dict['eval_acc'] = eval_res[1]
     save_dict['elapsed_time'] = elapsed_time
 
-    print(save_dict)
+    print("save result dict:", save_dict)
 
     df_result = pd.DataFrame(save_dict.values(), index=save_dict.keys())
 
     csv_file = os.path.join( child_log_dir, "result.csv" )
     df_result.to_csv(csv_file)
-    print("\nexport history in ", csv_file)
+    print("\nexport result in ", csv_file)
 
 
     # confusion matrix -----
@@ -258,4 +249,18 @@ def main():
 
 
 if __name__ == '__main__':
-    main()
+
+    # define -----
+    batch_size = 50
+    input_size = 224
+    channel = 3
+    set_epochs = 40
+
+    learn_path = "/home/sudachi/cnn/datasets/small_721"
+
+
+    main(LEARN_PATH,
+         INPUT_SIZE=input_size,
+         CHANNEL=channel
+         BATCH_SIZE=batch_size,
+         EPOCHS=set_epochs)
