@@ -134,7 +134,8 @@ def main(LEARN_PATH, IMAGE_SIZE, BATCH_SIZE, EPOCHS, FINE_TUNE_AT):
                                    workers=4,
                                    validation_data=validation_generator,
                                    validation_steps=validation_steps,
-                                   callbacks=[es])
+                                   callbacks=[es],
+                                   verbose=2)
 
     _val_pred = model.evaluate_generator(validation_generator,
                                          steps=validation_steps)
@@ -171,7 +172,8 @@ def main(LEARN_PATH, IMAGE_SIZE, BATCH_SIZE, EPOCHS, FINE_TUNE_AT):
                                   workers=4,
                                   validation_data=validation_generator,
                                   validation_steps=validation_steps,
-                                  callbacks=[es])
+                                  callbacks=[es],
+                                  verbose=2)
     elapsed_time = time.time() - start
     print( "elapsed time (for train): {} [sec]".format(time.time() - start) )
 
