@@ -179,7 +179,7 @@ def main(LEARN_PATH, IMAGE_SIZE, BATCH_SIZE, EPOCHS):
     print("\nconfusion matrix")
     cm_pred = model.predict_generator(test_generator,
                                       steps=test_steps,
-                                      verbose=1)
+                                      verbose=2)
 
     test_label = []
     for i in range(test_steps):
