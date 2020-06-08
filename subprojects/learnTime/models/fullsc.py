@@ -91,12 +91,8 @@ def main(LEARN_PATH, IMAGE_SIZE, CHANNEL, BATCH_SIZE, EPOCHS):
     """
     base_model = keras.applications.vgg16.VGG16(input_shape=IMG_SHAPE,
                                                 include_top=False,
-                                                weights='imagenet')
-    """
-
-    base_model = keras.applications.vgg16.VGG16(input_shape=IMG_SHAPE,
-                                                include_top=False,
                                                 weights=None)
+    """
     """
     base_model = keras.applications.mobilenet.MobileNet(input_shape=IMG_SHAPE,
                                                         # alpha=1.0,
@@ -107,7 +103,11 @@ def main(LEARN_PATH, IMAGE_SIZE, CHANNEL, BATCH_SIZE, EPOCHS):
                                                         # input_tensor=None,
                                                         # pooling=None, classes=1000)
                                                         )
-    """    
+    """
+    base_model = keras.applications.mobilenet_v2.MobileNetV2(input_shape=IMG_SHAPE,
+                                                             include_top=False,
+                                                             weights=None)
+
 
 
     base_model.summary()
