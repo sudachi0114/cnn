@@ -29,9 +29,11 @@ class DatasetMaker:
         # train_size(rate) = 0.7
         # validation_size = 0.2
         # test_size = 0.1
-        sep_rate = {"train":0.7, "validation":0.2, "test":0.1}
+        # sep_rate = {"train":0.7, "validation":0.2, "test":0.1}
 
-    def separete(self, N=None, DATASET_SIZE=1000):
+
+
+    def separete(self, N=None, DATASET_SIZE=1000, SAVE_DIR=None):
 
         if N is None:
             sample_num = self.amount // DATASET_SIZE
@@ -45,9 +47,13 @@ class DatasetMaker:
 
 
         for i in range(sample_num):
-            save_loc = os.path.join(self.dirs["sub_datasetsd"],
-                                    "experiment_{}".format(i))
-            os.makedirs(save_loc, exist_ok=False)
+            if SAVE_DIR is None:
+                save_loc = os.path.join(self.dirs["sub_datasetsd"],
+                                        "sample_{}".format(i),
+                                        "natural")
+                os.makedirs(save_loc, exist_ok=False)
+            else:
+                save_loc = SAVE_DIR
 
             each_cls_dataset_size = DATASET_SIZE // 2 
             print("  each class's data size: ", each_cls_dataset_size)
@@ -88,7 +94,7 @@ class DatasetMaker:
 
         found = []
         for elem in cand_list:
-            if "experiment_" in elem:
+            if "sample_" in elem:
                 found.append(elem)
 
         if len(found) == 0:
@@ -110,6 +116,8 @@ class DatasetMaker:
 
     def augment(self, TARGET_DIR, AUGMENTATION="rotation"):
 
+        # target_dir = os.path.join(TARGET_DIR, "natural")
+
         target_dir = TARGET_DIR
         print("Augment {} datas...".format(target_dir))
         assert len(os.listdir(target_dir)) > 0
@@ -120,10 +128,11 @@ class DatasetMaker:
         #train_data_location = os.path.join(TARGET_DIR, "train")
 
         auger = AugWithImgaug()
-        data, label = auger.imgaug_augment(TARGET_DIR=target_dir,
-                                           INPUT_SIZE=224,
-                                           NORMALIZE=False,
-                                           AUGMENTATION=AUGMENTATION)
+        data, label = auger.imgaug_augment(
+            TARGET_DIR=os.path.join(TARGET_DIR, "natural"),
+            INPUT_SIZE=224,
+            NORMALIZE=False,
+            AUGMENTATION=AUGMENTATION)
 
         print("data shape: ", data.shape)
         print("label shape: ", label.shape)
@@ -138,7 +147,7 @@ class DatasetMaker:
             for i, each_data in enumerate(data):
                 if label[i] == j:
                     auged_cls_data_loc = os.path.join(target_dir,
-                                                      "auged_{}".format(cname))
+                                                      "auged", cname)
                     os.makedirs(auged_cls_data_loc, exist_ok=True)
                     save_img_path = os.path.join(auged_cls_data_loc,
                                                  "{}.{}.{}.jpg".format(cname, AUGMENTATION, idx))
@@ -168,12 +177,12 @@ class DatasetMaker:
 
         for cname in self.cls_list:
             each_concat_cls_data_loc = os.path.join(TARGET_DIR,
-                                                    "concat_{}".format(cname))
+                                                    "concat", cname)
             os.makedirs(each_concat_cls_data_loc, exist_ok=True)
             print("\nmake directory: ", each_concat_cls_data_loc)
 
-            each_cls_natural_data = os.path.join(TARGET_DIR, cname)
-            each_cls_auged_data = os.path.join(TARGET_DIR, "auged_{}".format(cname))
+            each_cls_natural_data = os.path.join(TARGET_DIR, "natural", cname)
+            each_cls_auged_data = os.path.join(TARGET_DIR, "auged", cname)
 
 
             copy_list = []
@@ -242,11 +251,11 @@ if __name__ == '__main__':
         # ins.separete()
         ins.separete(N=5, DATASET_SIZE=500)
     if arg.augment:
-        ins.augment(os.path.join("../subdatasets/experiment_0"))
+        ins.augment(os.path.join("../subdatasets/sample_0"))
     if arg.raugment:
         ins.r_augment()
     elif arg.concat:
-        ins.concat(os.path.join("../subdatasets/experiment_0"))
+        ins.concat(os.path.join("../subdatasets/sample_0"))
     elif arg.rconcat:
         ins.r_concat()
     elif arg.make:
