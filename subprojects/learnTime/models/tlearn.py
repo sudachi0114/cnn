@@ -80,9 +80,20 @@ def main(LEARN_PATH, IMAGE_SIZE, BATCH_SIZE, EPOCHS, FINE_TUNE_AT):
 
 
     # Create the base model from the pre-trained model MobileNet V2
+    """
     base_model = keras.applications.vgg16.VGG16(input_shape=IMG_SHAPE,
                                                 include_top=False,
                                                 weights='imagenet')
+    """
+    """
+    base_model = keras.applications.mobilenet.MobileNet(input_shape=IMG_SHAPE,
+                                                        include_top=False,
+                                                        weights='imagenet')
+    """
+    base_model = keras.applications.mobilenet_v2.MobileNetV2(input_shape=IMG_SHAPE,
+                                                             include_top=False,
+                                                             weights='imagenet')
+
 
 
     base_model.summary()
@@ -216,4 +227,8 @@ if __name__ == '__main__':
          IMAGE_SIZE=224,
          BATCH_SIZE=20,
          EPOCHS=50,
-         FINE_TUNE_AT=15)
+         FINE_TUNE_AT=100)
+    # FINE TUNE AI:
+    #   vgg16: 15
+    #    mnv1: 81
+    #    mnv2: 100?
