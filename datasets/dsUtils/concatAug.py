@@ -3,9 +3,10 @@ import os, shutil
 
 # define
 cwd = os.getcwd()
+datasets_dir = os.path.dirname(cwd)
 
-data_name = "medium_721"
-data_src = os.path.join(cwd, data_name)
+data_name = "1000_721"
+data_src = os.path.join(datasets_dir, data_name)
 
 mode = "train"  # "test"
 if mode == "train":

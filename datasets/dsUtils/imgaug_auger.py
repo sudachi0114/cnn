@@ -256,9 +256,8 @@ class AugWithImgaug:
 if __name__ == '__main__':
 
     cwd = os.getcwd()
-    prj_root = os.path.dirname(cwd)
-    data_dir = os.path.join(prj_root, "datasets")
-    data_src = os.path.join(data_dir, "medium_721")
+    datasets_dir = os.path.dirname(cwd)
+    data_src = os.path.join(datasets_dir, "1000_721")
     
     train_dir = os.path.join(data_src, "train")
     validation_dir = os.path.join(data_src, "validation")
