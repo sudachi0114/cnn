@@ -31,17 +31,10 @@ cwd = os.getcwd()
 
 
 
-def main(data_mode, model_mode, no, set_epochs=60, do_es=False):
+def main(N, LEARN_PATH, DATA_MODE, BUILD_MODEL, EPOCHS=60):
 
-    sub_prj = os.path.dirname(cwd)
-    data_dir = os.path.join(sub_prj, "datasets")
 
-    # data_src = os.path.join(data_dir, "small_721")
-    # print("\ndata source: ", data_src)
-
-    sample_dir = os.path.join(data_dir, "sample{}".format(no))
-    # ../datasets/sampleN/
-    # rotation_train_0  rotation_train_1  test  train  train_with_aug  validation
+    sample_dir = os.path.join(LEARN_PATH, "sample_{}".format(N))
 
     use_da_data = False
     if use_da_data:
@@ -54,9 +47,6 @@ def main(data_mode, model_mode, no, set_epochs=60, do_es=False):
     print("train_dir: ", train_dir)
     print("validation_dir: ", validation_dir)
     print("test_dir: ", test_dir)
-
-
-    set_epochs = 20
 
 
     # data load ----------
@@ -83,43 +73,49 @@ def main(data_mode, model_mode, no, set_epochs=60, do_es=False):
     input_size = train_data.shape[1]
     channel = train_data.shape[3]
     batch_size = 10
-    print("set epochs: ", set_epochs)
+    print("set epochs: ", EPOCHS)
 
 
     mh = ModelHandler(input_size, channel)
 
-    if model_mode == 'mymodel':
+    if BUILD_MODEL == 'mymodel':
         model = mh.buildMyModel()
-    elif model_mode == 'tlearn':
+    elif BUILD_MODEL == 'tlearn':
         model = mh.buildTlearnModel(base='mnv1')
 
     model.summary()
 
-    if do_es:
-        es = EarlyStopping(monitor='val_loss',
-                           patience=5,
-                           verbose=1,
-                           mode='auto')
-        es = [es]
-    else:
-        es = None
+    """
+    es = EarlyStopping(monitor='val_loss',
+                       patience=5,
+                       verbose=1,
+                       mode='auto',
+                       restore)
+    """
+    # early stopping
+    es = keras.callbacks.EarlyStopping(monitor='val_loss',
+                                       patience=5,
+                                       restore_best_weights=True)
+
 
     print("\ntraining sequence start .....")
     start = time.time()
     history = model.fit(train_data,
                         train_label,
                         batch_size,
-                        epochs=set_epochs,
+                        epochs=EPOCHS,
                         validation_data=(validation_data, validation_label),
-                        callbacks=es,
-                        verbose=1)
+                        callbacks=[es],
+                        verbose=2)
 
     elapsed_time = time.time() - start
+    print( "elapsed time (for train): {} [sec]".format(time.time() - start) )
 
     accs = history.history['accuracy']
     losses = history.history['loss']
     val_accs = history.history['val_accuracy']
     val_losses = history.history['val_loss']
+
 
 
     """
@@ -147,15 +143,15 @@ def main(data_mode, model_mode, no, set_epochs=60, do_es=False):
     """
 
     """
-    child_log_dir = os.path.join(log_dir, "{}_{}_{}".format(data_mode, model_mode, no))
+    child_log_dir = os.path.join(log_dir, "{}_{}_{}".format(DATA_MODE, BUILD_MODEL, no))
     os.makedirs(child_log_dir, exist_ok=True)
 
     # save model & weights
-    model_file = os.path.join(child_log_dir, "{}_{}_{}_model.h5".format(data_mode, model_mode, no))
+    model_file = os.path.join(child_log_dir, "{}_{}_{}_model.h5".format(DATA_MODE, BUILD_MODEL, no))
     model.save(model_file)
 
     # save history
-    history_file = os.path.join(child_log_dir, "{}_{}_{}_history.pkl".format(data_mode, model_mode, no))
+    history_file = os.path.join(child_log_dir, "{}_{}_{}_history.pkl".format(DATA_MODE, BUILD_MODEL, no))
     with open(history_file, 'wb') as p:
         pickle.dump(history.history, p)
 
@@ -228,26 +224,27 @@ def main(data_mode, model_mode, no, set_epochs=60, do_es=False):
 
 if __name__ == '__main__':
 
-    parser = argparse.ArgumentParser(description="DA 実験 100例 学習プログラム")
-
-    parser.add_argument("--earlystopping", "-es", action="store_true",
-                        help="学習時に EarlyStopping を ON にする.")
-
-    args = parser.parse_args()
+    # parser = argparse.ArgumentParser(description="DA 実験 100例 学習プログラム")
+    # args = parser.parse_args()
 
     data_mode_list = ['native', 'auged']
     model_mode_list = ['mymodel', 'tlearn']
 
 
-    select_data = 'native'
-    select_model = 'mymodel'
+    select_data = 'auged'
+    select_model = 'tlearn'
     print("\nuse data:{} | model:{}".format(select_data, select_model))
-    for i in range(12):
+
+
+    learn_path = "/home/sudachi/cnn/datasets/mulSample/1000_721_Mul"
+    
+    N = 5
+    for i in range(N):
         print("\ndata no. {} -------------------------------".format(i))
-        result_dict = main(data_mode=select_data,
-                           model_mode=select_model,
-                           no=i,
-                           do_es=args.earlystopping)
+        result_dict = main(N=i,
+                           LEARN_PATH=learn_path,
+                           DATA_MODE=select_data,
+                           BUILD_MODEL=select_model)
         if i == 0:
             df_result = pd.DataFrame(result_dict.values(), index=result_dict.keys())
             """
