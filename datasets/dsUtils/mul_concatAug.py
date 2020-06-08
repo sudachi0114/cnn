@@ -13,7 +13,7 @@ if __name__ == "__main__":
 
     data_name = os.path.join(datasets_dir, "mulSample", "m_sample")
 
-    N = 3
+    N = 5
     for i in range(N):
         tdir = os.path.join(data_name, "sample_{}".format(i))
 
