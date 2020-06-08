@@ -237,7 +237,7 @@ if __name__ == '__main__':
             df_result[i] = series
         print(df_result)
 
-    csv_file = "./{}_{}_result.csv".format(select_data, select_model)
+    csv_file = "./{}_tlearn_result.csv".format(select_data)
     df_result.to_csv(csv_file)
 
     print("\nexport {}  as CSV.".format(csv_file))
