@@ -36,6 +36,23 @@ class Datasetmaker:
 
 
 
+    def dlist_sieve(self, DLIST):
+        """ remove systemfiles utility
+            # Args:
+                DLIST (list): list of files
+            # Returns:
+                DLIST (list): sieved and sorted list
+        """
+
+        ignore_list = [".DS_Store", "__pycache__"]
+
+        for igfile in ignore_list:
+            if igfile in DLIST:
+                DLIST.remove(igfile)
+
+        return sorted(DLIST)
+
+
     # def separate(self, split_size='small_721', save_dir=None, begin_idx=0):
     def separate(self, AMOUNT, SEP_RATE, SAVE_DIR=None, begin_idx=0):
 
@@ -132,6 +149,28 @@ class Datasetmaker:
 
             print('-*-'*10)
 
+    # def makeMul(self, N, AMOUNT, SEP_RATE):
+    def makeMul(self, N, AMOUNT, SEP_RATE):
+        cdev_cls_dir = os.path.join(self.dirs['cdev_origin_dir'], self.cls_list[0])
+        cls_all_amount = os.listdir(cdev_cls_dir)
+        cls_all_amount = len( self.dlist_sieve(cls_all_amount) )
+
+        max_N = cls_all_amount // AMOUNT
+
+        if N > max_N:
+            raise Exception('To Large N (overflow)')
+        else:
+            msample_dir = os.path.join(self.dirs['datasets_dir'], "mulSample", "m_sample")
+            os.makedirs(msample_dir, exist_ok=True)
+
+            for i in range(N):
+                begin_idx = i*AMOUNT
+
+                save_dir = os.path.join(msample_dir, "sample_{}".format(i))
+                self.separate(AMOUNT, SEP_RATE, SAVE_DIR=save_dir, begin_idx=begin_idx)
+
+        
+
 
     def makeGlobalTest(self):
 
@@ -200,6 +239,7 @@ if __name__ == '__main__':
     sep_rate = {"train":0.7, "validation":0.2, "test":0.1}
     ins.separate(AMOUNT=1000, SEP_RATE=sep_rate)
     # ins.separate(AMOUNT=25000, SEP_RATE=sep_rate)
+    # ins.makeMul(N=3, AMOUNT=100, SEP_RATE=sep_rate)
 
     """
     if args.make_dataset:
