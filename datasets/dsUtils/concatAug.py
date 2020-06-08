@@ -1,31 +1,24 @@
 
 import os, shutil
 
-# define
-cwd = os.getcwd()
-datasets_dir = os.path.dirname(cwd)
-
-data_name = "1000_721"
-data_src = os.path.join(datasets_dir, data_name)
-
-mode = "train"  # "test"
-if mode == "train":
-    target_dir = os.path.join(data_src, "train")
-    save_data_name = "train_with_aug"
-elif mode == "test":
-    target_dir = os.path.join(data_src, "test")
-    save_data_name = "test_with_aug"
-    
-save_loc = os.path.join(data_src, save_data_name)
-os.makedirs(save_loc, exist_ok=True)
+cls_list = ["cat", "dog"]
 
 
-class_list = os.listdir(target_dir)
-ignore_files = ['.DS_Store']
-for fname in ignore_files:
-    if fname in class_list:
-        class_list.remove(fname)
-class_list = sorted(class_list)
+def dlist_sieve(DLIST):
+    """ remove systemfiles utility
+        # Args:
+            DLIST (list): list of files
+        # Returns:
+            DLIST (list): sieved and sorted list
+    """
+        
+    ignore_list = [".DS_Store", "__pycache__"]
+
+    for igfile in ignore_list:
+        if igfile in DLIST:
+            DLIST.remove(igfile)
+            
+    return sorted(DLIST)
 
 
 
@@ -43,56 +36,71 @@ def copy(src_dir, file_list, dist_dir, param=None):
         shutil.copy(copy_src, copy_dst)
 
 
-def main():
+def concat(TARGET_DIR, MODE):
+    
+    save_loc = os.path.join(TARGET_DIR, "{}_with_aug".format(MODE))
+    os.makedirs(save_loc, exist_ok=False)
 
-    # copy natural target data into concat directory -----
-    for i, cname in enumerate(class_list):
-        sub_target_dir = os.path.join(target_dir, cname)
-        sub_target_list = os.listdir(sub_target_dir)
-        print(sub_target_dir)
-        print("get {} data".format(len(sub_target_list)))
+    target_dir = os.path.join(TARGET_DIR, MODE)
+
+    # copy natural target data into concat directory
+    for i, cname in enumerate(cls_list):
+        cls_src_dir = os.path.join(target_dir, cname)
+        cls_src_img_list = os.listdir(cls_src_dir)
+        cls_src_img_list = dlist_sieve(cls_src_img_list)
+        print(cls_src_dir)
+        print(cls_src_img_list)
+        print("get {} data".format(len(cls_src_img_list)))
 
         # make save concated data directory -----
-        sub_save_loc = os.path.join(save_loc, cname)
-        os.makedirs(sub_save_loc, exist_ok=True)
+        cls_save_loc = os.path.join(save_loc, cname)
+        os.makedirs(cls_save_loc, exist_ok=True)
 
         print("copy.....")
-        copy(sub_target_dir, sub_target_list, sub_save_loc)
+        copy(cls_src_dir, cls_src_img_list, cls_save_loc)
         print("    Done.")
 
 
 
-        # copy augmented data into concat directory -----
+        # copy augmented data into concat directory
         for i in range(2):
             print("process aug_{} ----------".format(i))
-            if mode == "train":
-                auged_data_dir = "auged_train_{}".format(i)
-            elif mode == "test":
-                auged_data_dir = "auged_test_{}".format(i)
-            auged_dir = os.path.join(data_src, auged_data_dir)
+            auged_data_dir = "auged_{}_{}".format(MODE, i)
+            auged_dir = os.path.join(TARGET_DIR, auged_data_dir)
 
-            sub_auged_dir = os.path.join(auged_dir, cname)
-            sub_auged_list = os.listdir(sub_auged_dir)
-            print(sub_auged_dir)
-            print("get {} data".format(len(sub_auged_list)))
+            cls_auged_dir = os.path.join(auged_dir, cname)
+            cls_auged_img_list = os.listdir(cls_auged_dir)
+            print(cls_auged_dir)
+            print("get {} data".format(len(cls_auged_img_list)))
 
             print("copy.....")
-            copy(sub_auged_dir, sub_auged_list, sub_save_loc, param=i)
+            copy(cls_auged_dir, cls_auged_img_list, cls_save_loc, param=i)
             print("    Done.")
 
 
 
-def check():
+def check(DPATH):
 
     print("\ncheck function has executed ...")
-    print(save_loc)
+    print(DPATH)
     
-    for cname in class_list:
-        sub_auged_dir = os.path.join(save_loc, cname)
-        print(sub_auged_dir)
-        print("  data amount: ", len( os.listdir(sub_auged_dir) ) )
+    for cname in cls_list:
+        cls_auged_dir = os.path.join(DPATH, cname)
+        print(cls_auged_dir)
+        print("  data amount: ", len( os.listdir(cls_auged_dir) ) )
 
 
 if __name__ == "__main__":
-    # main()
-    check()
+
+    # define
+    cwd = os.getcwd()
+    datasets_dir = os.path.dirname(cwd)
+
+    data_name = "1000_721"
+    tdir = os.path.join(datasets_dir, data_name)
+
+
+    mode = "train"  # "train" or "test"
+    
+    # concat(tdir, mode)
+    check(tdir+"/{}_with_aug".format(mode))
