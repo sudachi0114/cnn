@@ -16,15 +16,10 @@ print("TensorFlow version is ", tf.__version__)
 print("Keras version is ", keras.__version__)
 
 config = tf.ConfigProto()
-config.gpu_options.per_process_gpu_memory_fraction=0.5
+config.gpu_options.allow_growth=True
 sess = tf.Session(config=config)
-K.set_session(sess)
 
 from keras.preprocessing.image import ImageDataGenerator
-
-# from utils.model_handler import ModelHandler
-# from utils.img_utils import inputDataCreator, dataSplit
-
 from sklearn.metrics import confusion_matrix
 
 
@@ -215,7 +210,7 @@ def main(LEARN_PATH, IMAGE_SIZE, BATCH_SIZE, EPOCHS, FINE_TUNE_AT):
 
 if __name__ == '__main__':
 
-    learn_path = "/home/sudachi/cnn/datasets/full_721"
+    learn_path = "/home/sudachi/cnn/datasets/25000_721"
 
     main(LEARN_PATH=learn_path,
          IMAGE_SIZE=224,
