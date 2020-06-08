@@ -1,20 +1,23 @@
 
 import os, shutil
 
-class DataSeparator:
+class Datasetmaker:
 
     def __init__(self):
 
         self.dirs = {}
-        self.dirs['data_dir'] = os.getcwd()
-        self.dirs['origin_data_dir'] = os.path.join(self.dirs['data_dir'], "origin")
-        self.data_amount = len(os.listdir(self.dirs['origin_data_dir']))  # クラスごと別れていない前提
+        self.dirs['cwd'] = os.getcwd()
+        self.dirs['datasets_dir'] = os.path.dirname(self.dirs['cwd'])
+        # self.dirs['origin_dir'] = os.path.join(self.dirs['datasets_dir'], "origin")
+        # self.data_amount = len(os.listdir(self.dirs['origin_data_dir']))  # origin はクラスごと別れていない
+        self.dirs['cdev_origin_dir'] = os.path.join(self.dirs['datasets_dir'],
+                                                    "cdev_origin")  # クラスごとに分離したディレクトリ
 
         # train / valid / test data を配置する dir
-        self.data_purpose_list = ["train", "validation", "test"]
+        self.division_list = ["train", "validation", "test"]
 
         # class label name
-        self.class_label = ["cat", "dog"]
+        self.cls_list = ["cat", "dog"]
 
         # dict = { split_size:[train_size, validation_size, test_size] }
         self.split_dict = {}
@@ -33,18 +36,20 @@ class DataSeparator:
 
 
 
-    def separate(self, split_size='small_721', save_dir=None, begin_idx=0):
+    # def separate(self, split_size='small_721', save_dir=None, begin_idx=0):
+    def separate(self, AMOUNT, SEP_RATE, SAVE_DIR=None, begin_idx=0):
 
         # separate したデータの保存先を作成
-        if save_dir is None:
-            save_dir = os.path.join(self.dirs['data_dir'],
-                                    "{}".format(split_size))
-            print("save_dir : ", save_dir)
-            os.makedirs(save_dir, exist_ok=True)
-        elif type(save_dir) == str :
-            save_dir = save_dir
+        if SAVE_DIR is None:
+            SAVE_DIR = os.path.join(self.dirs['datasets_dir'],
+                                    "sample")
+            print("SAVE_DIR : ", SAVE_DIR)
+            os.makedirs(SAVE_DIR, exist_ok=True)
+        elif type(SAVE_DIR) == str :
+            SAVE_DIR = SAVE_DIR
 
 
+        """
         if type(split_size) == str:
             train_size = self.split_dict[split_size][0]
             validation_size = self.split_dict[split_size][1]
@@ -54,71 +59,73 @@ class DataSeparator:
             train_size = split_size[0]
             validation_size = split_size[1]
             test_size = split_size[2]
+        """
 
-            
+        cls_amount = AMOUNT // 2
+        train_size = int(cls_amount*SEP_RATE['train'])
+        validation_size = int(cls_amount*SEP_RATE['validation'])
+        test_size = int(cls_amount*SEP_RATE['test'])
+
 
         # index ----------------------------------------
-        # train     : 0 (or bagin_idx) ~ train_size
-        # validation: train_end + validation_size
-        # test      : valdaiton_end ~ validation_end + test_size
+        # train     : 0 (or bagin_idx) ~ amount*train_rate = train_end
+        # validation: train_end + amount*validation_rate = validation_end
+        # test      : valdaiton_end  + test_size
         if begin_idx == 0:
             train_begin = 0
             train_end = train_size
         elif type(begin_idx) == int:
             train_begin = begin_idx
             train_end = begin_idx + train_size
-
+            
         validation_begin = train_end
         validation_end = validation_begin + validation_size
         test_begin = validation_end
         test_end = validation_end + test_size
 
-
         print('-*-'*10)
 
 
-        for purpose in self.data_purpose_list:
-            print("make directry : {}..".format(purpose))
-            target_dir = os.path.join(save_dir, purpose)
-            print("target_dir : ", target_dir)
-            os.makedirs(target_dir, exist_ok=True)
+        for division in self.division_list:
+            div_dir = os.path.join(SAVE_DIR, division)
+            print("division dir : ", div_dir)
+            os.makedirs(div_dir, exist_ok=True)
 
-            for cname in self.class_label:
-                # train/cname
-                print("make directry : {}/{}..".format(purpose, cname))
-                target_class_dir = os.path.join(target_dir, cname)
-                print("target_class_dir :", target_class_dir)
-                os.makedirs(target_class_dir, exist_ok=True)
+            for cname in self.cls_list:
+                # division/cname
+                div_cls_dir = os.path.join(div_dir, cname)
+                print("division class dir :", div_cls_dir)
+                os.makedirs(div_cls_dir, exist_ok=True)
 
                 pic_name_list = []
-                if purpose == "train":
+                if division == "train":
                     begin = train_begin
                     end = train_end
                     size = train_size
 
-                elif purpose == "validation":
+                elif division == "validation":
                     begin = validation_begin
                     end = validation_end
                     size = validation_size
 
-                elif purpose == "test":
+                elif division == "test":
                     begin = test_begin
                     end = test_end
                     size = test_size
                     
 
-                print("Amount of {}/{} pictures is : {}".format(purpose, cname, size))
-                print("{} range is {} ~ {}".format(purpose, begin, end))
+                print("Amount of {}/{} pictures is : {}".format(division, cname, size))
+                print("{} range is {} ~ {}".format(division, begin, end))
                 for i in range(begin, end):
                     pic_name_list.append("{}.{}.jpg".format(cname, i))
 
-                print("Copy name : {}/{} | pic_name_list : {}".format(purpose, cname, pic_name_list))
+                print("Copy name : {}/{} | pic_name_list : {}".format(division, cname, pic_name_list))
 
                 assert len(pic_name_list) == size
 
                 for pic_name in pic_name_list:
-                    copy_src = os.path.join(self.dirs['origin_data_dir'], pic_name)
-                    copy_dst = os.path.join(target_class_dir, pic_name)
+                    copy_src = os.path.join(self.dirs['cdev_origin_dir'], cname, pic_name)
+                    copy_dst = os.path.join(div_cls_dir, pic_name)
                     shutil.copy(copy_src, copy_dst)
 
                 print("Done.")
@@ -188,11 +195,16 @@ if __name__ == '__main__':
 
     args = parser.parse_args()
 
-    ds = DataSeparator()
+    ins = Datasetmaker()
 
+    sep_rate = {"train":0.7, "validation":0.2, "test":0.1}
+    ins.separate(AMOUNT=1000, SEP_RATE=sep_rate)
+
+    """
     if args.make_dataset:
         ds.separate(split_size='small_721')
 
     if args.make_gtest:
         ds.makeGlobalTest()
+    """
 
