@@ -15,15 +15,23 @@ from keras import backend as K
 print("TensorFlow version is ", tf.__version__)
 print("Keras version is ", keras.__version__)
 
+"""
 config = tf.ConfigProto()
 config.gpu_options.allow_growth=True
 sess = tf.Session(config=config)
+"""
+
+config = tf.ConfigProto()
+# config.gpu_options.allow_growth=True
+config.gpu_options.per_process_gpu_memory_fraction=0.5
+sess = tf.Session(config=config)
+# K.set_session(sess)
 
 from keras.preprocessing.image import ImageDataGenerator
 from sklearn.metrics import confusion_matrix
 
 
-def main(LEARN_PATH, IMAGE_SIZE, BATCH_SIZE, EPOCHS):
+def main(LEARN_PATH, IMAGE_SIZE, CHANNEL, BATCH_SIZE, EPOCHS):
     """ function that train xception model
 
         # Args:
@@ -76,7 +84,7 @@ def main(LEARN_PATH, IMAGE_SIZE, BATCH_SIZE, EPOCHS):
         class_mode='categorical')
 
     # Create the base model from the pre-trained convnets
-    IMG_SHAPE = (IMAGE_SIZE, IMAGE_SIZE, 3)
+    IMG_SHAPE = (IMAGE_SIZE, IMAGE_SIZE, CHANNEL)
 
 
     # Create the base model from the pre-trained model MobileNet V2
@@ -85,9 +93,21 @@ def main(LEARN_PATH, IMAGE_SIZE, BATCH_SIZE, EPOCHS):
                                                 include_top=False,
                                                 weights='imagenet')
     """
+    """
     base_model = keras.applications.vgg16.VGG16(input_shape=IMG_SHAPE,
                                                 include_top=False,
                                                 weights=None)
+    """
+    base_model = keras.applications.mobilenet.MobileNet(input_shape=IMG_SHAPE,
+                                                        # alpha=1.0,
+                                                        # depth_multiplier=1,
+                                                        # dropout=1e-3,
+                                                        include_top=False,
+                                                        weights=None,
+                                                        # input_tensor=None,
+                                                        # pooling=None, classes=1000)
+                                                        )
+    
 
 
     base_model.summary()
@@ -129,11 +149,12 @@ def main(LEARN_PATH, IMAGE_SIZE, BATCH_SIZE, EPOCHS):
     test_steps = test_generator.n // BATCH_SIZE
 
 
+
     model.summary()
 
     start = time.time()
     history = model.fit_generator(train_generator,
-                                  steps_per_epoch = steps_per_epoch,
+                                  steps_per_epoch=steps_per_epoch,
                                   epochs=EPOCHS,
                                   workers=4,
                                   validation_data=validation_generator,
@@ -186,5 +207,6 @@ if __name__ == '__main__':
 
     main(LEARN_PATH=learn_path,
          IMAGE_SIZE=224,
+         CHANNEL=3,
          BATCH_SIZE=20,
          EPOCHS=50)
