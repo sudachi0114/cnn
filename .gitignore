@@ -7,11 +7,9 @@ __pycache__
 
 # logs
 *.log
-*model.json
-*model.h5
-*weights.h5
-*history.pkl
-*.png
+*.json
+*.h5
+*.pkl
 *old*
 *.csv
 
@@ -19,6 +17,7 @@ __pycache__
 *.zip
 *.jpg
 *.jpeg
+*.png
 *.npz
 
 # ignore utils
@@ -27,7 +26,3 @@ search.sh
 
 # old codes
 zzz_history/
-checker/
-
-# temporary
-subprojects/*/outputs/
