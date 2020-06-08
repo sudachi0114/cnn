@@ -21,36 +21,35 @@ from utils.img_utils import inputDataCreator, dataSplit
 
 
 
-def main(data_mode, model_mode, no, set_epochs=60, do_es=False):
-
-    cwd = os.getcwd()
-    data_dir = os.path.join(cwd, "experiment_{}".format(no))
+def main(N, LEARN_PATH, MODE, BUILD_MODEL, EPOCHS=60, BATCH_SIZE=20, FINE_TUNE_AT=81):
 
 
-    total_data, total_label = inputDataCreator(data_dir,
-                                               224,
-                                               normalize=True,
-                                               #one_hot=True
-    )
+    total_data, total_label = inputDataCreator(
+        os.path.join(LEARN_PATH, "natural"),
+        224,
+        normalize=True)
+        #one_hot=True
+
     print("\ntotal_data shape: ", total_data.shape)
     print("total_label shape: ", total_label.shape)
 
-    if data_mode == 'auged':
-        base_dir, data_dir_name = os.path.split(data_dir)
-        data_dir_name = "auged_" + data_dir_name
-        auged_dir = os.path.join(base_dir, data_dir_name)
-        set_epochs = int( set_epochs/2 )
+    if MODE == 'auged':
+        auged_dir = os.path.join(LEARN_PATH, "auged")
+        EPOCHS = EPOCHS//2 
 
-        total_auged_data, total_auged_label = inputDataCreator(auged_dir,
-                                                               224,
-                                                               normalize=True,
-                                                               one_hot=True)
+        total_auged_data, total_auged_label = inputDataCreator(
+            auged_dir,
+            224,
+            normalize=True,
+            one_hot=True)
         print("\n  total auged_data : ", total_auged_data.shape)
 
 
     input_size = total_data.shape[1]
     channel = total_data.shape[3]
+
     mh = ModelHandler(input_size, channel)
+
 
     skf = StratifiedKFold(n_splits=5)
 
@@ -64,6 +63,8 @@ def main(data_mode, model_mode, no, set_epochs=60, do_es=False):
         test_data = total_data[test_idx]
         test_label = total_label[test_idx]
 
+        print(test_data)
+
         print("-----*-----*-----")
 
         traval_data = total_data[traval_idx]
@@ -74,23 +75,25 @@ def main(data_mode, model_mode, no, set_epochs=60, do_es=False):
         traval_label = np.identity(2)[traval_label.astype(np.int8)]
         test_label = np.identity(2)[test_label.astype(np.int8)]
 
-        train_data, train_label, validation_data, validation_label, _, _ = dataSplit(traval_data,
-                                                                                     traval_label,
-                                                                                     train_rate=3/4,
-                                                                                     validation_rate=1/4,
-                                                                                     test_rate=0)
+        train_data, train_label, validation_data, validation_label, _, _ = dataSplit(
+            traval_data,
+            traval_label,
+            train_rate=3/4,
+            validation_rate=1/4,
+            test_rate=0)
 
-        if data_mode == 'auged':
+        if MODE == 'auged':
             print("\nadd auged data to train_data...")
 
             auged_traval_data = total_auged_data[traval_idx]
             auged_traval_label = total_auged_label[traval_idx]
 
-            auged_train_data, auged_train_label, _, _, _, _ = dataSplit(auged_traval_data,
-                                                                        auged_traval_label,
-                                                                        train_rate=3/4,
-                                                                        validation_rate=1/4,
-                                                                        test_rate=0)
+            auged_train_data, auged_train_label, _, _, _, _ = dataSplit(
+                auged_traval_data,
+                auged_traval_label,
+                train_rate=3/4,
+                validation_rate=1/4,
+                test_rate=0)
 
             print("  append auged data: ", auged_train_data.shape)
             print("\n  concatnate auged data with native data...")
@@ -108,38 +111,34 @@ def main(data_mode, model_mode, no, set_epochs=60, do_es=False):
         print("test label shape: ", test_label.shape)
 
 
-        if do_es:
-            es = EarlyStopping(monitor='val_loss',
-                               patience=5,
-                               verbose=1,
-                               mode='auto')
-            es = [es]
-        else:
-            es = None
+        es = EarlyStopping(monitor='val_loss',
+                           patience=5,
+                           verbose=1,
+                           restore_best_weights=True,
+                           mode='auto')
 
-        batch_size = 10
-        print("set epochs: ", set_epochs)
+        print("set epochs: ", EPOCHS)
 
-        
-        if model_mode == 'mymodel':
+
+        if BUILD_MODEL == 'mymodel':
             model = mh.buildMyModel()
 
             # normal train ----------
             print("\ntraining sequence start .....")
             start = time.time()
 
-            history = model.fit(train_data,
-                                train_label,
-                                batch_size,
-                                epochs=set_epochs,
-                                vlidation_data=(validation_data, validation_label),
-                                callbacks=es,
-                                verbose=1)
-
+            history = model.fit(
+                train_data,
+                train_label,
+                BATCH_SIZE,
+                epochs=EPOCHS,
+                vlidation_data=(validation_data, validation_label),
+                callbacks=[es],
+                verbose=2)
             elapsed_time = time.time() - start
 
             
-        elif model_mode == 'tlearn':
+        elif BUILD_MODEL == 'tlearn':
             # あとで重みの解凍をできるように base_model を定義
             base_model = mh.buildMnv1Base()
             base_model.trainable=False
@@ -153,53 +152,52 @@ def main(data_mode, model_mode, no, set_epochs=60, do_es=False):
             # 準備体操 -----
             print("\nwarm up sequence .....")
             model.summary()
-            _history = model.fit(train_data,
-                                 train_label,
-                                 batch_size,
-                                 epochs=10,
-                                 validation_data=(validation_data, validation_label),
-                                 callbacks=es,
-                                 verbose=1)
+            _history = model.fit(
+                train_data,
+                train_label,
+                BATCH_SIZE,
+                epochs=10,
+                validation_data=(validation_data, validation_label),
+                callbacks=[es],
+                verbose=2)
 
             # fine tuning -----
             print("\nfine tuning.....")
-            mh.setFineTune(base_model, model, 81)
+            mh.setFineTune(base_model, model, FINE_TUNE_AT)
             model.summary()
 
-            history = model.fit(train_data,
-                                train_label,
-                                batch_size,
-                                epochs=set_epochs,
-                                validation_data=(validation_data, validation_label),
-                                callbacks=es,
-                                verbose=1)
-
+            history = model.fit(
+                train_data,
+                train_label,
+                BATCH_SIZE,
+                epochs=EPOCHS,
+                validation_data=(validation_data, validation_label),
+                callbacks=[es],
+                verbose=2)
             elapsed_time = time.time() - start
 
 
 
+        # training end 
         accs = history.history['accuracy']
         losses = history.history['loss']
         val_accs = history.history['val_accuracy']
         val_losses = history.history['val_loss']
 
 
-        if do_es:
-            log_dir = os.path.join(cwd, "flog_with_es")
-        else:
-            log_dir = os.path.join(cwd, "flog")
+        log_dir = os.path.join(os.path.dirname(cwd), "flog")
         os.makedirs(log_dir, exist_ok=True)
 
         """
-        child_log_dir = os.path.join(log_dir, "{}_{}_{}".format(data_mode, model_mode, no))
+        child_log_dir = os.path.join(log_dir, "{}_{}_{}".format(MODE, BUILD_MODEL, no))
         os.makedirs(child_log_dir, exist_ok=True)
 
         # save model & weights
-        model_file = os.path.join(child_log_dir, "{}_{}_{}_model.h5".format(data_mode, model_mode, no))
+        model_file = os.path.join(child_log_dir, "{}_{}_{}_model.h5".format(MODE, BUILD_MODEL, no))
         model.save(model_file)
 
         # save history
-        history_file = os.path.join(child_log_dir, "{}_{}_{}_history.pkl".format(data_mode, model_mode, no))
+        history_file = os.path.join(child_log_dir, "{}_{}_{}_history.pkl".format(MODE, BUILD_MODEL, no))
         with open(history_file, 'wb') as p:
             pickle.dump(history.history, p)
 
@@ -210,7 +208,7 @@ def main(data_mode, model_mode, no, set_epochs=60, do_es=False):
         print("\npredict sequence...")
         pred = model.predict(test_data,
                              batch_size=10,
-                             verbose=1)
+                             verbose=2)
 
         label_name_list = []
         for i in range(len(test_label)):
@@ -240,7 +238,7 @@ def main(data_mode, model_mode, no, set_epochs=60, do_es=False):
         eval_res = model.evaluate(test_data,
                                   test_label,
                                   batch_size=10,
-                                  verbose=1)
+                                  verbose=2)
 
         print("result loss: ", eval_res[0])
         print("result score: ", eval_res[1])
@@ -269,7 +267,7 @@ def main(data_mode, model_mode, no, set_epochs=60, do_es=False):
         # del total_data, total_label
         del traval_data, traval_label
 
-        if data_mode == 'auged':
+        if MODE == 'auged':
             # del total_auged_data, total_auged_label
             del auged_traval_data, auged_traval_label
             del auged_train_data, auged_train_label
@@ -287,7 +285,7 @@ def main(data_mode, model_mode, no, set_epochs=60, do_es=False):
 
         k+=1
 
-    csv_file = os.path.join( log_dir, "{}_{}_result.csv".format(data_mode, model_mode) )
+    csv_file = os.path.join( log_dir, "{}_{}_result.csv".format(MODE, BUILD_MODEL) )
     df_result.to_csv(csv_file)
 
     print("\nexport {}  as CSV.".format(csv_file))
@@ -296,25 +294,35 @@ def main(data_mode, model_mode, no, set_epochs=60, do_es=False):
 
 if __name__ == '__main__':
 
-    parser = argparse.ArgumentParser(description="DA 実験 100例 学習プログラム")
+    parser = argparse.ArgumentParser(description="DA 実験 複数例 学習プログラム")
 
-    parser.add_argument("--earlystopping", "-es", action="store_true",
-                        help="学習時に EarlyStopping を ON にする.")
+    # parser.add_argument("--earlystopping", "-es", action="store_true",
+    #                     help="学習時に EarlyStopping を ON にする.")
 
     args = parser.parse_args()
 
     data_mode_list = ['native', 'auged']
     model_mode_list = ['mymodel', 'tlearn']
 
+    cwd = os.getcwd()
+    sub_datasetsd = os.path.join(os.path.dirname(cwd),
+                                 "subdatasets")
 
+    N = 1
+    for i in range(N):
+        #    print("\ndata no. {} -------------------------------".format(i))
+        learn_path = os.path.join(sub_datasetsd,
+                                  "sample_{}".format(i))
 
-    select_data = 'auged'
-    select_model = 'tlearn'
-    print("\nuse data:{} | model:{}".format(select_data, select_model))
-    # for i in range(1):
-    #    print("\ndata no. {} -------------------------------".format(i))
-    main(data_mode=select_data,
-         model_mode=select_model,
-         no=0,
-         do_es=args.earlystopping)
+        select_data = 'auged'
+        select_model = 'tlearn'
+        print("\nuse data:{} | model:{}".format(select_data, select_model))
+
+        main(N=i,
+             LEARN_PATH=learn_path,
+             MODE=select_data,
+             BUILD_MODEL=select_model,
+             EPOCHS=60,
+             BATCH_SIZE=20,
+             FINE_TUNE_AT=81)
 
