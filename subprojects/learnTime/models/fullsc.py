@@ -203,7 +203,7 @@ def main(LEARN_PATH, IMAGE_SIZE, CHANNEL, BATCH_SIZE, EPOCHS):
 
 if __name__ == '__main__':
 
-    learn_path = "/home/sudachi/cnn/datasets/full_721"
+    learn_path = "/home/sudachi/cnn/datasets/25000_721"
 
     main(LEARN_PATH=learn_path,
          IMAGE_SIZE=224,
