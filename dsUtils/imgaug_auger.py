@@ -9,10 +9,7 @@ from PIL import Image
 import imgaug as ia
 import imgaug.augmenters as iaa
 
-try:
-    from img_utils import inputDataCreator
-except:
-    from utils.img_utils import inputDataCreator
+from utils.img_utils import inputDataCreator
 
 
 class AugWithImgaug:
@@ -22,7 +19,8 @@ class AugWithImgaug:
         # 最低限の dir 構成を保持
         self.dirs = {}
         self.dirs['cwd'] = os.getcwd()
-        self.dirs['datasets_dir'] = os.path.dirname(self.dirs['cwd'])
+        self.dirs['prj_root'] = os.path.dirname(self.dirs['cwd'])
+        self.dirs['datasets_dir'] = os.path.join(self.dirs['prj_root'], "datasets")
     
 
         # list of imgaug DA modes -----
@@ -253,7 +251,8 @@ class AugWithImgaug:
 if __name__ == '__main__':
 
     cwd = os.getcwd()
-    datasets_dir = os.path.dirname(cwd)
+    prj_root = os.path.dirname(cwd)
+    datasets_dir = os.path.join(prj_root, "datasets")
     data_src = os.path.join(datasets_dir, "1000_721")
     
     train_dir = os.path.join(data_src, "train")

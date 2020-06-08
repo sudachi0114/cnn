@@ -70,7 +70,7 @@ def execute(TARGET_DIR, CLS_LIST):
     # class devided ships net directory -----
     cdev_origin = os.path.join(par_datasets_dir,
                                "cdev_origin")
-    os.makedirs(cdev_origin, exist_ok=True)
+    os.makedirs(cdev_origin, exist_ok=False)
 
     for i, cname in enumerate(cls_list):
         cdir = os.path.join(cdev_origin, cname)
@@ -92,13 +92,14 @@ if __name__ == "__main__":
 
     # define
     cwd = os.getcwd()
-    datasets_dir = os.path.dirname(cwd)
+    prj_root = os.path.dirname(cwd)
+    datasets_dir = os.path.join(prj_root, "datasets")
 
     origin_dir = os.path.join(datasets_dir, "origin")
 
     print(origin_dir)
     print("origin image amount:", len(os.listdir(origin_dir)))
 
-    # execute(origin_dir, cls_list)
+    execute(origin_dir, cls_list)
     countAmount(datasets_dir+"/cdev_origin", cls_list)
 

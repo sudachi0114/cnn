@@ -1,5 +1,9 @@
+#
+# basic dataset maker
+#
 
-import os, shutil
+import os
+import shutil
 
 class Datasetmaker:
 
@@ -7,7 +11,8 @@ class Datasetmaker:
 
         self.dirs = {}
         self.dirs['cwd'] = os.getcwd()
-        self.dirs['datasets_dir'] = os.path.dirname(self.dirs['cwd'])
+        self.dirs['prj_root'] = os.path.dirname(self.dirs['cwd'])
+        self.dirs['datasets_dir'] = os.path.join(self.dirs['prj_root'], "datasets")
         # self.dirs['origin_dir'] = os.path.join(self.dirs['datasets_dir'], "origin")
         # self.data_amount = len(os.listdir(self.dirs['origin_data_dir']))  # origin はクラスごと別れていない
         self.dirs['cdev_origin_dir'] = os.path.join(self.dirs['datasets_dir'],
@@ -58,12 +63,11 @@ class Datasetmaker:
 
         # separate したデータの保存先を作成
         if SAVE_DIR is None:
-            SAVE_DIR = os.path.join(self.dirs['datasets_dir'],
-                                    "sample")
-            print("SAVE_DIR : ", SAVE_DIR)
-            os.makedirs(SAVE_DIR, exist_ok=True)
+            SAVE_DIR = os.path.join(self.dirs['datasets_dir'], "sample")
         elif type(SAVE_DIR) == str :
             SAVE_DIR = SAVE_DIR
+        print("SAVE_DIR : ", SAVE_DIR)
+        os.makedirs(SAVE_DIR, exist_ok=False)
 
 
         """

@@ -4,9 +4,7 @@
 #
 
 
-# imports
 import os
-
 
 cls_list = ["cat", "dog"]
 division_list = ["train", "validation", "test"]
@@ -86,7 +84,7 @@ if __name__ == "__main__":
 
     # define
     cwd = os.getcwd()
-    datasets_dir = os.path.dirname(cwd)
+    datasets_dir = os.path.join(cwd, "datasets")
     origin_dir = os.path.join(datasets_dir, "origin")
 
     # separeted_dir = os.path.join(cwd, "small_721")
