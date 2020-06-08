@@ -199,6 +199,7 @@ if __name__ == '__main__':
 
     sep_rate = {"train":0.7, "validation":0.2, "test":0.1}
     ins.separate(AMOUNT=1000, SEP_RATE=sep_rate)
+    # ins.separate(AMOUNT=25000, SEP_RATE=sep_rate)
 
     """
     if args.make_dataset:
