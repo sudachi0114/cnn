@@ -9,7 +9,8 @@ from imgaug_auger import AugWithImgaug
 if __name__ == '__main__':
 
     cwd = os.getcwd()
-    datasets_dir = os.path.dirname(cwd)
+    prj_root = os.path.dirname(cwd)
+    datasets_dir = os.path.join(prj_root, "datasets")
     msample_dir = os.path.join(datasets_dir, "mulSample", "m_sample")
 
     N = 5

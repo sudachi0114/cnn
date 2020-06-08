@@ -9,9 +9,11 @@ if __name__ == "__main__":
 
     # define
     cwd = os.getcwd()
-    datasets_dir = os.path.dirname(cwd)
+    prj_root = os.path.dirname(cwd)
+    datasets_dir = os.path.join(prj_root, "datasets")
 
-    data_name = os.path.join(datasets_dir, "mulSample", "m_sample")
+    # data_name = os.path.join(datasets_dir, "mulSample", "m_sample")
+    data_name = os.path.join(datasets_dir, "mulSample", "1000_721")
 
     N = 5
     for i in range(N):
