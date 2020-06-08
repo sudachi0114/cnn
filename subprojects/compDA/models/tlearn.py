@@ -80,7 +80,8 @@ def main(N, LEARN_PATH, DATA_MODE, EPOCHS=60, FINE_TUNE_AT=81):
     mh = ModelHandler(input_size, channel)
 
     # あとで重みの解凍をできるように base_model を定義
-    base_model = mh.buildMnv1Base()
+    # base_model = mh.buildMnv1Base()
+    base_model = mh.buildVgg16Base()
     base_model.trainable=False
 
     model = mh.addChead(base_model)
@@ -218,7 +219,7 @@ if __name__ == '__main__':
                            LEARN_PATH=learn_path,
                            DATA_MODE=select_data,
                            EPOCHS=60,
-                           FINE_TUNE_AT=81)
+                           FINE_TUNE_AT=15)
         if i == 0:
             df_result = pd.DataFrame(result_dict.values(), index=result_dict.keys())
             """
