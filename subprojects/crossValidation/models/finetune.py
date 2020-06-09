@@ -63,8 +63,6 @@ def main(N, LEARN_PATH, MODE, BUILD_MODEL, EPOCHS=60, BATCH_SIZE=20, FINE_TUNE_A
         test_data = total_data[test_idx]
         test_label = total_label[test_idx]
 
-        print(test_data)
-
         print("-----*-----*-----")
 
         traval_data = total_data[traval_idx]
@@ -285,7 +283,7 @@ def main(N, LEARN_PATH, MODE, BUILD_MODEL, EPOCHS=60, BATCH_SIZE=20, FINE_TUNE_A
 
         k+=1
 
-    csv_file = os.path.join( log_dir, "{}_{}_result.csv".format(MODE, BUILD_MODEL) )
+    csv_file = os.path.join( log_dir, "sample_{}_{}_{}_result.csv".format(N, MODE, BUILD_MODEL) )
     df_result.to_csv(csv_file)
 
     print("\nexport {}  as CSV.".format(csv_file))
@@ -308,7 +306,7 @@ if __name__ == '__main__':
     sub_datasetsd = os.path.join(os.path.dirname(cwd),
                                  "subdatasets")
 
-    N = 1
+    N = 3
     for i in range(N):
         #    print("\ndata no. {} -------------------------------".format(i))
         learn_path = os.path.join(sub_datasetsd,
