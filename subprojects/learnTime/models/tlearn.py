@@ -90,9 +90,15 @@ def main(LEARN_PATH, IMAGE_SIZE, BATCH_SIZE, EPOCHS, FINE_TUNE_AT):
                                                         include_top=False,
                                                         weights='imagenet')
     """
+    """
     base_model = keras.applications.mobilenet_v2.MobileNetV2(input_shape=IMG_SHAPE,
                                                              include_top=False,
                                                              weights='imagenet')
+    """
+    base_model = keras.applications.xception.Xception(input_shape=IMG_SHAPE,
+                                                      include_top=False,
+                                                      weights='imagenet')
+
 
 
 
@@ -227,8 +233,9 @@ if __name__ == '__main__':
          IMAGE_SIZE=224,
          BATCH_SIZE=20,
          EPOCHS=50,
-         FINE_TUNE_AT=100)
+         FINE_TUNE_AT=108)
     # FINE TUNE AI:
     #   vgg16: 15
     #    mnv1: 81
     #    mnv2: 100?
+    #    xception: 108
