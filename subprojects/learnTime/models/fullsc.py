@@ -104,9 +104,15 @@ def main(LEARN_PATH, IMAGE_SIZE, CHANNEL, BATCH_SIZE, EPOCHS):
                                                         # pooling=None, classes=1000)
                                                         )
     """
+    """
     base_model = keras.applications.mobilenet_v2.MobileNetV2(input_shape=IMG_SHAPE,
                                                              include_top=False,
                                                              weights=None)
+    """
+    base_model = keras.applications.xception.Xception(input_shape=IMG_SHAPE,
+                                                      include_top=False,
+                                                      weights=None)
+
 
 
 
