@@ -218,10 +218,10 @@ class DatasetMaker:
 
 
 
-    def doWhole(self, N, DATASET_SIZE):
+    def doWhole(self, N, DATASET_SIZE, AUGMENTATION="rotation"):
 
         self.separete(N, DATASET_SIZE)
-        self.r_augment()
+        self.r_augment(AUGMENTATION=AUGMENTATION)
         self.r_concat()
 
 
@@ -259,6 +259,8 @@ if __name__ == '__main__':
     elif arg.rconcat:
         ins.r_concat()
     elif arg.make:
-        ins.doWhole(N=3, DATASET_SIZE=100)
+        ins.doWhole(N=5,
+                    DATASET_SIZE=100,
+                    AUGMENTATION="rotation")
     elif arg.clean:
         ins.clean()
