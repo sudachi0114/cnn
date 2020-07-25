@@ -303,16 +303,17 @@ if __name__ == '__main__':
     model_mode_list = ['mymodel', 'tlearn']
 
     cwd = os.getcwd()
+    augmentation = "plural"
     sub_datasetsd = os.path.join(os.path.dirname(cwd),
-                                 "subdatasets")
+                                 "made", "{}_cv".format(augmentation))
 
-    N = 3
+    N = 5
     for i in range(N):
         #    print("\ndata no. {} -------------------------------".format(i))
         learn_path = os.path.join(sub_datasetsd,
                                   "sample_{}".format(i))
 
-        select_data = 'auged'
+        select_data = 'native'
         select_model = 'tlearn'
         print("\nuse data:{} | model:{}".format(select_data, select_model))
 
